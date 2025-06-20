@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Money Budgeter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f0f0f0;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: #222;
+      color: #f0f0f0;
+    }
+    .app {
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    #clock {
+      font-size: 1em;
+      font-weight: bold;
+    }
+    #auto-info {
+      font-size: 0.95em;
+      color: #555;
+      margin-top: 3px;
+    }
+    #total-display {
+      font-size: 1.5em;
+      margin-top: 10px;
+    }
+    #current-input {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    #keypad {
+      margin-top: 20px;
+    }
+    #keypad .row {
+      display: flex;
+      margin: 5px 0;
+    }
+    #keypad button {
+      flex: 1;
+      padding: 15px;
+      font-size: 1.2em;
+      margin: 2px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    #history {
+      margin-top: 30px;
+    }
+    #history-list {
+      max-height: 150px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.05);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    #clear-history {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      background: #d9534f;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #repeating-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px;
+      font-size: 1.5em;
+      border-radius: 50%;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #theme-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 1.5em;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header-top">
+      <div>
+        <div id="clock">🕒 Time: --:--</div>
+        <div id="auto-info">Auto-Renew: --</div>
+      </div>
+    </div>
+
+    <header>
+      <h1>Money Budgeter</h1>
+    </header>
+
+    <div id="total-display">TOTAL: <span id="total">0.00</span></div>
+    <div id="current-input">Input: <span id="input-value">0</span></div>
+
+    <section id="history">
+      <h2>History</h2>
+      <div id="history-list"></div>
+      <button id="clear-history">Clear History</button>
+    </section>
+
+    <section id="calculator">
+      <div id="keypad">
+        <div class="row">
+          <button data-num="1">1</button><button data-num="2">2</button><button data-num="3">3</button><button data-action="subtract">−</button>
+        </div>
+        <div class="row">
+          <button data-num="4">4</button><button data-num="5">5</button><button data-num="6">6</button><button data-action="add">+</button>
+        </div>
+        <div class="row">
+          <button data-num="7">7</button><button data-num="8">8</button><button data-num="9">9</button><button data-num=".">.</button>
+        </div>
+        <div class="row">
+          <button data-num="0">0</button><button id="clear-input">C</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <button id="repeating-btn" title="Add Repeating Transaction">➕</button>
+  <button id="theme-toggle" title="Toggle Light/Dark Mode">🌙</button>
+
+  <script>
+    let total = 0.0;
+    let history = [];
+    let input = "";
+
+    const totalDisplay = document.getElementById('total');
+    const inputValue = document.getElementById('input-value');
+    const historyList = document.getElementById('history-list');
+    const clearHistoryBtn = document.getElementById('clear-history');
+    const themeToggle = document.getElementById('theme-toggle');
+    const repeatingBtn = document.getElementById('repeating-btn');
+    const clearInputBtn = document.getElementById('clear-input');
+    const autoInfo = document.getElementById('auto-info');
+    const clock = document.getElementById('clock');
+
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = `🕒 Time: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+    }
+
+    function updateDisplay() {
+      totalDisplay.textContent = total.toFixed(2);
+      inputValue.textContent = input || "0";
+      historyList.innerHTML = '';
+      history.forEach(entry => {
+        const div = document.createElement('div');
+        div.textContent = `${entry.date} • ${entry.time} — ${entry.label || ''} ${entry.amount > 0 ? '+' : ''}${entry.amount}`;
+        historyList.appendChild(div);
+      });
+      localStorage.setItem('budgetHistory', JSON.stringify(history));
+      localStorage.setItem('budgetTotal', total.toFixed(2));
+    }
+
+    function addToHistory(amount, label = "") {
+      if (isNaN(amount)) return;
+      const now = new Date();
+      const date = now.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+      const time = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true });
+      history.push({ date, time, amount, label });
+      total += parseFloat(amount);
+      input = "";
+      updateDisplay();
+    }
+
+    function applyRepeatingTransactionIfNeeded() {
+      const repeatData = JSON.parse(localStorage.getItem('repeatingTransaction'));
+      const appliedToday = localStorage.getItem('lastRepeatApplied');
+      const today = new Date();
+      const dayStr = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][today.getDay()];
+      const dateKey = today.toDateString();
+
+      if (repeatData) {
+        autoInfo.textContent = `Auto-Renew: ${repeatData.amount > 0 ? '+' : ''}${repeatData.amount} on ${repeatData.days.join(', ')}`;
+        if (repeatData.days.includes(dayStr) && appliedToday !== dateKey) {
+          addToHistory(repeatData.amount, "Auto-Renew");
+          localStorage.setItem('lastRepeatApplied', dateKey);
+        }
+      } else {
+        autoInfo.textContent = "Auto-Renew: Not Set";
+      }
+    }
+
+    document.querySelectorAll('#keypad button').forEach(btn => {
+      const num = btn.getAttribute('data-num');
+      const action = btn.getAttribute('data-action');
+
+      if (num !== null) {
+        btn.addEventListener('click', () => {
+          if (num === "." && input.includes(".")) return;
+          input += num;
+          updateDisplay();
+        });
+      } else if (action === "add") {
+        btn.addEventListener('click', () => {
+          if (input) addToHistory(parseFloat(input));
+        });
+      } else if (action === "subtract") {
+        btn.addEventListener('click', () => {
+          if (input) addToHistory(-parseFloat(input));
+        });
+      }
+    });
+
+    clearInputBtn.onclick = () => {
+      input = "";
+      updateDisplay();
+    };
+
+    clearHistoryBtn.onclick = () => {
+      if (confirm('Clear history?')) {
+        history = [];
+        total = 0.0;
+        localStorage.removeItem('lastRepeatApplied');
+        updateDisplay();
+      }
+    };
+
+    themeToggle.onclick = () => {
+      document.body.classList.toggle('dark');
+    };
+
+    repeatingBtn.onclick = () => {
+      window.location.href = "repeat.html";
+    };
+
+    window.onload = () => {
+      history = JSON.parse(localStorage.getItem('budgetHistory')) || [];
+      total = parseFloat(localStorage.getItem('budgetTotal')) || 0.0;
+      updateDisplay();
+      applyRepeatingTransactionIfNeeded();
+      updateClock();
+      setInterval(updateClock, 1000);
+    };
+  </script>
+</body>
+</html>
