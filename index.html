@@ -8,7 +8,7 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       transition: background 0.3s, color 0.3s;
     }
 
@@ -22,9 +22,31 @@
       color: #f0f0f0;
     }
 
+    .main-container {
+      max-width: 500px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    body.dark-mode .main-container {
+      background: #2c2c2c;
+      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.05);
+    }
+
     h1 {
       text-align: center;
       color: #007bff;
+      margin-bottom: 10px;
+    }
+
+    .clock {
+      font-size: 16px;
+      text-align: center;
+      margin: 10px 0;
     }
 
     .budget {
@@ -33,24 +55,10 @@
       margin-bottom: 10px;
     }
 
-    .clock, .renewal-info {
+    .renewal-info {
       font-size: 16px;
       text-align: center;
-      margin: 10px 0;
-    }
-
-    .history {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
-      background: #fff;
-    }
-
-    body.dark-mode .history {
-      background: #2c2c2c;
-      border-color: #666;
+      margin-bottom: 20px;
     }
 
     .buttons {
@@ -76,6 +84,20 @@
       background: #0056b3;
     }
 
+    .history {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    body.dark-mode .history {
+      background: #2c2c2c;
+      border-color: #666;
+    }
+
     #mode-toggle {
       position: fixed;
       bottom: 20px;
@@ -86,21 +108,22 @@
   </style>
 </head>
 <body>
-  <h1>Money Budgeter</h1>
+  <div class="main-container">
+    <h1>Money Budgeter</h1>
+    <div class="clock" id="clock">🕒 Time: --:--</div>
+    <div class="budget" id="budget">Budget: $0</div>
+    <div class="renewal-info" id="renewal-info"></div>
 
-  <div class="clock" id="clock">🕒 Time: --:--</div>
-  <div class="budget" id="budget">Budget: $0</div>
-  <div class="renewal-info" id="renewal-info"></div>
+    <div class="buttons">
+      <button onclick="changeBudget('add')">Add</button>
+      <button onclick="changeBudget('subtract')">Subtract</button>
+      <button onclick="clearHistory()">Clear History</button>
+      <button onclick="resetBudget()">Reset</button>
+      <button onclick="location.href='repeat.html'">Repeat ➕</button>
+    </div>
 
-  <div class="buttons">
-    <button onclick="changeBudget('add')">Add</button>
-    <button onclick="changeBudget('subtract')">Subtract</button>
-    <button onclick="clearHistory()">Clear History</button>
-    <button onclick="resetBudget()">Reset</button>
-    <button onclick="location.href='repeat.html'">Repeat ➕</button>
+    <div class="history" id="history"></div>
   </div>
-
-  <div class="history" id="history"></div>
 
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
 
