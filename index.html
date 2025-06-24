@@ -52,7 +52,7 @@
       margin: 8px 0;
     }
 
-    .buttons {
+    .buttons, .numpad {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -77,6 +77,13 @@
       background: #0056b3;
     }
 
+    .numpad button {
+      flex: 1 1 30%;
+      padding: 15px;
+      font-size: 18px;
+      background: #444;
+    }
+
     #history {
       max-height: 180px;
       overflow-y: auto;
@@ -98,6 +105,16 @@
       font-size: 26px;
       cursor: pointer;
     }
+
+    #input-display {
+      width: 100%;
+      text-align: right;
+      font-size: 24px;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: inherit;
+    }
   </style>
 </head>
 <body>
@@ -107,9 +124,26 @@
     <div id="budget">Budget: $0</div>
     <div id="renewal-info"></div>
 
+    <input id="input-display" placeholder="Enter amount" readonly>
+
+    <div class="numpad">
+      <button onclick="appendNumber('1')">1</button>
+      <button onclick="appendNumber('2')">2</button>
+      <button onclick="appendNumber('3')">3</button>
+      <button onclick="appendNumber('4')">4</button>
+      <button onclick="appendNumber('5')">5</button>
+      <button onclick="appendNumber('6')">6</button>
+      <button onclick="appendNumber('7')">7</button>
+      <button onclick="appendNumber('8')">8</button>
+      <button onclick="appendNumber('9')">9</button>
+      <button onclick="appendNumber('0')">0</button>
+      <button onclick="appendNumber('.')">.</button>
+      <button onclick="clearInput()">⌫</button>
+    </div>
+
     <div class="buttons">
-      <button onclick="changeBudget('add')">Add</button>
-      <button onclick="changeBudget('subtract')">Subtract</button>
+      <button onclick="submitAmount('add')">Add</button>
+      <button onclick="submitAmount('subtract')">Subtract</button>
       <button onclick="clearHistory()">Clear History</button>
       <button onclick="resetBudget()">Reset</button>
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
@@ -123,6 +157,7 @@
   <script>
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
     let history = JSON.parse(localStorage.getItem('history')) || [];
+    let currentInput = '';
 
     function updateClock() {
       const now = new Date();
@@ -150,13 +185,25 @@
       document.getElementById('renewal-info').textContent = repeat.length ? `🔁 Auto-renewals: ${repeat.length} saved` : '';
     }
 
-    function changeBudget(type) {
-      const amount = parseFloat(prompt("Enter amount:"));
+    function appendNumber(num) {
+      currentInput += num;
+      document.getElementById('input-display').value = currentInput;
+    }
+
+    function clearInput() {
+      currentInput = currentInput.slice(0, -1);
+      document.getElementById('input-display').value = currentInput;
+    }
+
+    function submitAmount(type) {
+      const amount = parseFloat(currentInput);
       if (isNaN(amount)) return;
       budget += (type === 'add' ? amount : -amount);
       localStorage.setItem('budget', budget);
       history.push({ date: new Date().toLocaleString(), amount: (type === 'add' ? '+' : '-') + amount });
       localStorage.setItem('history', JSON.stringify(history));
+      currentInput = '';
+      document.getElementById('input-display').value = '';
       updateUI();
     }
 
