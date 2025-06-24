@@ -124,8 +124,11 @@
       <option value="subtract">Subtract</option>
     </select>
 
-    <label>Select Days:</label>
+    <label>Select Days (optional):</label>
     <div class="day-selector" id="day-buttons"></div>
+
+    <label>Or enter a specific date of the month (1–31):</label>
+    <input type="number" id="calendar-date" min="1" max="31" placeholder="e.g. 1">
 
     <button class="collapsible">Select Months</button>
     <div class="collapsible-content">
@@ -167,9 +170,10 @@
       const time = document.getElementById('time').value;
       const selectedDays = [...document.querySelectorAll('#day-buttons button.active')].map(b => b.textContent);
       const selectedMonths = [...document.querySelectorAll('#month-buttons button.active')].map(b => b.textContent);
+      const calendarDate = parseInt(document.getElementById('calendar-date').value);
 
-      if (isNaN(amount) || !time || selectedDays.length === 0) {
-        alert('Fill all fields correctly.');
+      if (isNaN(amount) || !time || selectedMonths.length === 0 || (selectedDays.length === 0 && isNaN(calendarDate))) {
+        alert('Please fill out amount, time, months, and at least a day or date.');
         return;
       }
 
@@ -177,7 +181,8 @@
         amount: type === 'add' ? amount : -amount,
         days: selectedDays,
         months: selectedMonths,
-        time: time
+        time: time,
+        date: isNaN(calendarDate) ? null : calendarDate
       };
 
       const data = JSON.parse(localStorage.getItem('repeatingTransactions')) || [];
