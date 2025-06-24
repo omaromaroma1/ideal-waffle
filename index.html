@@ -5,78 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Money Budgeter</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
       transition: background 0.3s, color 0.3s;
+      padding: 20px;
     }
 
     body.light-mode {
-      background: #f0f2f5;
-      color: #333;
+      background: #fff;
+      color: #000;
     }
 
     body.dark-mode {
+      background: #121212;
+      color: #eee;
+    }
+
+    .calculator-box {
+      width: 360px;
+      margin: 0 auto;
+      background: #f7f7f7;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode .calculator-box {
       background: #1e1e1e;
-      color: #f0f0f0;
-    }
-
-    .main-container {
-      max-width: 500px;
-      margin: 30px auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-      position: relative;
-    }
-
-    body.dark-mode .main-container {
-      background: #2c2c2c;
-      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.05);
+      box-shadow: 0 5px 15px rgba(255,255,255,0.05);
     }
 
     h1 {
       text-align: center;
+      margin-bottom: 15px;
       color: #007bff;
-      margin-bottom: 10px;
     }
 
-    .clock {
-      font-size: 16px;
+    #clock, #budget, #renewal-info {
       text-align: center;
-      margin: 10px 0;
-    }
-
-    .budget {
-      font-size: 24px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .renewal-info {
-      font-size: 16px;
-      text-align: center;
-      margin-bottom: 20px;
+      margin: 8px 0;
     }
 
     .buttons {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
       justify-content: center;
-      margin: 20px 0;
+      gap: 10px;
+      margin: 15px 0;
     }
 
     button {
-      padding: 10px 20px;
+      flex: 1 1 45%;
+      padding: 12px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
+      border-radius: 12px;
+      font-size: 15px;
       background: #007bff;
       color: white;
+      font-weight: bold;
+      cursor: pointer;
       transition: background 0.3s;
     }
 
@@ -84,16 +77,16 @@
       background: #0056b3;
     }
 
-    .history {
-      max-height: 300px;
+    #history {
+      max-height: 180px;
       overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
       background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 10px;
     }
 
-    body.dark-mode .history {
+    body.dark-mode #history {
       background: #2c2c2c;
       border-color: #666;
     }
@@ -102,17 +95,17 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      font-size: 24px;
+      font-size: 26px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="main-container">
+  <div class="calculator-box">
     <h1>Money Budgeter</h1>
-    <div class="clock" id="clock">🕒 Time: --:--</div>
-    <div class="budget" id="budget">Budget: $0</div>
-    <div class="renewal-info" id="renewal-info"></div>
+    <div id="clock">🕒 Time: --:--</div>
+    <div id="budget">Budget: $0</div>
+    <div id="renewal-info"></div>
 
     <div class="buttons">
       <button onclick="changeBudget('add')">Add</button>
@@ -122,7 +115,7 @@
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
     </div>
 
-    <div class="history" id="history"></div>
+    <div id="history"></div>
   </div>
 
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
