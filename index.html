@@ -182,7 +182,15 @@
       document.getElementById('budget').textContent = `Budget: $${budget}`;
       document.getElementById('history').innerHTML = history.map(h => `<div>${h.date} - $${h.amount}</div>`).join('');
       const repeat = JSON.parse(localStorage.getItem('repeatingTransactions')) || [];
-      document.getElementById('renewal-info').textContent = repeat.length ? `🔁 Auto-renewals: ${repeat.length} saved` : '';
+      if (repeat.length > 0) {
+        let total = 0;
+        repeat.forEach(t => {
+          total += parseFloat(t.amount);
+        });
+        document.getElementById('renewal-info').textContent = `🔁 Auto-renewals: ${repeat.length} total | Amount: $${total.toFixed(2)}`;
+      } else {
+        document.getElementById('renewal-info').textContent = '';
+      }
     }
 
     function appendNumber(num) {
