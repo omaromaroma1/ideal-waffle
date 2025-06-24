@@ -210,6 +210,7 @@
       localStorage.setItem('budget', budget);
       history.push({ date: new Date().toLocaleString(), amount: (type === 'add' ? '+' : '-') + amount });
       localStorage.setItem('history', JSON.stringify(history));
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
       currentInput = '';
       document.getElementById('input-display').value = '';
       updateUI();
@@ -226,6 +227,12 @@
       localStorage.setItem('budget', budget);
       updateUI();
     }
+
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
 
     setInterval(updateClock, 1000);
     updateClock();
