@@ -1,251 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Repeating Transactions</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repeat Transactions</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
+      padding: 20px;
+      background: #f0f0f0;
       transition: background 0.3s, color 0.3s;
     }
 
-    body.light-mode {
-      background: #f0f2f5;
-      color: #333;
-    }
-
     body.dark-mode {
-      background: #1e1e1e;
-      color: #f0f0f0;
+      background: #121212;
+      color: #eee;
     }
 
     .container {
-      max-width: 500px;
-      margin: 30px auto;
+      max-width: 400px;
+      margin: auto;
       background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-      position: relative;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     body.dark-mode .container {
-      background: #2c2c2c;
-      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.05);
+      background: #1e1e1e;
     }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    #clock {
-      font-size: 1em;
-      font-weight: bold;
-    }
-
-    .back-button {
-      background: none;
-      border: none;
-      font-size: 18px;
-      color: #007bff;
-      cursor: pointer;
-      font-weight: bold;
-      padding: 0;
-    }
-
-    h1 {
-      margin-top: 0;
-      font-size: 22px;
+    h2 {
       text-align: center;
-      color: #007bff;
-    }
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 20px;
-      margin-bottom: 6px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      box-sizing: border-box;
-      font-size: 16px;
-      background: white;
-      color: #333;
-    }
-
-    body.dark-mode input,
-    body.dark-mode select {
-      background: #444;
-      color: #fff;
-      border: 1px solid #666;
-    }
-
-    .days, .months {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .days label, .months label {
-      flex: 1 1 28%;
-      text-align: center;
-      background: #f8f9fa;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
-      cursor: pointer;
-      font-size: 15px;
-      transition: background 0.2s, border 0.2s;
-    }
-
-    body.dark-mode .days label,
-    body.dark-mode .months label {
-      background: #444;
-      border-color: #666;
-    }
-
-    .days input[type="checkbox"], .months input[type="checkbox"] {
-      display: none;
-    }
-
-    .days input[type="checkbox"]:checked + span,
-    .months input[type="checkbox"]:checked + span {
-      background-color: #007bff;
-      color: white;
-      border-radius: 8px;
-      padding: 4px 8px;
-    }
-
-    .repeat-entry {
-      border: 1px dashed #ccc;
-      border-radius: 10px;
-      padding: 15px;
       margin-bottom: 20px;
     }
 
-    button {
-      margin-top: 20px;
-      padding: 14px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
+    label, input, select, button {
+      display: block;
       width: 100%;
-      cursor: pointer;
-      transition: background 0.3s;
+      margin-bottom: 10px;
     }
 
-    button:hover {
+    input, select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+
+    body.dark-mode input, body.dark-mode select {
+      background: #333;
+      color: #eee;
+      border-color: #555;
+    }
+
+    .day-selector, .month-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .day-selector button, .month-selector button {
+      flex: 1 0 30%;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+
+    .day-selector button.active, .month-selector button.active {
       background: #0056b3;
+    }
+
+    .back-button {
+      margin-bottom: 15px;
+      display: inline-block;
+      cursor: pointer;
+      color: #007bff;
+    }
+
+    .collapsible {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      padding: 10px;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 16px;
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .collapsible-content {
+      padding: 0 10px;
+      display: none;
+    }
+
+    .collapsible.active + .collapsible-content {
+      display: block;
     }
 
     #mode-toggle {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      font-size: 24px;
+      font-size: 26px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="top-bar">
-      <button class="back-button" onclick="goBack()">← Back</button>
-      <div id="clock">🕒 Time: --:--</div>
+    <div class="back-button" onclick="window.location.href='index.html'">← Back</div>
+    <h2>Add Auto-Renewal</h2>
+    <input type="number" id="amount" placeholder="Amount">
+    <select id="type">
+      <option value="add">Add</option>
+      <option value="subtract">Subtract</option>
+    </select>
+
+    <label>Select Days:</label>
+    <div class="day-selector" id="day-buttons"></div>
+
+    <button class="collapsible">Select Months</button>
+    <div class="collapsible-content">
+      <div class="month-selector" id="month-buttons"></div>
     </div>
 
-    <h1>Repeating Transactions</h1>
+    <label>Time:</label>
+    <input type="time" id="time">
 
-    <div id="repeat-list"></div>
-
-    <button onclick="addEntry()">+ Add Another</button>
-    <button onclick="saveRepeat()">Save All</button>
+    <button onclick="saveTransaction()">Save</button>
   </div>
 
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
 
   <script>
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('clock').textContent =
-        `🕒 Time: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
-    }
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    function goBack() {
-      window.location.href = "index.html";
-    }
+    const dayButtons = document.getElementById('day-buttons');
+    const monthButtons = document.getElementById('month-buttons');
 
-    function addEntry() {
-      const container = document.createElement('div');
-      container.className = 'repeat-entry';
-      container.innerHTML = `
-        <label>Amount</label>
-        <input type="number" class="amount" placeholder="Enter amount" />
+    days.forEach(day => {
+      const btn = document.createElement('button');
+      btn.textContent = day;
+      btn.onclick = () => btn.classList.toggle('active');
+      dayButtons.appendChild(btn);
+    });
 
-        <label>Type</label>
-        <select class="type">
-          <option value="add">Add</option>
-          <option value="subtract">Subtract</option>
-        </select>
+    months.forEach(month => {
+      const btn = document.createElement('button');
+      btn.textContent = month;
+      btn.onclick = () => btn.classList.toggle('active');
+      monthButtons.appendChild(btn);
+    });
 
-        <label>Repeat on Days</label>
-        <div class="days">
-          ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day => 
-            `<label><input type="checkbox" value="${day}" /><span>${day}</span></label>`).join('')}
-        </div>
+    function saveTransaction() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const type = document.getElementById('type').value;
+      const time = document.getElementById('time').value;
+      const selectedDays = [...document.querySelectorAll('#day-buttons button.active')].map(b => b.textContent);
+      const selectedMonths = [...document.querySelectorAll('#month-buttons button.active')].map(b => b.textContent);
 
-        <label>Repeat in Months</label>
-        <div class="months">
-          ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(mon => 
-            `<label><input type="checkbox" value="${mon}" /><span>${mon}</span></label>`).join('')}
-        </div>
+      if (isNaN(amount) || !time || selectedDays.length === 0) {
+        alert('Fill all fields correctly.');
+        return;
+      }
 
-        <label>Time</label>
-        <input type="time" class="time" />
-      `;
-      document.getElementById('repeat-list').appendChild(container);
-    }
+      const transaction = {
+        amount: type === 'add' ? amount : -amount,
+        days: selectedDays,
+        months: selectedMonths,
+        time: time
+      };
 
-    function saveRepeat() {
-      const entries = document.querySelectorAll('.repeat-entry');
-      const data = [];
-
-      entries.forEach(entry => {
-        const amount = parseFloat(entry.querySelector('.amount').value);
-        const type = entry.querySelector('.type').value;
-        const days = Array.from(entry.querySelectorAll('.days input:checked')).map(cb => cb.value);
-        const months = Array.from(entry.querySelectorAll('.months input:checked')).map(cb => cb.value);
-        const time = entry.querySelector('.time').value;
-
-        if (!isNaN(amount) && time) {
-          data.push({
-            amount: type === 'subtract' ? -amount : amount,
-            days,
-            months,
-            time
-          });
-        }
-      });
-
+      const data = JSON.parse(localStorage.getItem('repeatingTransactions')) || [];
+      data.push(transaction);
       localStorage.setItem('repeatingTransactions', JSON.stringify(data));
-      alert("Saved! Returning to main page.");
-      window.location.href = "index.html";
+      window.location.href = 'index.html';
+    }
+
+    document.querySelectorAll('.collapsible').forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('active');
+      });
+    });
+
+    function applyTheme() {
+      const mode = localStorage.getItem('theme') || 'light';
+      document.body.classList.remove('light-mode', 'dark-mode');
+      document.body.classList.add(mode + '-mode');
+      document.getElementById('mode-toggle').textContent = mode === 'dark' ? '☀️' : '🌙';
     }
 
     function toggleMode() {
@@ -255,17 +206,7 @@
       applyTheme();
     }
 
-    function applyTheme() {
-      const mode = localStorage.getItem('theme') || 'light';
-      document.body.classList.remove('light-mode', 'dark-mode');
-      document.body.classList.add(mode + '-mode');
-      document.getElementById('mode-toggle').textContent = mode === 'dark' ? '☀️' : '🌙';
-    }
-
-    updateClock();
-    setInterval(updateClock, 1000);
     applyTheme();
-    addEntry();
   </script>
 </body>
 </html>
