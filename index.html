@@ -115,6 +115,28 @@
       background: transparent;
       color: inherit;
     }
+
+    .category-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      z-index: 999;
+    }
+
+    .category-popup button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .category-popup h3 {
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -143,20 +165,29 @@
 
     <div class="buttons">
       <button onclick="submitAmount('add')">Add</button>
-      <button onclick="submitAmount('subtract')">Subtract</button>
+      <button onclick="confirmCategory()">Subtract</button>
       <button onclick="clearHistory()">Clear History</button>
       <button onclick="resetBudget()">Reset</button>
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
+      <button onclick="viewCategoryTotals()">📊 View Categories</button>
     </div>
 
     <div id="history"></div>
   </div>
 
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
+  <div id="category-popup" class="category-popup" style="display:none;"></div>
 
   <script>
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
     let history = JSON.parse(localStorage.getItem('history')) || [];
+    let categories = JSON.parse(localStorage.getItem('categories')) || {
+      leisure: 0,
+      transportation: 0,
+      food: 0,
+      groceries: 0,
+      others: 0
+    };
     let currentInput = '';
 
     function updateClock() {
@@ -180,8 +211,7 @@
 
     function updateUI() {
       document.getElementById('budget').textContent = `Budget: $${budget}`;
-      document.getElementById('history').innerHTML = history.map(h => `<div>${h.date} - $${h.amount}</div>`).join('');
-
+      document.getElementById('history').innerHTML = history.map(h => `<div>${h.date} - $${h.amount}${h.category ? ' (' + h.category + ')' : ''}</div>`).join('');
       const repeat = JSON.parse(localStorage.getItem('repeatingTransactions')) || [];
       if (repeat.length > 0) {
         let total = 0;
@@ -207,12 +237,16 @@
       document.getElementById('input-display').value = currentInput;
     }
 
-    function submitAmount(type) {
+    function submitAmount(type, category = '') {
       const amount = parseFloat(currentInput);
       if (isNaN(amount)) return;
       budget += (type === 'add' ? amount : -amount);
+      if (type === 'subtract' && category) {
+        categories[category] += amount;
+        localStorage.setItem('categories', JSON.stringify(categories));
+      }
       localStorage.setItem('budget', budget);
-      history.push({ date: new Date().toLocaleString(), amount: (type === 'add' ? '+' : '-') + amount });
+      history.push({ date: new Date().toLocaleString(), amount: (type === 'add' ? '+' : '-') + amount, category });
       localStorage.setItem('history', JSON.stringify(history));
       localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
       currentInput = '';
@@ -220,9 +254,27 @@
       updateUI();
     }
 
+    function confirmCategory() {
+      if (!currentInput || isNaN(parseFloat(currentInput))) return;
+      const popup = document.getElementById('category-popup');
+      popup.innerHTML = '<h3>Select Category</h3>' + ['leisure','transportation','food','groceries','others'].map(cat => `<button onclick="submitAmount('subtract', '${cat}'); closePopup()">${cat.charAt(0).toUpperCase() + cat.slice(1)}</button>`).join('');
+      popup.style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('category-popup').style.display = 'none';
+    }
+
+    function viewCategoryTotals() {
+      const totals = Object.entries(categories).map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: $${v.toFixed(2)}`).join('\n');
+      alert('Category Totals:\n' + totals);
+    }
+
     function clearHistory() {
       history = [];
+      categories = { leisure: 0, transportation: 0, food: 0, groceries: 0, others: 0 };
       localStorage.setItem('history', JSON.stringify(history));
+      localStorage.setItem('categories', JSON.stringify(categories));
       updateUI();
     }
 
@@ -236,6 +288,7 @@
       localStorage.setItem('budget', budget);
       localStorage.setItem('history', JSON.stringify(history));
       localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      localStorage.setItem('categories', JSON.stringify(categories));
     });
 
     setInterval(updateClock, 1000);
