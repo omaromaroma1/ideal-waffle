@@ -181,15 +181,19 @@
     function updateUI() {
       document.getElementById('budget').textContent = `Budget: $${budget}`;
       document.getElementById('history').innerHTML = history.map(h => `<div>${h.date} - $${h.amount}</div>`).join('');
+
       const repeat = JSON.parse(localStorage.getItem('repeatingTransactions')) || [];
       if (repeat.length > 0) {
         let total = 0;
+        let days = new Set();
         repeat.forEach(t => {
           total += parseFloat(t.amount);
+          if (Array.isArray(t.days)) t.days.forEach(d => days.add(d));
         });
-        document.getElementById('renewal-info').textContent = `🔁 Auto-renewals: ${repeat.length} total | Amount: $${total.toFixed(2)}`;
+        const daysText = [...days].join(', ');
+        document.getElementById('renewal-info').textContent = `🔁 Renewals: ${repeat.length} | 💰 $${total.toFixed(2)} | 📅 ${daysText}`;
       } else {
-        document.getElementById('renewal-info').textContent = '';
+        document.getElementById('renewal-info').textContent = '🔁 No renewals saved';
       }
     }
 
