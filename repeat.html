@@ -14,7 +14,7 @@
     }
 
     .container {
-      max-width: 450px;
+      max-width: 500px;
       margin: 30px auto;
       background: #fff;
       padding: 25px;
@@ -69,14 +69,14 @@
       font-size: 16px;
     }
 
-    .days {
+    .days, .months {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 10px;
     }
 
-    .days label {
+    .days label, .months label {
       flex: 1 1 28%;
       text-align: center;
       background: #f8f9fa;
@@ -88,24 +88,27 @@
       transition: background 0.2s, border 0.2s;
     }
 
-    .days label:hover {
-      background: #e6f0ff;
-      border-color: #007bff;
-    }
-
-    .days input[type="checkbox"] {
+    .days input[type="checkbox"], .months input[type="checkbox"] {
       display: none;
     }
 
-    .days input[type="checkbox"]:checked + span {
+    .days input[type="checkbox"]:checked + span,
+    .months input[type="checkbox"]:checked + span {
       background-color: #007bff;
       color: white;
       border-radius: 8px;
       padding: 4px 8px;
     }
 
+    .repeat-entry {
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
     button {
-      margin-top: 25px;
+      margin-top: 20px;
       padding: 14px;
       background: #007bff;
       color: white;
@@ -132,27 +135,10 @@
 
     <h1>Repeating Transactions</h1>
 
-    <label for="repeat-amount">Amount</label>
-    <input type="number" id="repeat-amount" placeholder="Enter amount" />
+    <div id="repeat-list"></div>
 
-    <label for="repeat-type">Type</label>
-    <select id="repeat-type">
-      <option value="add">Add</option>
-      <option value="subtract">Subtract</option>
-    </select>
-
-    <label>Repeat on Days</label>
-    <div class="days">
-      <label><input type="checkbox" value="Sun" /><span>Sun</span></label>
-      <label><input type="checkbox" value="Mon" /><span>Mon</span></label>
-      <label><input type="checkbox" value="Tue" /><span>Tue</span></label>
-      <label><input type="checkbox" value="Wed" /><span>Wed</span></label>
-      <label><input type="checkbox" value="Thu" /><span>Thu</span></label>
-      <label><input type="checkbox" value="Fri" /><span>Fri</span></label>
-      <label><input type="checkbox" value="Sat" /><span>Sat</span></label>
-    </div>
-
-    <button onclick="saveRepeat()">Save</button>
+    <button onclick="addEntry()">+ Add Another</button>
+    <button onclick="saveRepeat()">Save All</button>
   </div>
 
   <script>
@@ -162,33 +148,70 @@
         `🕒 Time: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
     }
 
-    function saveRepeat() {
-      const amount = parseFloat(document.getElementById('repeat-amount').value);
-      const type = document.getElementById('repeat-type').value;
-      const dayCheckboxes = document.querySelectorAll('.days input[type="checkbox"]:checked');
-      const days = Array.from(dayCheckboxes).map(cb => cb.value);
-
-      if (isNaN(amount) || days.length === 0) {
-        alert("Please enter an amount and choose at least one day.");
-        return;
-      }
-
-      const data = {
-        amount: type === 'subtract' ? -amount : amount,
-        days
-      };
-
-      localStorage.setItem('repeatingTransaction', JSON.stringify(data));
-      alert("Saved! Returning to the main page...");
+    function goBack() {
       window.location.href = "index.html";
     }
 
-    function goBack() {
+    function addEntry() {
+      const container = document.createElement('div');
+      container.className = 'repeat-entry';
+      container.innerHTML = `
+        <label>Amount</label>
+        <input type="number" class="amount" placeholder="Enter amount" />
+
+        <label>Type</label>
+        <select class="type">
+          <option value="add">Add</option>
+          <option value="subtract">Subtract</option>
+        </select>
+
+        <label>Repeat on Days</label>
+        <div class="days">
+          ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day => 
+            `<label><input type="checkbox" value="${day}" /><span>${day}</span></label>`).join('')}
+        </div>
+
+        <label>Repeat in Months</label>
+        <div class="months">
+          ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(mon => 
+            `<label><input type="checkbox" value="${mon}" /><span>${mon}</span></label>`).join('')}
+        </div>
+
+        <label>Time</label>
+        <input type="time" class="time" />
+      `;
+      document.getElementById('repeat-list').appendChild(container);
+    }
+
+    function saveRepeat() {
+      const entries = document.querySelectorAll('.repeat-entry');
+      const data = [];
+
+      entries.forEach(entry => {
+        const amount = parseFloat(entry.querySelector('.amount').value);
+        const type = entry.querySelector('.type').value;
+        const days = Array.from(entry.querySelectorAll('.days input:checked')).map(cb => cb.value);
+        const months = Array.from(entry.querySelectorAll('.months input:checked')).map(cb => cb.value);
+        const time = entry.querySelector('.time').value;
+
+        if (!isNaN(amount) && time) {
+          data.push({
+            amount: type === 'subtract' ? -amount : amount,
+            days,
+            months,
+            time
+          });
+        }
+      });
+
+      localStorage.setItem('repeatingTransactions', JSON.stringify(data));
+      alert("Saved! Returning to main page.");
       window.location.href = "index.html";
     }
 
     updateClock();
     setInterval(updateClock, 1000);
+    addEntry(); // Start with one
   </script>
 </body>
 </html>
