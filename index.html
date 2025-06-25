@@ -177,7 +177,7 @@
 
     <div class="buttons">
       <button onclick="submitAmount('add')">Add</button>
-      <button onclick="confirmCategory()">Subtract</button>
+      <button onclick="showCategoryPopup()">Subtract</button>
       <button onclick="clearHistory()">Clear History</button>
       <button onclick="resetBudget()">Reset</button>
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
@@ -194,6 +194,7 @@
     const inputDisplay = document.getElementById('input-display');
     const budgetDisplay = document.getElementById('budget');
     const historyDiv = document.getElementById('history');
+    const popup = document.getElementById('category-popup');
 
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
     let history = JSON.parse(localStorage.getItem('history')) || [];
@@ -218,40 +219,41 @@
       if (type === 'add') {
         budget += value;
         history.push({ type: 'Add', value, timestamp });
+        localStorage.setItem('budget', budget);
+        localStorage.setItem('history', JSON.stringify(history));
+        updateBudgetDisplay();
+        renderHistory();
+        clearInput();
       }
-
-      localStorage.setItem('budget', budget);
-      localStorage.setItem('history', JSON.stringify(history));
-      updateBudgetDisplay();
-      renderHistory();
-      clearInput();
     }
 
-    function confirmCategory() {
+    function showCategoryPopup() {
+      popup.innerHTML = `
+        <h3>Select Category</h3>
+        <button onclick="confirmCategory('Leisure')">Leisure</button>
+        <button onclick="confirmCategory('Transportation')">Transportation</button>
+        <button onclick="confirmCategory('Food')">Food</button>
+        <button onclick="confirmCategory('Groceries')">Groceries</button>
+        <button onclick="confirmCategory('Others')">Others</button>
+        <button onclick="popup.style.display='none'">Cancel</button>
+      `;
+      popup.style.display = 'block';
+    }
+
+    function confirmCategory(category) {
       const value = parseFloat(inputDisplay.value);
       if (isNaN(value)) return;
 
-      const category = prompt("Select category:\n1. Leisure\n2. Transportation\n3. Food\n4. Groceries\n5. Others", "1");
-      const categoriesMap = {
-        1: 'Leisure',
-        2: 'Transportation',
-        3: 'Food',
-        4: 'Groceries',
-        5: 'Others'
-      };
-
-      const selected = categoriesMap[category];
-      if (!selected) return;
-
       const timestamp = new Date().toLocaleString();
       budget -= value;
-      history.push({ type: `Subtract (${selected})`, value, timestamp });
+      history.push({ type: `Subtract (${category})`, value, timestamp });
 
       localStorage.setItem('budget', budget);
       localStorage.setItem('history', JSON.stringify(history));
       updateBudgetDisplay();
       renderHistory();
       clearInput();
+      popup.style.display = 'none';
     }
 
     function clearHistory() {
