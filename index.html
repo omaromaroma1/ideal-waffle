@@ -1,32 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Budgeter</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       transition: background 0.3s, color 0.3s;
       padding: 20px;
     }
-
-    body.light-mode {
-      background: #fff;
-      color: #000;
-    }
-
-    body.dark-mode {
-      background: #121212;
-      color: #eee;
-    }
-
+    body.light-mode { background: #fff; color: #000; }
+    body.dark-mode { background: #121212; color: #eee; }
     .calculator-box {
       width: 360px;
       margin: 0 auto;
@@ -35,23 +21,19 @@
       padding: 20px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-
     body.dark-mode .calculator-box {
       background: #1e1e1e;
       box-shadow: 0 5px 15px rgba(255,255,255,0.05);
     }
-
     h1 {
       text-align: center;
       margin-bottom: 15px;
       color: #007bff;
     }
-
     #clock, #budget, #renewal-info {
       text-align: center;
       margin: 8px 0;
     }
-
     .buttons, .numpad {
       display: flex;
       flex-wrap: wrap;
@@ -59,7 +41,6 @@
       gap: 10px;
       margin: 15px 0;
     }
-
     button {
       flex: 1 1 45%;
       padding: 12px;
@@ -72,18 +53,13 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-
-    button:hover {
-      background: #0056b3;
-    }
-
+    button:hover { background: #0056b3; }
     .numpad button {
       flex: 1 1 30%;
       padding: 15px;
       font-size: 18px;
       background: #444;
     }
-
     #history {
       max-height: 180px;
       overflow-y: auto;
@@ -92,12 +68,10 @@
       border-radius: 12px;
       padding: 10px;
     }
-
     body.dark-mode #history {
       background: #2c2c2c;
       border-color: #666;
     }
-
     #mode-toggle {
       position: fixed;
       bottom: 20px;
@@ -105,7 +79,6 @@
       font-size: 26px;
       cursor: pointer;
     }
-
     #input-display {
       width: 100%;
       text-align: right;
@@ -115,7 +88,6 @@
       background: transparent;
       color: inherit;
     }
-
     .category-popup {
       position: fixed;
       top: 50%;
@@ -128,12 +100,10 @@
       z-index: 999;
       max-width: 90%;
     }
-
     .category-popup h3 {
       margin-bottom: 15px;
       text-align: center;
     }
-
     .category-popup button {
       width: 100%;
       margin-bottom: 10px;
@@ -144,7 +114,6 @@
       background: #007bff;
       color: white;
     }
-
     .category-popup button:last-child {
       background: #ccc;
       color: #000;
@@ -158,7 +127,7 @@
     <div id="budget">Budget: $0</div>
     <div id="renewal-info"></div>
 
-    <input id="input-display" placeholder="Enter amount" readonly>
+    <input id="input-display" placeholder="Enter amount" readonly />
 
     <div class="numpad">
       <button onclick="appendNumber('1')">1</button>
@@ -213,18 +182,16 @@
     function submitAmount(type) {
       const value = parseFloat(inputDisplay.value);
       if (isNaN(value)) return;
-
       const timestamp = new Date().toLocaleString();
-
       if (type === 'add') {
         budget += value;
         history.push({ type: 'Add', value, timestamp });
-        localStorage.setItem('budget', budget);
-        localStorage.setItem('history', JSON.stringify(history));
-        updateBudgetDisplay();
-        renderHistory();
-        clearInput();
       }
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
+      updateBudgetDisplay();
+      renderHistory();
+      clearInput();
     }
 
     function showCategoryPopup() {
@@ -242,6 +209,8 @@
 
     function confirmCategory(category) {
       const value = parseFloat(inputDisplay.value);
+      popup.style.display = 'none';
+      clearInput();
       if (isNaN(value)) return;
 
       const timestamp = new Date().toLocaleString();
@@ -252,8 +221,6 @@
       localStorage.setItem('history', JSON.stringify(history));
       updateBudgetDisplay();
       renderHistory();
-      clearInput();
-      popup.style.display = 'none';
     }
 
     function clearHistory() {
