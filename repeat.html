@@ -1,217 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Repeat Transactions</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Repeat Transaction</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
       padding: 20px;
-      background: #f0f0f0;
       transition: background 0.3s, color 0.3s;
     }
-
-    body.dark-mode {
-      background: #121212;
-      color: #eee;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    body.dark-mode .container {
-      background: #1e1e1e;
-    }
-
-    h2 {
+    body.light-mode { background: #fff; color: #000; }
+    body.dark-mode { background: #121212; color: #eee; }
+    h1 {
       text-align: center;
       margin-bottom: 20px;
     }
-
-    label, input, select, button {
+    label {
       display: block;
+      margin: 10px 0 5px;
+    }
+    input[type="number"], input[type="time"], input[type="date"] {
       width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       margin-bottom: 10px;
     }
-
-    input, select {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #fff;
-    }
-
-    body.dark-mode input, body.dark-mode select {
-      background: #333;
-      color: #eee;
-      border-color: #555;
-    }
-
-    .day-selector, .month-selector {
+    .checkbox-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 10px;
       margin-bottom: 15px;
     }
-
-    .day-selector button, .month-selector button {
-      flex: 1 0 30%;
-      padding: 8px;
+    .checkbox-group label {
+      flex: 1 1 30%;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
       background: #007bff;
       color: white;
+      cursor: pointer;
     }
-
-    .day-selector button.active, .month-selector button.active {
+    button:hover {
       background: #0056b3;
     }
-
-    .back-button {
-      margin-bottom: 15px;
-      display: inline-block;
-      cursor: pointer;
-      color: #007bff;
-    }
-
-    .collapsible {
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      padding: 10px;
-      border: none;
-      text-align: left;
-      outline: none;
-      font-size: 16px;
-      width: 100%;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-
-    .collapsible-content {
-      padding: 0 10px;
-      display: none;
-    }
-
-    .collapsible.active + .collapsible-content {
-      display: block;
-    }
-
-    #mode-toggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      font-size: 26px;
-      cursor: pointer;
+    .back-btn {
+      margin-top: 10px;
+      background: #888;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="back-button" onclick="window.location.href='index.html'">← Back</div>
-    <h2>Add Auto-Renewal</h2>
-    <input type="number" id="amount" placeholder="Amount">
-    <select id="type">
-      <option value="add">Add</option>
-      <option value="subtract">Subtract</option>
-    </select>
+  <h1>Repeat Transaction</h1>
 
-    <label>Select Days (optional):</label>
-    <div class="day-selector" id="day-buttons"></div>
+  <label for="amount">Amount</label>
+  <input type="number" id="amount" placeholder="Enter amount" />
 
-    <label>Or enter a specific date of the month (1–31):</label>
-    <input type="number" id="calendar-date" min="1" max="31" placeholder="e.g. 1">
+  <label for="time">Time</label>
+  <input type="time" id="time" />
 
-    <button class="collapsible">Select Months</button>
-    <div class="collapsible-content">
-      <div class="month-selector" id="month-buttons"></div>
-    </div>
-
-    <label>Time:</label>
-    <input type="time" id="time">
-
-    <button onclick="saveTransaction()">Save</button>
+  <label>Days of the Week</label>
+  <div class="checkbox-group">
+    <label><input type="checkbox" class="day-checkbox" value="Sunday" /> Sunday</label>
+    <label><input type="checkbox" class="day-checkbox" value="Monday" /> Monday</label>
+    <label><input type="checkbox" class="day-checkbox" value="Tuesday" /> Tuesday</label>
+    <label><input type="checkbox" class="day-checkbox" value="Wednesday" /> Wednesday</label>
+    <label><input type="checkbox" class="day-checkbox" value="Thursday" /> Thursday</label>
+    <label><input type="checkbox" class="day-checkbox" value="Friday" /> Friday</label>
+    <label><input type="checkbox" class="day-checkbox" value="Saturday" /> Saturday</label>
   </div>
 
-  <div id="mode-toggle" onclick="toggleMode()">🌙</div>
+  <label>Months</label>
+  <div class="checkbox-group">
+    <label><input type="checkbox" class="month-checkbox" value="January" /> January</label>
+    <label><input type="checkbox" class="month-checkbox" value="February" /> February</label>
+    <label><input type="checkbox" class="month-checkbox" value="March" /> March</label>
+    <label><input type="checkbox" class="month-checkbox" value="April" /> April</label>
+    <label><input type="checkbox" class="month-checkbox" value="May" /> May</label>
+    <label><input type="checkbox" class="month-checkbox" value="June" /> June</label>
+    <label><input type="checkbox" class="month-checkbox" value="July" /> July</label>
+    <label><input type="checkbox" class="month-checkbox" value="August" /> August</label>
+    <label><input type="checkbox" class="month-checkbox" value="September" /> September</label>
+    <label><input type="checkbox" class="month-checkbox" value="October" /> October</label>
+    <label><input type="checkbox" class="month-checkbox" value="November" /> November</label>
+    <label><input type="checkbox" class="month-checkbox" value="December" /> December</label>
+  </div>
+
+  <label for="date">Specific Date (optional)</label>
+  <input type="date" id="date" />
+
+  <button id="saveButton">Save</button>
+  <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
 
   <script>
-    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-    const dayButtons = document.getElementById('day-buttons');
-    const monthButtons = document.getElementById('month-buttons');
-
-    days.forEach(day => {
-      const btn = document.createElement('button');
-      btn.textContent = day;
-      btn.onclick = () => btn.classList.toggle('active');
-      dayButtons.appendChild(btn);
-    });
-
-    months.forEach(month => {
-      const btn = document.createElement('button');
-      btn.textContent = month;
-      btn.onclick = () => btn.classList.toggle('active');
-      monthButtons.appendChild(btn);
-    });
-
-    function saveTransaction() {
-      const amount = parseFloat(document.getElementById('amount').value);
-      const type = document.getElementById('type').value;
+    const saveButton = document.getElementById('saveButton');
+    saveButton.addEventListener('click', function () {
+      const amount = document.getElementById('amount').value;
       const time = document.getElementById('time').value;
-      const selectedDays = [...document.querySelectorAll('#day-buttons button.active')].map(b => b.textContent);
-      const selectedMonths = [...document.querySelectorAll('#month-buttons button.active')].map(b => b.textContent);
-      const calendarDate = parseInt(document.getElementById('calendar-date').value);
+      const days = [...document.querySelectorAll('.day-checkbox:checked')].map(cb => cb.value);
+      const months = [...document.querySelectorAll('.month-checkbox:checked')].map(cb => cb.value);
+      const date = document.getElementById('date').value;
 
-      if (isNaN(amount) || !time || selectedMonths.length === 0 || (selectedDays.length === 0 && isNaN(calendarDate))) {
-        alert('Please fill out amount, time, months, and at least a day or date.');
-        return;
-      }
-
-      const transaction = {
-        amount: type === 'add' ? amount : -amount,
-        days: selectedDays,
-        months: selectedMonths,
-        time: time,
-        date: isNaN(calendarDate) ? null : calendarDate
+      const entry = {
+        amount: parseFloat(amount) || 0,
+        time: time || '',
+        days: days || [],
+        months: months || [],
+        date: date || null
       };
 
-      const data = JSON.parse(localStorage.getItem('repeatingTransactions')) || [];
-      data.push(transaction);
-      localStorage.setItem('repeatingTransactions', JSON.stringify(data));
+      const allRenewals = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+      allRenewals.push(entry);
+      localStorage.setItem('autoRenewals', JSON.stringify(allRenewals));
       window.location.href = 'index.html';
-    }
-
-    document.querySelectorAll('.collapsible').forEach(button => {
-      button.addEventListener('click', () => {
-        button.classList.toggle('active');
-      });
     });
 
-    function applyTheme() {
-      const mode = localStorage.getItem('theme') || 'light';
-      document.body.classList.remove('light-mode', 'dark-mode');
-      document.body.classList.add(mode + '-mode');
-      document.getElementById('mode-toggle').textContent = mode === 'dark' ? '☀️' : '🌙';
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.add('light-mode');
     }
-
-    function toggleMode() {
-      const current = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-      const newMode = current === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('theme', newMode);
-      applyTheme();
-    }
-
-    applyTheme();
   </script>
 </body>
 </html>
