@@ -152,7 +152,6 @@
   </style>
 </head>
 <body>
-  <!-- existing HTML structure remains unchanged -->
   <div class="calculator-box">
     <h1>Money Budgeter</h1>
     <div id="clock">🕒 Time: --:--</div>
@@ -192,17 +191,107 @@
   <div id="category-popup" class="category-popup" style="display:none;"></div>
 
   <script>
-    // unchanged JavaScript logic remains here
+    const inputDisplay = document.getElementById('input-display');
+    const budgetDisplay = document.getElementById('budget');
+    const historyDiv = document.getElementById('history');
 
-    function viewCategoryTotals() {
-      const popup = document.getElementById('category-popup');
-      const totals = Object.entries(categories).map(([k, v]) => `<div><strong>${k.charAt(0).toUpperCase() + k.slice(1)}:</strong> $${v.toFixed(2)}</div>`).join('');
-      popup.innerHTML = `
-        <h3>Category Totals</h3>
-        ${totals}
-        <button onclick="closePopup()">Close</button>
-      `;
-      popup.style.display = 'block';
+    let budget = parseFloat(localStorage.getItem('budget')) || 0;
+    let history = JSON.parse(localStorage.getItem('history')) || [];
+
+    updateBudgetDisplay();
+    renderHistory();
+
+    function appendNumber(num) {
+      inputDisplay.value += num;
+    }
+
+    function clearInput() {
+      inputDisplay.value = '';
+    }
+
+    function submitAmount(type) {
+      const value = parseFloat(inputDisplay.value);
+      if (isNaN(value)) return;
+
+      const timestamp = new Date().toLocaleString();
+
+      if (type === 'add') {
+        budget += value;
+        history.push({ type: 'Add', value, timestamp });
+      }
+
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
+      updateBudgetDisplay();
+      renderHistory();
+      clearInput();
+    }
+
+    function confirmCategory() {
+      const value = parseFloat(inputDisplay.value);
+      if (isNaN(value)) return;
+
+      const category = prompt("Select category:\n1. Leisure\n2. Transportation\n3. Food\n4. Groceries\n5. Others", "1");
+      const categoriesMap = {
+        1: 'Leisure',
+        2: 'Transportation',
+        3: 'Food',
+        4: 'Groceries',
+        5: 'Others'
+      };
+
+      const selected = categoriesMap[category];
+      if (!selected) return;
+
+      const timestamp = new Date().toLocaleString();
+      budget -= value;
+      history.push({ type: `Subtract (${selected})`, value, timestamp });
+
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
+      updateBudgetDisplay();
+      renderHistory();
+      clearInput();
+    }
+
+    function clearHistory() {
+      history = [];
+      localStorage.setItem('history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function resetBudget() {
+      budget = 0;
+      localStorage.setItem('budget', budget);
+      updateBudgetDisplay();
+    }
+
+    function updateBudgetDisplay() {
+      const currency = localStorage.getItem('currency') || '$';
+      budgetDisplay.innerText = `Budget: ${currency}${budget.toFixed(2)}`;
+    }
+
+    function renderHistory() {
+      historyDiv.innerHTML = '';
+      history.slice().reverse().forEach(item => {
+        const div = document.createElement('div');
+        div.textContent = `${item.timestamp} — ${item.type}: $${item.value.toFixed(2)}`;
+        historyDiv.appendChild(div);
+      });
+    }
+
+    function toggleMode() {
+      const body = document.body;
+      const isDark = body.classList.toggle('dark-mode');
+      body.classList.toggle('light-mode', !isDark);
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    const savedMode = localStorage.getItem('theme');
+    if (savedMode === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.add('light-mode');
     }
   </script>
 </body>
