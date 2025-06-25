@@ -6,10 +6,10 @@
   <title>Repeat Transactions</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       padding: 20px;
-      background: #f0f0f0;
-      color: #333;
+      background: #e0f0ff;
+      color: #003366;
       transition: background 0.3s, color 0.3s;
     }
     body.dark-mode {
@@ -19,39 +19,61 @@
     h1 {
       text-align: center;
       margin-bottom: 20px;
+      color: #007bff;
     }
     label {
       display: block;
-      margin: 12px 0 5px;
+      margin: 12px 0 6px;
     }
     input[type="number"],
     input[type="time"],
-    input[type="date"] {
+    input[type="date"],
+    input[type="text"] {
       width: 100%;
       padding: 10px;
       font-size: 16px;
-      border-radius: 6px;
+      border-radius: 10px;
       border: 1px solid #ccc;
+      margin-bottom: 10px;
     }
-    .days, .months {
+    .days, .months, .specific-days {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin: 10px 0;
     }
-    .days label,
-    .months label {
+    .days label, .months label {
       flex: 1 1 30%;
+    }
+    .collapsible {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      font-size: 16px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .content {
+      padding: 0 15px;
+      display: none;
+      overflow: hidden;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      margin-bottom: 20px;
     }
     button {
       width: 100%;
       padding: 12px;
       font-size: 16px;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       background-color: #007bff;
       color: white;
-      margin-top: 20px;
+      margin-top: 10px;
       cursor: pointer;
     }
     button:hover {
@@ -83,8 +105,8 @@
     <label><input type="checkbox" name="day" value="Saturday" /> Saturday</label>
   </div>
 
-  <label>Months</label>
-  <div class="months">
+  <button class="collapsible">Select Months</button>
+  <div class="content months">
     <label><input type="checkbox" name="month" value="January" /> January</label>
     <label><input type="checkbox" name="month" value="February" /> February</label>
     <label><input type="checkbox" name="month" value="March" /> March</label>
@@ -99,13 +121,20 @@
     <label><input type="checkbox" name="month" value="December" /> December</label>
   </div>
 
-  <label for="date">Specific Date (Optional)</label>
+  <label for="date">Specific Calendar Day (Optional)</label>
   <input type="date" id="date" />
 
   <button id="saveButton">Save</button>
   <button class="back-button" onclick="window.location.href='index.html'">← Back</button>
 
   <script>
+    document.querySelectorAll('.collapsible').forEach(button => {
+      button.addEventListener('click', function () {
+        const content = this.nextElementSibling;
+        content.style.display = content.style.display === 'block' ? 'none' : 'block';
+      });
+    });
+
     const saveButton = document.getElementById('saveButton');
     saveButton.addEventListener('click', function () {
       const amount = document.getElementById('amount').value;
@@ -128,7 +157,6 @@
       window.location.href = 'index.html';
     });
 
-    // Apply dark or light mode
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-mode');
