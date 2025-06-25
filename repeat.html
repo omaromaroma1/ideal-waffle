@@ -8,64 +8,79 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       padding: 20px;
-      background: #e0f0ff;
-      color: #003366;
+      margin: 0;
       transition: background 0.3s, color 0.3s;
     }
-    body.dark-mode {
-      background: #1e1e1e;
-      color: #eee;
+
+    body.light-mode {
+      background: #ffffff;
+      color: #000000;
     }
+
+    body.dark-mode {
+      background: #000000;
+      color: #ffffff;
+    }
+
     h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #007bff;
+      color: inherit;
     }
+
     label {
       display: block;
       margin: 12px 0 6px;
     }
+
     input[type="number"],
     input[type="time"],
-    input[type="date"],
-    input[type="text"] {
+    input[type="date"] {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
-    .days, .months, .specific-days {
+
+    .bubble-group {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin: 10px 0;
+      margin-bottom: 20px;
     }
-    .days label, .months label {
-      flex: 1 1 30%;
-    }
-    .collapsible {
+
+    .bubble {
+      padding: 10px 15px;
+      border-radius: 20px;
+      border: none;
       background-color: #007bff;
       color: white;
       cursor: pointer;
-      padding: 10px;
-      width: 100%;
-      border: none;
-      text-align: left;
-      font-size: 16px;
-      border-radius: 10px;
-      margin-bottom: 10px;
+      font-size: 14px;
     }
-    .content {
-      padding: 0 15px;
-      display: none;
-      overflow: hidden;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-      margin-bottom: 20px;
+
+    .bubble.selected {
+      background-color: #0056b3;
     }
-    button {
+
+    .toggle-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 15px 0;
+    }
+
+    .toggle-group .bubble {
+      background-color: #aaa;
+    }
+
+    .toggle-group .bubble.selected {
+      background-color: #007bff;
+    }
+
+    button.save-btn {
       width: 100%;
       padding: 12px;
       font-size: 16px;
@@ -73,12 +88,10 @@
       border-radius: 12px;
       background-color: #007bff;
       color: white;
-      margin-top: 10px;
       cursor: pointer;
+      margin-top: 20px;
     }
-    button:hover {
-      background-color: #0056b3;
-    }
+
     .back-button {
       margin-top: 10px;
       background-color: #888;
@@ -94,72 +107,111 @@
   <label for="time">Time</label>
   <input type="time" id="time" />
 
+  <label>Transaction Type</label>
+  <div class="toggle-group">
+    <div class="bubble" data-type="add">Add</div>
+    <div class="bubble" data-type="subtract">Subtract</div>
+  </div>
+
   <label>Days of the Week</label>
-  <div class="days">
-    <label><input type="checkbox" name="day" value="Sunday" /> Sunday</label>
-    <label><input type="checkbox" name="day" value="Monday" /> Monday</label>
-    <label><input type="checkbox" name="day" value="Tuesday" /> Tuesday</label>
-    <label><input type="checkbox" name="day" value="Wednesday" /> Wednesday</label>
-    <label><input type="checkbox" name="day" value="Thursday" /> Thursday</label>
-    <label><input type="checkbox" name="day" value="Friday" /> Friday</label>
-    <label><input type="checkbox" name="day" value="Saturday" /> Saturday</label>
+  <div class="bubble-group" id="dayButtons">
+    <div class="bubble" data-value="Sunday">Sun</div>
+    <div class="bubble" data-value="Monday">Mon</div>
+    <div class="bubble" data-value="Tuesday">Tue</div>
+    <div class="bubble" data-value="Wednesday">Wed</div>
+    <div class="bubble" data-value="Thursday">Thu</div>
+    <div class="bubble" data-value="Friday">Fri</div>
+    <div class="bubble" data-value="Saturday">Sat</div>
   </div>
 
-  <button class="collapsible">Select Months</button>
-  <div class="content months">
-    <label><input type="checkbox" name="month" value="January" /> January</label>
-    <label><input type="checkbox" name="month" value="February" /> February</label>
-    <label><input type="checkbox" name="month" value="March" /> March</label>
-    <label><input type="checkbox" name="month" value="April" /> April</label>
-    <label><input type="checkbox" name="month" value="May" /> May</label>
-    <label><input type="checkbox" name="month" value="June" /> June</label>
-    <label><input type="checkbox" name="month" value="July" /> July</label>
-    <label><input type="checkbox" name="month" value="August" /> August</label>
-    <label><input type="checkbox" name="month" value="September" /> September</label>
-    <label><input type="checkbox" name="month" value="October" /> October</label>
-    <label><input type="checkbox" name="month" value="November" /> November</label>
-    <label><input type="checkbox" name="month" value="December" /> December</label>
+  <label>Months</label>
+  <div class="bubble-group" id="monthButtons">
+    <div class="bubble" data-value="January">Jan</div>
+    <div class="bubble" data-value="February">Feb</div>
+    <div class="bubble" data-value="March">Mar</div>
+    <div class="bubble" data-value="April">Apr</div>
+    <div class="bubble" data-value="May">May</div>
+    <div class="bubble" data-value="June">Jun</div>
+    <div class="bubble" data-value="July">Jul</div>
+    <div class="bubble" data-value="August">Aug</div>
+    <div class="bubble" data-value="September">Sep</div>
+    <div class="bubble" data-value="October">Oct</div>
+    <div class="bubble" data-value="November">Nov</div>
+    <div class="bubble" data-value="December">Dec</div>
   </div>
 
-  <label for="date">Specific Calendar Day (Optional)</label>
+  <label>Specific Calendar Days (e.g., 6th of March)</label>
+  <div class="bubble-group" id="dateButtons">
+    <script>
+      for (let i = 1; i <= 31; i++) {
+        document.write(`<div class="bubble" data-value="${i}">${i}</div>`);
+      }
+    </script>
+  </div>
+
+  <label>Specific Date (optional)</label>
   <input type="date" id="date" />
 
-  <button id="saveButton">Save</button>
-  <button class="back-button" onclick="window.location.href='index.html'">← Back</button>
+  <button class="save-btn" id="saveButton">Save</button>
+  <button class="save-btn back-button" onclick="window.location.href='index.html'">← Back</button>
 
   <script>
-    document.querySelectorAll('.collapsible').forEach(button => {
-      button.addEventListener('click', function () {
-        const content = this.nextElementSibling;
-        content.style.display = content.style.display === 'block' ? 'none' : 'block';
+    function toggleSelection(groupId, value) {
+      const group = document.getElementById(groupId);
+      group.querySelectorAll('.bubble').forEach(btn => {
+        if (btn.dataset.value === value) {
+          btn.classList.toggle('selected');
+        }
+      });
+    }
+
+    ['dayButtons', 'monthButtons', 'dateButtons'].forEach(id => {
+      document.getElementById(id).addEventListener('click', function (e) {
+        if (e.target.classList.contains('bubble')) {
+          e.target.classList.toggle('selected');
+        }
       });
     });
 
-    const saveButton = document.getElementById('saveButton');
-    saveButton.addEventListener('click', function () {
-      const amount = document.getElementById('amount').value;
+    // Toggle between Add/Subtract
+    document.querySelectorAll('.toggle-group .bubble').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle-group .bubble').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+
+    document.getElementById('saveButton').addEventListener('click', function () {
+      const amount = parseFloat(document.getElementById('amount').value) || 0;
       const time = document.getElementById('time').value;
-      const days = [...document.querySelectorAll('input[name=\"day\"]:checked')].map(cb => cb.value);
-      const months = [...document.querySelectorAll('input[name=\"month\"]:checked')].map(cb => cb.value);
+      const days = [...document.querySelectorAll('#dayButtons .bubble.selected')].map(b => b.dataset.value);
+      const months = [...document.querySelectorAll('#monthButtons .bubble.selected')].map(b => b.dataset.value);
+      const calendarDays = [...document.querySelectorAll('#dateButtons .bubble.selected')].map(b => b.dataset.value);
       const date = document.getElementById('date').value;
+      const type = document.querySelector('.toggle-group .bubble.selected')?.dataset.type || 'add';
 
       const entry = {
-        amount: parseFloat(amount) || 0,
-        time: time || '',
-        days: days || [],
-        months: months || [],
-        date: date || null
+        amount,
+        time,
+        type,
+        days,
+        months,
+        calendarDays,
+        date
       };
 
-      const allRenewals = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-      allRenewals.push(entry);
-      localStorage.setItem('autoRenewals', JSON.stringify(allRenewals));
+      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+      all.push(entry);
+      localStorage.setItem('autoRenewals', JSON.stringify(all));
       window.location.href = 'index.html';
     });
 
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    // Apply theme
+    const mode = localStorage.getItem('theme');
+    if (mode === 'dark') {
       document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.add('light-mode');
     }
   </script>
 </body>
