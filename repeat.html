@@ -3,37 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Repeat Transaction</title>
+  <title>Repeat Transactions</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
+      background: #f0f0f0;
+      color: #333;
       transition: background 0.3s, color 0.3s;
     }
-    body.light-mode { background: #fff; color: #000; }
-    body.dark-mode { background: #121212; color: #eee; }
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #eee;
+    }
     h1 {
       text-align: center;
       margin-bottom: 20px;
     }
     label {
       display: block;
-      margin: 10px 0 5px;
+      margin: 12px 0 5px;
     }
-    input[type="number"], input[type="time"], input[type="date"] {
+    input[type="number"],
+    input[type="time"],
+    input[type="date"] {
       width: 100%;
       padding: 10px;
+      font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
     }
-    .checkbox-group {
+    .days, .months {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 15px;
+      margin: 10px 0;
     }
-    .checkbox-group label {
+    .days label,
+    .months label {
       flex: 1 1 30%;
     }
     button {
@@ -42,21 +49,22 @@
       font-size: 16px;
       border: none;
       border-radius: 8px;
-      background: #007bff;
+      background-color: #007bff;
       color: white;
+      margin-top: 20px;
       cursor: pointer;
     }
     button:hover {
-      background: #0056b3;
+      background-color: #0056b3;
     }
-    .back-btn {
+    .back-button {
       margin-top: 10px;
-      background: #888;
+      background-color: #888;
     }
   </style>
 </head>
 <body>
-  <h1>Repeat Transaction</h1>
+  <h1>Repeat Transactions</h1>
 
   <label for="amount">Amount</label>
   <input type="number" id="amount" placeholder="Enter amount" />
@@ -65,45 +73,45 @@
   <input type="time" id="time" />
 
   <label>Days of the Week</label>
-  <div class="checkbox-group">
-    <label><input type="checkbox" class="day-checkbox" value="Sunday" /> Sunday</label>
-    <label><input type="checkbox" class="day-checkbox" value="Monday" /> Monday</label>
-    <label><input type="checkbox" class="day-checkbox" value="Tuesday" /> Tuesday</label>
-    <label><input type="checkbox" class="day-checkbox" value="Wednesday" /> Wednesday</label>
-    <label><input type="checkbox" class="day-checkbox" value="Thursday" /> Thursday</label>
-    <label><input type="checkbox" class="day-checkbox" value="Friday" /> Friday</label>
-    <label><input type="checkbox" class="day-checkbox" value="Saturday" /> Saturday</label>
+  <div class="days">
+    <label><input type="checkbox" name="day" value="Sunday" /> Sunday</label>
+    <label><input type="checkbox" name="day" value="Monday" /> Monday</label>
+    <label><input type="checkbox" name="day" value="Tuesday" /> Tuesday</label>
+    <label><input type="checkbox" name="day" value="Wednesday" /> Wednesday</label>
+    <label><input type="checkbox" name="day" value="Thursday" /> Thursday</label>
+    <label><input type="checkbox" name="day" value="Friday" /> Friday</label>
+    <label><input type="checkbox" name="day" value="Saturday" /> Saturday</label>
   </div>
 
   <label>Months</label>
-  <div class="checkbox-group">
-    <label><input type="checkbox" class="month-checkbox" value="January" /> January</label>
-    <label><input type="checkbox" class="month-checkbox" value="February" /> February</label>
-    <label><input type="checkbox" class="month-checkbox" value="March" /> March</label>
-    <label><input type="checkbox" class="month-checkbox" value="April" /> April</label>
-    <label><input type="checkbox" class="month-checkbox" value="May" /> May</label>
-    <label><input type="checkbox" class="month-checkbox" value="June" /> June</label>
-    <label><input type="checkbox" class="month-checkbox" value="July" /> July</label>
-    <label><input type="checkbox" class="month-checkbox" value="August" /> August</label>
-    <label><input type="checkbox" class="month-checkbox" value="September" /> September</label>
-    <label><input type="checkbox" class="month-checkbox" value="October" /> October</label>
-    <label><input type="checkbox" class="month-checkbox" value="November" /> November</label>
-    <label><input type="checkbox" class="month-checkbox" value="December" /> December</label>
+  <div class="months">
+    <label><input type="checkbox" name="month" value="January" /> January</label>
+    <label><input type="checkbox" name="month" value="February" /> February</label>
+    <label><input type="checkbox" name="month" value="March" /> March</label>
+    <label><input type="checkbox" name="month" value="April" /> April</label>
+    <label><input type="checkbox" name="month" value="May" /> May</label>
+    <label><input type="checkbox" name="month" value="June" /> June</label>
+    <label><input type="checkbox" name="month" value="July" /> July</label>
+    <label><input type="checkbox" name="month" value="August" /> August</label>
+    <label><input type="checkbox" name="month" value="September" /> September</label>
+    <label><input type="checkbox" name="month" value="October" /> October</label>
+    <label><input type="checkbox" name="month" value="November" /> November</label>
+    <label><input type="checkbox" name="month" value="December" /> December</label>
   </div>
 
-  <label for="date">Specific Date (optional)</label>
+  <label for="date">Specific Date (Optional)</label>
   <input type="date" id="date" />
 
   <button id="saveButton">Save</button>
-  <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
+  <button class="back-button" onclick="window.location.href='index.html'">← Back</button>
 
   <script>
     const saveButton = document.getElementById('saveButton');
     saveButton.addEventListener('click', function () {
       const amount = document.getElementById('amount').value;
       const time = document.getElementById('time').value;
-      const days = [...document.querySelectorAll('.day-checkbox:checked')].map(cb => cb.value);
-      const months = [...document.querySelectorAll('.month-checkbox:checked')].map(cb => cb.value);
+      const days = [...document.querySelectorAll('input[name=\"day\"]:checked')].map(cb => cb.value);
+      const months = [...document.querySelectorAll('input[name=\"month\"]:checked')].map(cb => cb.value);
       const date = document.getElementById('date').value;
 
       const entry = {
@@ -120,12 +128,10 @@
       window.location.href = 'index.html';
     });
 
-    // Apply saved theme
+    // Apply dark or light mode
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.add('light-mode');
     }
   </script>
 </body>
