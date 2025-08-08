@@ -12,24 +12,24 @@
       padding: 20px;
     }
     body.light-mode { background: #fff; color: #000; }
-    body.dark-mode { background: #121212; color: #eee; }
+    body.dark-mode  { background: #121212; color: #eee; }
+
     .calculator-box {
-      width: 360px;
-      margin: 0 auto;
-      background: #f7f7f7;
-      border-radius: 20px;
-      padding: 20px;
+      width: 360px; margin: 0 auto; background: #f7f7f7;
+      border-radius: 20px; padding: 20px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-    body.dark-mode .calculator-box {
-      background: #1e1e1e;
-      box-shadow: 0 5px 15px rgba(255,255,255,0.05);
-    }
+    body.dark-mode .calculator-box { background: #1e1e1e; box-shadow: 0 5px 15px rgba(255,255,255,0.05); }
+
     h1 { text-align: center; margin-bottom: 15px; color: #007bff; }
-    #clock, #budget, #renewal-info { text-align: center; margin: 8px 0; }
+    #clock, #budget { text-align: center; margin: 8px 0; }
+
+    #renewal-summary, #renewal-today, #renewal-next {
+      text-align:center; margin: 6px 0; font-size: 14px;
+    }
+
     .buttons, .numpad {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 10px; margin: 15px 0;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0;
     }
     button {
       flex: 1 1 45%; padding: 12px; border: none; border-radius: 12px;
@@ -37,19 +37,21 @@
       cursor: pointer; transition: background 0.3s;
     }
     button:hover { background: #0056b3; }
-    .numpad button {
-      flex: 1 1 30%; padding: 15px; font-size: 18px; background: #444;
-    }
+    .numpad button { flex: 1 1 30%; padding: 15px; font-size: 18px; background: #444; }
+
     #history {
       max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #ccc;
       border-radius: 12px; padding: 10px;
     }
     body.dark-mode #history { background: #2c2c2c; border-color: #666; }
+
     #mode-toggle { position: fixed; bottom: 20px; right: 20px; font-size: 26px; cursor: pointer; }
+
     #input-display {
       width: 100%; text-align: right; font-size: 24px; padding: 10px;
       border: none; background: transparent; color: inherit;
     }
+
     .category-popup, .category-totals {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: #fff; padding: 20px; border-radius: 10px;
@@ -61,8 +63,8 @@
       border-radius: 8px; font-size: 16px; background: #007bff; color: white;
     }
     .category-popup button:last-child, .category-totals button:last-child { background: #ccc; color: #000; }
-    /* small helper text */
-    .muted { font-size: 12px; opacity: .8; text-align:center; margin-top: 4px; }
+
+    .small { font-size: 12px; opacity: .85; text-align:center; }
   </style>
 </head>
 <body>
@@ -71,8 +73,9 @@
     <div id="clock">🕒 Time: --:--</div>
     <div id="budget">Budget: $0</div>
 
-    <div id="renewal-info"></div>
-    <div class="muted" id="renewal-next"></div>
+    <div id="renewal-summary" class="small"></div>
+    <div id="renewal-today" class="small"></div>
+    <div id="renewal-next" class="small"></div>
 
     <input id="input-display" placeholder="Enter amount" readonly />
 
@@ -98,6 +101,7 @@
       <button onclick="resetBudget()">Reset</button>
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
       <button onclick="viewCategoryTotals()">📊 View Categories</button>
+      <button onclick="runAutoRenewals(true)">↻ Refresh Renewals</button>
     </div>
 
     <div id="history"></div>
@@ -114,50 +118,20 @@
     const historyDiv = document.getElementById('history');
     const popup = document.getElementById('category-popup');
     const totalsPopup = document.getElementById('category-totals');
-    const renewalInfoEl = document.getElementById('renewal-info');
+    const renewalSummaryEl = document.getElementById('renewal-summary');
+    const renewalTodayEl = document.getElementById('renewal-today');
     const renewalNextEl = document.getElementById('renewal-next');
 
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
     let history = JSON.parse(localStorage.getItem('history')) || [];
     let appliedMap = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {}; // {id: 'YYYY-MM-DD'}
 
-    // ====== Utilities ======
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const weekdayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-    function nowLocal() { return new Date(); } // keep simple
-
-    function todayISO(d=nowLocal()) {
-      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
-      return `${y}-${m}-${day}`;
-    }
-
-    function hhmm(d=nowLocal()) {
-      return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false});
-    }
-
-    function parseHHMM(s) {
-      if (!s) return null;
-      const [h,m] = s.split(':').map(n=>parseInt(n,10));
-      if (isNaN(h)||isNaN(m)) return null;
-      const d = nowLocal();
-      d.setHours(h); d.setMinutes(m); d.setSeconds(0); d.setMilliseconds(0);
-      return d;
-    }
-
-    function compareTimeStrLE(a, b) { // "HH:MM" <= "HH:MM"
-      return a.localeCompare(b) <= 0;
-    }
-
-    function saveAll() {
-      localStorage.setItem('budget', budget);
-      localStorage.setItem('history', JSON.stringify(history));
-      localStorage.setItem('autoRenewalsApplied', JSON.stringify(appliedMap));
-    }
-
     // ====== Clock & Theme ======
     function updateClock() {
-      const n = nowLocal();
+      const n = new Date();
       document.getElementById('clock').textContent =
         `🕒 Time: ${n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true})}`;
     }
@@ -165,7 +139,6 @@
 
     const savedMode = localStorage.getItem('theme');
     if (savedMode === 'dark') document.body.classList.add('dark-mode'); else document.body.classList.add('light-mode');
-
     function toggleMode() {
       const isDark = document.body.classList.contains('dark-mode');
       document.body.classList.toggle('dark-mode', !isDark);
@@ -186,7 +159,8 @@
         budget += value;
         history.push({ type: 'Add', value, timestamp });
       }
-      saveAll();
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
       updateBudgetDisplay(); renderHistory(); clearInput();
     }
 
@@ -211,19 +185,20 @@
       const timestamp = new Date().toLocaleString();
       budget -= value;
       history.push({ type: `Subtract (${category})`, value, timestamp });
-      saveAll();
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
       updateBudgetDisplay(); renderHistory();
     }
 
     function clearHistory() {
       history = [];
-      saveAll();
+      localStorage.setItem('history', JSON.stringify(history));
       renderHistory();
     }
 
     function resetBudget() {
       budget = 0;
-      saveAll();
+      localStorage.setItem('budget', budget);
       updateBudgetDisplay();
     }
 
@@ -262,80 +237,108 @@
       totalsPopup.style.display = 'block';
     }
 
-    // ====== Auto-Renew: schedule matching & application ======
+    // ====== Auto-Renew logic ======
+    function todayISO(d=new Date()){
+      return d.toISOString().slice(0,10);
+    }
+    function hhmm(d=new Date()){
+      return d.toTimeString().slice(0,5); // "HH:MM"
+    }
+    function compareTimeLE(a,b){ return a <= b; } // strings "HH:MM"
+
     function shouldRunToday(entry, now=new Date()) {
-      // Check month
       const monthOk = !entry.months?.length || entry.months.includes(monthNames[now.getMonth()]);
-      // Check any of: weekday OR day-of-month OR specific exact date
       const weekdayOk = (entry.days?.length || 0) > 0 ? entry.days.includes(weekdayNames[now.getDay()]) : false;
-      const dom = String(now.getDate()); // '1'..'31'
+      const dom = String(now.getDate()); // "1".."31"
       const calDayOk = (entry.calendarDays?.length || 0) > 0 ? entry.calendarDays.includes(dom) : false;
       let exactDateOk = false;
-      if (entry.date) {
-        const iso = todayISO(now);
-        exactDateOk = iso === entry.date;
-      }
+      if (entry.date) exactDateOk = todayISO(now) === entry.date;
+
+      // If user didn’t pick any day/month/date, treat as “every day”
       const scheduleOk = monthOk && (weekdayOk || calDayOk || exactDateOk || (!entry.days?.length && !entry.calendarDays?.length && !entry.date));
-      // Time check
-      const timeOk = entry.time ? compareTimeStrLE(entry.time, hhmm(now)) : true;
+
+      const timeOk = entry.time ? compareTimeLE(entry.time, hhmm(now)) : true;
       return scheduleOk && timeOk;
     }
 
-    function runAutoRenewals() {
+    function renderAllTimeSummary() {
+      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+      let addSum = 0, subSum = 0;
+      all.forEach(e=>{
+        const amt = Number(e.amount)||0;
+        if ((e.type||'add') === 'add') addSum += amt; else subSum += amt;
+      });
+      const currency = localStorage.getItem('currency') || '$';
+      renewalSummaryEl.textContent =
+        `🔁 Scheduled (all time): ${all.length} | +${currency}${addSum.toFixed(2)} / -${currency}${subSum.toFixed(2)}`;
+    }
+
+    function runAutoRenewals(forceRenderOnly=false) {
       const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
       const today = todayISO();
       let adds=0, subs=0, countToday=0;
 
-      // Summary for today (regardless of applied)
+      // Today summary
       all.forEach(e=>{
         if (shouldRunToday(e)) {
           countToday++;
-          if (e.type === 'add') adds += (parseFloat(e.amount)||0);
-          else subs += (parseFloat(e.amount)||0);
+          const amt = Number(e.amount)||0;
+          if ((e.type||'add') === 'add') adds += amt;
+          else subs += amt;
         }
       });
 
-      // Apply due items that haven't been applied today
-      all.forEach(e=>{
-        // ensure id
-        if (!e.id) { e.id = 'r' + Date.now() + Math.random().toString(36).slice(2); }
-        const already = appliedMap[e.id] === today;
-        if (!already && shouldRunToday(e)) {
-          const amt = parseFloat(e.amount) || 0;
-          if (e.type === 'add') {
-            budget += amt;
-            history.push({ type:'Auto Add', value: amt, timestamp: new Date().toLocaleString() });
-          } else {
-            budget -= amt;
-            history.push({ type:'Auto Subtract', value: amt, timestamp: new Date().toLocaleString() });
+      // Apply only if not just refreshing UI
+      if (!forceRenderOnly) {
+        all.forEach(e=>{
+          if (!e.id) { e.id = 'r' + Date.now() + Math.random().toString(36).slice(2); }
+          const already = appliedMap[e.id] === today;
+          if (!already && shouldRunToday(e)) {
+            const amt = Number(e.amount)||0;
+            const ts = new Date().toLocaleString();
+            if ((e.type||'add') === 'add') {
+              budget += amt;
+              history.push({ type:'Auto Add', value: amt, timestamp: ts });
+            } else {
+              budget -= amt;
+              history.push({ type:'Auto Subtract', value: amt, timestamp: ts });
+            }
+            appliedMap[e.id] = today;
           }
-          appliedMap[e.id] = today;
-        }
-      });
+        });
+        localStorage.setItem('autoRenewals', JSON.stringify(all));
+        localStorage.setItem('autoRenewalsApplied', JSON.stringify(appliedMap));
+        localStorage.setItem('budget', budget);
+        localStorage.setItem('history', JSON.stringify(history));
+      }
 
-      // Save any assigned ids + changes
-      localStorage.setItem('autoRenewals', JSON.stringify(all));
-      saveAll();
-      updateBudgetDisplay(); renderHistory();
+      updateBudgetDisplay(); renderHistory(); renderAllTimeSummary();
 
       const currency = localStorage.getItem('currency') || '$';
       const net = (adds - subs).toFixed(2);
-      renewalInfoEl.textContent = countToday
-        ? `🔁 Today’s auto-renewals: ${countToday} | +${currency}${adds.toFixed(2)} / -${currency}${subs.toFixed(2)} | Net: ${currency}${net}`
-        : '🔁 No auto-renewals scheduled for today';
+      renewalTodayEl.textContent = countToday
+        ? `📅 Today: ${countToday} due | +${currency}${adds.toFixed(2)} / -${currency}${subs.toFixed(2)} | Net ${currency}${net}`
+        : `📅 Today: none due`;
 
-      // Show “next” hint = earliest time among entries today (if any time is in future)
-      const timesToday = (JSON.parse(localStorage.getItem('autoRenewals')) || [])
-        .filter(e=>shouldRunToday({...e, time: e.time || null}, new Date(new Date().setHours(0,0,0,0)))) // schedule today ignoring time
-        .map(e=>e.time).filter(Boolean).sort();
-      const nowStr = hhmm();
-      const next = timesToday.find(t => t > nowStr);
+      // “Next” time hint for entries that are due later today
+      const times = all
+        .filter(e=>{
+          if (!e.time) return false;
+          // schedule matches ignoring time
+          const t0 = { ...e, time: null };
+          return shouldRunToday(t0, new Date(new Date().setHours(12,0,0,0)));
+        })
+        .map(e=>e.time)
+        .filter(Boolean)
+        .sort();
+      const nowT = hhmm();
+      const next = times.find(t => t > nowT);
       renewalNextEl.textContent = next ? `Next run at ${next}` : '';
     }
 
-    // Initial render
-    updateBudgetDisplay(); renderHistory(); runAutoRenewals();
-    // Re-check every 30 seconds so times get picked up
+    // ===== Init =====
+    updateBudgetDisplay(); renderHistory(); renderAllTimeSummary(); runAutoRenewals(true);
+    // Check periodically to apply when time passes
     setInterval(runAutoRenewals, 30000);
   </script>
 </body>
