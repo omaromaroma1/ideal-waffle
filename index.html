@@ -24,7 +24,7 @@
     h1 { text-align: center; margin-bottom: 15px; color: #007bff; }
     #clock, #budget { text-align: center; margin: 8px 0; }
 
-    #renewal-summary, #renewal-today, #renewal-next {
+    #renewal-summary, #renewal-next {
       text-align:center; margin: 6px 0; font-size: 14px;
     }
 
@@ -74,7 +74,6 @@
     <div id="budget">Budget: $0</div>
 
     <div id="renewal-summary" class="small"></div>
-    <div id="renewal-today" class="small"></div>
     <div id="renewal-next" class="small"></div>
 
     <input id="input-display" placeholder="Enter amount" readonly />
@@ -112,14 +111,13 @@
   <div id="category-totals" class="category-totals" style="display:none;"></div>
 
   <script>
-    // ====== Elements & State ======
+    // ===== Elements & State =====
     const inputDisplay = document.getElementById('input-display');
     const budgetDisplay = document.getElementById('budget');
     const historyDiv = document.getElementById('history');
     const popup = document.getElementById('category-popup');
     const totalsPopup = document.getElementById('category-totals');
     const renewalSummaryEl = document.getElementById('renewal-summary');
-    const renewalTodayEl = document.getElementById('renewal-today');
     const renewalNextEl = document.getElementById('renewal-next');
 
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
@@ -129,7 +127,7 @@
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const weekdayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-    // ====== Clock & Theme ======
+    // ===== Clock & Theme =====
     function updateClock() {
       const n = new Date();
       document.getElementById('clock').textContent =
@@ -146,7 +144,7 @@
       localStorage.setItem('theme', isDark ? 'light' : 'dark');
     }
 
-    // ====== Calculator input ======
+    // ===== Calculator input =====
     function appendNumber(num){ inputDisplay.value += num; }
     function backspace(){ inputDisplay.value = inputDisplay.value.slice(0,-1); }
     function clearInput(){ inputDisplay.value = ''; }
@@ -237,14 +235,13 @@
       totalsPopup.style.display = 'block';
     }
 
-    // ====== Auto-Renew logic ======
+    // ===== Auto-Renew logic =====
     function todayISO(d=new Date()){
       return d.toISOString().slice(0,10);
     }
     function hhmm(d=new Date()){
       return d.toTimeString().slice(0,5); // "HH:MM"
     }
-    function compareTimeLE(a,b){ return a <= b; } // strings "HH:MM"
 
     function shouldRunToday(entry, now=new Date()) {
       const monthOk = !entry.months?.length || entry.months.includes(monthNames[now.getMonth()]);
@@ -253,11 +250,8 @@
       const calDayOk = (entry.calendarDays?.length || 0) > 0 ? entry.calendarDays.includes(dom) : false;
       let exactDateOk = false;
       if (entry.date) exactDateOk = todayISO(now) === entry.date;
-
-      // If user didn’t pick any day/month/date, treat as “every day”
       const scheduleOk = monthOk && (weekdayOk || calDayOk || exactDateOk || (!entry.days?.length && !entry.calendarDays?.length && !entry.date));
-
-      const timeOk = entry.time ? compareTimeLE(entry.time, hhmm(now)) : true;
+      const timeOk = entry.time ? (entry.time <= hhmm(now)) : true;
       return scheduleOk && timeOk;
     }
 
@@ -276,19 +270,7 @@
     function runAutoRenewals(forceRenderOnly=false) {
       const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
       const today = todayISO();
-      let adds=0, subs=0, countToday=0;
 
-      // Today summary
-      all.forEach(e=>{
-        if (shouldRunToday(e)) {
-          countToday++;
-          const amt = Number(e.amount)||0;
-          if ((e.type||'add') === 'add') adds += amt;
-          else subs += amt;
-        }
-      });
-
-      // Apply only if not just refreshing UI
       if (!forceRenderOnly) {
         all.forEach(e=>{
           if (!e.id) { e.id = 'r' + Date.now() + Math.random().toString(36).slice(2); }
@@ -314,31 +296,18 @@
 
       updateBudgetDisplay(); renderHistory(); renderAllTimeSummary();
 
-      const currency = localStorage.getItem('currency') || '$';
-      const net = (adds - subs).toFixed(2);
-      renewalTodayEl.textContent = countToday
-        ? `📅 Today: ${countToday} due | +${currency}${adds.toFixed(2)} / -${currency}${subs.toFixed(2)} | Net ${currency}${net}`
-        : `📅 Today: none due`;
-
-      // “Next” time hint for entries that are due later today
+      // Next time hint for entries later today
       const times = all
-        .filter(e=>{
-          if (!e.time) return false;
-          // schedule matches ignoring time
-          const t0 = { ...e, time: null };
-          return shouldRunToday(t0, new Date(new Date().setHours(12,0,0,0)));
-        })
+        .filter(e=>e.time)
         .map(e=>e.time)
-        .filter(Boolean)
         .sort();
       const nowT = hhmm();
       const next = times.find(t => t > nowT);
       renewalNextEl.textContent = next ? `Next run at ${next}` : '';
     }
 
-    // ===== Init =====
+    // Init
     updateBudgetDisplay(); renderHistory(); renderAllTimeSummary(); runAutoRenewals(true);
-    // Check periodically to apply when time passes
     setInterval(runAutoRenewals, 30000);
   </script>
 </body>
