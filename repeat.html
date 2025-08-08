@@ -1,277 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Repeat Transactions</title>
-  <style>
-    body { font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; transition: background 0.3s, color 0.3s; }
-    body.light-mode { background: #ffffff; color: #003366; }
-    body.dark-mode  { background: #000000; color: #eeeeee; }
-    h1 { text-align: center; margin-bottom: 20px; color: #007bff; }
-
-    label { display: block; margin: 12px 0 6px; }
-    input[type="number"], input[type="time"], input[type="date"] {
-      width: 100%; padding: 12px; font-size: 16px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 15px;
-    }
-
-    .bubble-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
-    .bubble {
-      padding: 10px 15px; border-radius: 20px; border: none;
-      background-color: #007bff; color: white; cursor: pointer; font-size: 14px; user-select: none;
-    }
-    .bubble.selected { background-color: #0056b3; }
-
-    .toggle-group { display: flex; justify-content: center; gap: 12px; margin: 10px 0 20px; }
-    .toggle-group .bubble { background: #9bbcf5; color: #00285c; }
-    .toggle-group .bubble.selected { background: #007bff; color: #fff; }
-
-    .collapsible { background-color: #007bff; color: white; cursor: pointer; padding: 10px; width: 100%;
-      border: none; text-align: left; font-size: 16px; border-radius: 12px; margin: 10px 0; }
-    .content { padding: 10px 10px 5px; display: none; border-radius: 12px; background: #f2f7ff; }
-
-    .btn-row { display:flex; gap:10px; }
-    button.save-btn {
-      width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 12px;
-      background-color: #007bff; color: white; cursor: pointer; margin-top: 8px;
-    }
-    .back-button { background-color: #888; }
-
-    .saved-list { margin-top: 18px; font-size: 14px; }
-    .saved-item {
-      border: 1px solid #c9defd; border-radius: 10px; padding: 8px; margin-bottom: 8px; background: #eef5ff;
-      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
-    }
-    body.dark-mode .saved-item { background: #111827; border-color: #374151; }
-
-    .trash {
-      background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 8px 10px; cursor: pointer;
-    }
-    .trash:hover { background: #b91c1c; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Repeat Transactions</title>
+<style>
+  body{font-family:Segoe UI,system-ui,Arial,sans-serif;padding:20px;margin:0;transition:background .2s,color .2s}
+  body.light-mode{background:#fff;color:#003366}
+  body.dark-mode{background:#000;color:#eee}
+  h1{text-align:center;margin-bottom:16px;color:#007bff}
+  label{display:block;margin:10px 0 6px}
+  input[type="number"],input[type="time"],input[type="date"]{width:100%;padding:12px;border:1px solid #ccc;border-radius:12px;margin-bottom:12px}
+  .bubble-group{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .bubble{padding:10px 14px;border-radius:20px;background:#007bff;color:#fff;cursor:pointer;user-select:none}
+  .bubble.selected{background:#0056b3}
+  .toggle-group{display:flex;gap:12px;justify-content:center;margin:8px 0 14px}
+  .toggle-group .bubble{background:#9bbcf5;color:#00285c}
+  .toggle-group .bubble.selected{background:#007bff;color:#fff}
+  .collapsible{background:#007bff;color:#fff;border:none;border-radius:12px;padding:10px;width:100%;text-align:left;margin:8px 0;cursor:pointer}
+  .content{display:none;background:#f2f7ff;border-radius:12px;padding:10px}
+  .btn-row{display:flex;gap:10px}
+  .save-btn{flex:1;padding:12px;border:none;border-radius:12px;background:#007bff;color:#fff;font-weight:600;cursor:pointer}
+  .back-button{background:#888}
+  .saved-list{margin-top:16px;font-size:14px}
+  .saved-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #c9defd;background:#eef5ff;padding:8px;border-radius:10px;margin-bottom:8px}
+  body.dark-mode .saved-item{background:#111827;border-color:#374151}
+  .trash{background:#ef4444;color:#fff;border:none;border-radius:8px;padding:8px 10px;cursor:pointer}
+</style>
 </head>
 <body>
-  <h1>Repeat Transactions</h1>
+<h1>Repeat Transactions</h1>
 
-  <label for="amount">Amount</label>
-  <input type="number" id="amount" placeholder="Enter amount" />
+<label for="amount">Amount</label>
+<input type="number" id="amount" placeholder="Enter amount"/>
 
-  <label for="time">Time</label>
-  <input type="time" id="time" />
+<label for="time">Time</label>
+<input type="time" id="time"/>
 
-  <label>Transaction Type</label>
-  <div class="toggle-group" id="typeGroup">
-    <div class="bubble" data-type="add">Add</div>
-    <div class="bubble" data-type="subtract">Subtract</div>
+<label>Transaction Type</label>
+<div class="toggle-group" id="typeGroup">
+  <div class="bubble" data-type="add">Add</div>
+  <div class="bubble" data-type="subtract">Subtract</div>
+</div>
+
+<label>Days of the Week</label>
+<div class="bubble-group" id="dayButtons">
+  <div class="bubble" data-value="Sunday">Sun</div><div class="bubble" data-value="Monday">Mon</div>
+  <div class="bubble" data-value="Tuesday">Tue</div><div class="bubble" data-value="Wednesday">Wed</div>
+  <div class="bubble" data-value="Thursday">Thu</div><div class="bubble" data-value="Friday">Fri</div>
+  <div class="bubble" data-value="Saturday">Sat</div>
+</div>
+
+<button class="collapsible" id="monthsToggle">Select Months</button>
+<div class="content" id="monthsContent">
+  <div class="bubble-group" id="monthButtons">
+    <div class="bubble" data-value="January">Jan</div><div class="bubble" data-value="February">Feb</div>
+    <div class="bubble" data-value="March">Mar</div><div class="bubble" data-value="April">Apr</div>
+    <div class="bubble" data-value="May">May</div><div class="bubble" data-value="June">Jun</div>
+    <div class="bubble" data-value="July">Jul</div><div class="bubble" data-value="August">Aug</div>
+    <div class="bubble" data-value="September">Sep</div><div class="bubble" data-value="October">Oct</div>
+    <div class="bubble" data-value="November">Nov</div><div class="bubble" data-value="December">Dec</div>
   </div>
+</div>
 
-  <label>Days of the Week</label>
-  <div class="bubble-group" id="dayButtons">
-    <div class="bubble" data-value="Sunday">Sun</div>
-    <div class="bubble" data-value="Monday">Mon</div>
-    <div class="bubble" data-value="Tuesday">Tue</div>
-    <div class="bubble" data-value="Wednesday">Wed</div>
-    <div class="bubble" data-value="Thursday">Thu</div>
-    <div class="bubble" data-value="Friday">Fri</div>
-    <div class="bubble" data-value="Saturday">Sat</div>
-  </div>
+<label>Specific Calendar Days (tap numbers)</label>
+<div class="bubble-group" id="dateButtons"></div>
 
-  <button class="collapsible" id="monthsToggle">Select Months</button>
-  <div class="content" id="monthsContent">
-    <div class="bubble-group" id="monthButtons">
-      <div class="bubble" data-value="January">Jan</div>
-      <div class="bubble" data-value="February">Feb</div>
-      <div class="bubble" data-value="March">Mar</div>
-      <div class="bubble" data-value="April">Apr</div>
-      <div class="bubble" data-value="May">May</div>
-      <div class="bubble" data-value="June">Jun</div>
-      <div class="bubble" data-value="July">Jul</div>
-      <div class="bubble" data-value="August">Aug</div>
-      <div class="bubble" data-value="September">Sep</div>
-      <div class="bubble" data-value="October">Oct</div>
-      <div class="bubble" data-value="November">Nov</div>
-      <div class="bubble" data-value="December">Dec</div>
-    </div>
-  </div>
+<label>Specific Date (optional)</label>
+<input type="date" id="date"/>
 
-  <label>Specific Calendar Days (tap numbers)</label>
-  <div class="bubble-group" id="dateButtons"></div>
+<div class="btn-row">
+  <button class="save-btn" id="saveAddAnother">Save & Add Another</button>
+  <button class="save-btn" id="saveAndBack">Save & Back</button>
+</div>
+<button class="save-btn back-button" onclick="window.location.href='index.html'">← Back</button>
 
-  <label>Specific Date (optional)</label>
-  <input type="date" id="date" />
+<div class="saved-list" id="savedList"></div>
 
-  <div class="btn-row">
-    <button class="save-btn" id="saveAddAnother">Save & Add Another</button>
-    <button class="save-btn" id="saveAndBack">Save & Back</button>
-  </div>
-  <button class="save-btn back-button" onclick="window.location.href='index.html'">← Back</button>
+<script>
+  // Theme
+  (localStorage.getItem('theme')==='dark'?document.body.classList.add('dark-mode'):document.body.classList.add('light-mode'));
 
-  <div class="saved-list" id="savedList"></div>
+  // Build day numbers 1..31
+  const dateButtons=document.getElementById('dateButtons');
+  for(let i=1;i<=31;i++){const b=document.createElement('div');b.className='bubble';b.dataset.value=String(i);b.textContent=i;dateButtons.appendChild(b);}
 
-  <script>
-    // Theme apply
-    const mode = localStorage.getItem('theme');
-    if (mode === 'dark') document.body.classList.add('dark-mode'); else document.body.classList.add('light-mode');
+  function toggleSel(e){ if(e.target.classList.contains('bubble')){ e.target.classList.toggle('selected'); saveDraft(); } }
+  document.getElementById('dayButtons').addEventListener('click',toggleSel);
+  document.getElementById('monthButtons').addEventListener('click',toggleSel);
+  document.getElementById('dateButtons').addEventListener('click',toggleSel);
 
-    // Build 1..31 bubbles
-    const dateButtons = document.getElementById('dateButtons');
-    for (let i=1;i<=31;i++){
-      const b = document.createElement('div');
-      b.className = 'bubble';
-      b.dataset.value = String(i);
-      b.textContent = i;
-      dateButtons.appendChild(b);
-    }
-
-    // Toggle helpers
-    function toggleSelected(e) {
-      if (e.target.classList.contains('bubble')) {
-        e.target.classList.toggle('selected');
-        saveDraft();
-      }
-    }
-    document.getElementById('dayButtons').addEventListener('click', toggleSelected);
-    document.getElementById('monthButtons').addEventListener('click', toggleSelected);
-    document.getElementById('dateButtons').addEventListener('click', toggleSelected);
-
-    // Add/Subtract toggle
-    document.querySelectorAll('#typeGroup .bubble').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        document.querySelectorAll('#typeGroup .bubble').forEach(b=>b.classList.remove('selected'));
-        btn.classList.add('selected');
-        saveDraft();
-      });
+  document.querySelectorAll('#typeGroup .bubble').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#typeGroup .bubble').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected'); saveDraft();
     });
+  });
 
-    // Collapsible months
-    const monthsToggle = document.getElementById('monthsToggle');
-    const monthsContent = document.getElementById('monthsContent');
-    monthsToggle.addEventListener('click', ()=>{
-      monthsContent.style.display = monthsContent.style.display === 'block' ? 'none' : 'block';
+  const monthsToggle=document.getElementById('monthsToggle');
+  const monthsContent=document.getElementById('monthsContent');
+  monthsToggle.addEventListener('click',()=>{ monthsContent.style.display = monthsContent.style.display==='block'?'none':'block'; });
+
+  // Draft save/restore
+  const DRAFT_KEY='repeatDraft';
+  function draftFromUI(){
+    return {
+      amount:document.getElementById('amount').value,
+      time:document.getElementById('time').value,
+      type:document.querySelector('#typeGroup .bubble.selected')?.dataset.type||'',
+      days:[...document.querySelectorAll('#dayButtons .bubble.selected')].map(b=>b.dataset.value),
+      months:[...document.querySelectorAll('#monthButtons .bubble.selected')].map(b=>b.dataset.value),
+      calendarDays:[...document.querySelectorAll('#dateButtons .bubble.selected')].map(b=>b.dataset.value),
+      date:document.getElementById('date').value
+    };
+  }
+  function saveDraft(){ localStorage.setItem(DRAFT_KEY,JSON.stringify(draftFromUI())); }
+  function restoreDraft(){
+    const raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
+    try{
+      const d=JSON.parse(raw);
+      document.getElementById('amount').value=d.amount||'';
+      document.getElementById('time').value=d.time||'';
+      if(d.type){ document.querySelector(`#typeGroup .bubble[data-type="${d.type}"]`)?.classList.add('selected'); }
+      (d.days||[]).forEach(v=>document.querySelector(`#dayButtons .bubble[data-value="${v}"]`)?.classList.add('selected'));
+      (d.months||[]).forEach(v=>document.querySelector(`#monthButtons .bubble[data-value="${v}"]`)?.classList.add('selected'));
+      (d.calendarDays||[]).forEach(v=>document.querySelector(`#dateButtons .bubble[data-value="${v}"]`)?.classList.add('selected'));
+      document.getElementById('date').value=d.date||'';
+    }catch{}
+  }
+  ['amount','time','date'].forEach(id=>document.getElementById(id).addEventListener('input',saveDraft));
+  restoreDraft();
+
+  function buildEntry(){
+    const d=draftFromUI();
+    return { id:'r'+Date.now()+Math.random().toString(36).slice(2),
+      amount:+d.amount||0, time:d.time||'', type:d.type||'add',
+      days:d.days||[], months:d.months||[], calendarDays:d.calendarDays||[], date:d.date||null };
+  }
+  function saveEntry(e){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    all.push(e); localStorage.setItem('autoRenewals',JSON.stringify(all));
+  }
+  function clearInputsKeepBubbles(){
+    document.getElementById('amount').value='';
+    document.getElementById('time').value='';
+    document.getElementById('date').value='';
+    saveDraft();
+  }
+
+  document.getElementById('saveAddAnother').addEventListener('click',()=>{
+    saveEntry(buildEntry()); clearInputsKeepBubbles(); renderSaved();
+  });
+  document.getElementById('saveAndBack').addEventListener('click',()=>{
+    saveEntry(buildEntry()); localStorage.removeItem(DRAFT_KEY); window.location.href='index.html';
+  });
+
+  function deleteRepeat(id){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    const next=all.filter(x=>x.id!==id);
+    localStorage.setItem('autoRenewals',JSON.stringify(next));
+    const applied=JSON.parse(localStorage.getItem('autoRenewalsApplied'))||{};
+    if(applied[id]){ delete applied[id]; localStorage.setItem('autoRenewalsApplied',JSON.stringify(applied)); }
+    renderSaved();
+  }
+
+  function renderSaved(){
+    const list=document.getElementById('savedList');
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    const cur=localStorage.getItem('currency')||'$';
+    if(!all.length){ list.innerHTML='<em>No saved renewals yet.</em>'; return; }
+    list.innerHTML='<strong>Saved Renewals (all time)</strong>';
+    all.slice().reverse().forEach(e=>{
+      const row=document.createElement('div'); row.className='saved-item';
+      const left=document.createElement('div');
+      const sign=(e.type||'add')==='add'?'+':'-';
+      left.textContent=`${sign}${cur}${(+e.amount||0).toFixed(2)} @ ${e.time||'--:--'} | days:[${(e.days||[]).join(', ')||'—'}] nums:[${(e.calendarDays||[]).join(', ')||'—'}] months:[${(e.months||[]).join(', ')||'—'}] date:${e.date||'—'}`;
+      const del=document.createElement('button'); del.className='trash'; del.textContent='Delete'; del.onclick=()=>deleteRepeat(e.id);
+      row.appendChild(left); row.appendChild(del); list.appendChild(row);
     });
-
-    // Draft persistence
-    const DRAFT_KEY = 'repeatDraft';
-    function currentDraft() {
-      return {
-        amount: document.getElementById('amount').value,
-        time: document.getElementById('time').value,
-        type: document.querySelector('#typeGroup .bubble.selected')?.dataset.type || '',
-        days: [...document.querySelectorAll('#dayButtons .bubble.selected')].map(b=>b.dataset.value),
-        months: [...document.querySelectorAll('#monthButtons .bubble.selected')].map(b=>b.dataset.value),
-        calendarDays: [...document.querySelectorAll('#dateButtons .bubble.selected')].map(b=>b.dataset.value),
-        date: document.getElementById('date').value
-      };
-    }
-    function saveDraft(){ localStorage.setItem(DRAFT_KEY, JSON.stringify(currentDraft())); }
-    function restoreDraft(){
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      try {
-        const d = JSON.parse(raw);
-        document.getElementById('amount').value = d.amount || '';
-        document.getElementById('time').value = d.time || '';
-        if (d.type) {
-          const t = document.querySelector(`#typeGroup .bubble[data-type="${d.type}"]`);
-          if (t) t.classList.add('selected');
-        }
-        (d.days||[]).forEach(v=>{ document.querySelector(`#dayButtons .bubble[data-value="${v}"]`)?.classList.add('selected'); });
-        (d.months||[]).forEach(v=>{ document.querySelector(`#monthButtons .bubble[data-value="${v}"]`)?.classList.add('selected'); });
-        (d.calendarDays||[]).forEach(v=>{ document.querySelector(`#dateButtons .bubble[data-value="${v}"]`)?.classList.add('selected'); });
-        document.getElementById('date').value = d.date || '';
-      } catch {}
-    }
-    ['amount','time','date'].forEach(id => {
-      document.getElementById(id).addEventListener('input', saveDraft);
-    });
-    restoreDraft();
-
-    // Saved list
-    function renderSavedList(){
-      const container = document.getElementById('savedList');
-      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-      const currency = localStorage.getItem('currency') || '$';
-      if (!all.length) { container.innerHTML = '<em>No saved renewals yet.</em>'; return; }
-      container.innerHTML = '<strong>Saved Renewals (all time)</strong>';
-      all.slice().reverse().forEach(e=>{
-        const el = document.createElement('div');
-        el.className = 'saved-item';
-        const addSub = (e.type||'add') === 'add' ? '+' : '-';
-        const days = (e.days||[]).join(', ');
-        const months = (e.months||[]).join(', ');
-        const cds = (e.calendarDays||[]).join(', ');
-        const left = document.createElement('div');
-        left.textContent = `${addSub}${currency}${Number(e.amount||0).toFixed(2)} @ ${e.time||'--:--'} | days: [${days||'—'}] | nums: [${cds||'—'}] | months: [${months||'—'}] | date: ${e.date||'—'}`;
-        const del = document.createElement('button');
-        del.className = 'trash';
-        del.textContent = 'Delete';
-        del.onclick = () => deleteRepeat(e.id);
-        el.appendChild(left);
-        el.appendChild(del);
-        container.appendChild(el);
-      });
-    }
-
-    function deleteRepeat(id){
-      if (!id) return;
-      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-      const nextAll = all.filter(e => e.id !== id);
-      localStorage.setItem('autoRenewals', JSON.stringify(nextAll));
-      // also clear any “applied today” flag for this repeat
-      const applied = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
-      if (applied[id]) { delete applied[id]; localStorage.setItem('autoRenewalsApplied', JSON.stringify(applied)); }
-      renderSavedList();
-    }
-
-    function buildEntryFromUI(){
-      const d = currentDraft();
-      return {
-        id: 'r' + Date.now() + Math.random().toString(36).slice(2),
-        amount: Number(d.amount)||0,
-        time: d.time || '',
-        type: d.type || 'add',
-        days: d.days || [],
-        months: d.months || [],
-        calendarDays: d.calendarDays || [],
-        date: d.date || null
-      };
-    }
-    function saveEntry(entry){
-      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-      all.push(entry);
-      localStorage.setItem('autoRenewals', JSON.stringify(all));
-    }
-    function clearFormButKeepSelections(){
-      // Clear amount/time/date only; keep bubbles and type so user can add many quickly
-      document.getElementById('amount').value = '';
-      document.getElementById('time').value = '';
-      document.getElementById('date').value = '';
-      saveDraft();
-    }
-
-    document.getElementById('saveAddAnother').addEventListener('click', ()=>{
-      const entry = buildEntryFromUI();
-      saveEntry(entry);
-      clearFormButKeepSelections();
-      renderSavedList();
-    });
-
-    document.getElementById('saveAndBack').addEventListener('click', ()=>{
-      const entry = buildEntryFromUI();
-      saveEntry(entry);
-      localStorage.removeItem('repeatDraft');
-      window.location.href = 'index.html';
-    });
-
-    // Remember months section open/closed
-    const OPEN_KEY = 'monthsOpen';
-    if (localStorage.getItem(OPEN_KEY) === '1') monthsContent.style.display = 'block';
-    monthsToggle.addEventListener('click', ()=> {
-      localStorage.setItem(OPEN_KEY, monthsContent.style.display === 'block' ? '1' : '0');
-    });
-
-    renderSavedList();
-  </script>
+  }
+  renderSaved();
+</script>
 </body>
 </html>
-
