@@ -21,20 +21,34 @@
   .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
   .history-toggle{flex:0 0 auto;padding:6px 10px;border-radius:10px;font-size:12px;background:#e5f0ff;color:#0a3a8b;border:none}
   body.dark-mode .history-toggle{background:#243146;color:#d7e6ff}
-  #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px;transition:max-height .2s}
-  #history.expanded{max-height:80vh}
+  #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px}
   body.dark-mode #history{background:#2c2c2c;border-color:#666}
   #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer}
-  /* Popups: default inert (no pointer), only active when .open */
-  .popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-         min-width:240px;max-width:90vw;background:#fff;color:#000;border-radius:12px;
-         padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);
-         pointer-events:none;opacity:0;transition:opacity .15s}
-  .popup.open{pointer-events:auto;opacity:1}
-  body.dark-mode .popup{background:#1f2937;color:#e5e7eb}
-  .popup h3{text-align:center;margin-bottom:10px}
-  .popup .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff}
-  .popup .btn:last-child{background:#aaa;color:#111}
+
+  /* Fullscreen history overlay */
+  #history-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.6);
+    display:none; align-items:center; justify-content:center; z-index:9999;
+  }
+  #history-panel{
+    width: min(800px, 94vw);
+    height: min(90vh, 800px);
+    background:#ffffff; color:#111; border-radius:16px; display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden;
+  }
+  body.dark-mode #history-panel{ background:#1f2937; color:#e5e7eb }
+  .panel-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.1);
+  }
+  body.dark-mode .panel-header{ border-color:rgba(255,255,255,.12) }
+  .panel-title{font-weight:700}
+  .panel-btn{
+    padding:8px 10px; border:none; border-radius:10px; background:#007bff; color:#fff; cursor:pointer; font-weight:600;
+  }
+  .panel-body{padding:10px 12px; overflow:auto; flex:1}
+  .history-item{padding:8px 6px; border-bottom:1px solid rgba(0,0,0,.08)}
+  body.dark-mode .history-item{border-color:rgba(255,255,255,.08)}
 </style>
 </head>
 <body>
@@ -72,11 +86,23 @@
     <div id="history"></div>
   </div>
 
-  <div id="mode-toggle" onclick="toggleMode()">🌙</div>
+  <!-- theme toggle -->
+  <div id="mode-toggle" onclick="toggleMode()" aria-label="Toggle theme">🌙</div>
 
-  <!-- popups -->
+  <!-- simple popups -->
   <div id="category-popup" class="popup" aria-hidden="true"></div>
   <div id="totals-popup" class="popup" aria-hidden="true"></div>
+
+  <!-- fullscreen history overlay -->
+  <div id="history-overlay" aria-hidden="true">
+    <div id="history-panel">
+      <div class="panel-header">
+        <div class="panel-title">History</div>
+        <button class="panel-btn" id="closeHistory">Close</button>
+      </div>
+      <div id="history-full" class="panel-body"></div>
+    </div>
+  </div>
 
 <script>
   // ===== State =====
@@ -87,6 +113,13 @@
   const totalsPopup = document.getElementById('totals-popup');
   const renewalSummaryEl = document.getElementById('renewal-summary');
   const renewalNextEl = document.getElementById('renewal-next');
+  const modeBtn = document.getElementById('mode-toggle');
+
+  // Fullscreen history elements
+  const historyOverlay = document.getElementById('history-overlay');
+  const historyFull = document.getElementById('history-full');
+  const closeHistoryBtn = document.getElementById('closeHistory');
+  const expandBtn = document.getElementById('toggleHistoryBtn');
 
   let budget = parseFloat(localStorage.getItem('budget')) || 0;
   let history = JSON.parse(localStorage.getItem('history')) || [];
@@ -96,12 +129,18 @@
   const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
   // ===== Theme =====
-  (localStorage.getItem('theme')==='dark'?document.body.classList.add('dark-mode'):document.body.classList.add('light-mode'));
+  if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); } else { document.body.classList.add('light-mode'); }
+  function updateModeIcon(){
+    // Light mode shows moon (tap to go dark), dark mode shows sun (tap to go light)
+    modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+  }
+  updateModeIcon();
   function toggleMode(){
     const dark=document.body.classList.contains('dark-mode');
     document.body.classList.toggle('dark-mode',!dark);
     document.body.classList.toggle('light-mode',dark);
     localStorage.setItem('theme',dark?'light':'dark');
+    updateModeIcon();
   }
 
   // ===== Clock =====
@@ -161,18 +200,15 @@
     });
   }
 
-  // ===== Popups (no overlay, no block unless open) =====
+  // ===== Popups (simple, non-blocking) =====
   function openPopup(which){
     const el = which==='category'?catPopup:totalsPopup;
-    el.classList.add('open');
-    el.setAttribute('aria-hidden','false');
+    el.classList.add('open'); el.setAttribute('aria-hidden','false');
   }
   function closePopup(which){
     const el = which==='category'?catPopup:totalsPopup;
-    el.classList.remove('open');
-    el.setAttribute('aria-hidden','true');
+    el.classList.remove('open'); el.setAttribute('aria-hidden','true');
   }
-  // Hard-close any stuck popup on load
   closePopup('category'); closePopup('totals');
 
   function viewCategoryTotals(){
@@ -188,13 +224,28 @@
     openPopup('totals');
   }
 
-  // ===== History expand =====
-  document.getElementById('toggleHistoryBtn').addEventListener('click',()=>{
-    const exp=historyEl.classList.toggle('expanded');
-    document.getElementById('toggleHistoryBtn').textContent = exp?'Collapse ⇵':'Expand ⇵';
-  });
+  // ===== Fullscreen History =====
+  function openFullHistory(){
+    // render into overlay
+    historyFull.innerHTML='';
+    history.slice().reverse().forEach(it=>{
+      const row=document.createElement('div');
+      row.className='history-item';
+      row.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      historyFull.appendChild(row);
+    });
+    historyOverlay.style.display='flex';
+    historyOverlay.setAttribute('aria-hidden','false');
+  }
+  function closeFullHistory(){
+    historyOverlay.style.display='none';
+    historyOverlay.setAttribute('aria-hidden','true');
+  }
+  expandBtn.addEventListener('click', openFullHistory);
+  closeHistoryBtn.addEventListener('click', closeFullHistory);
+  historyOverlay.addEventListener('click',(e)=>{ if(e.target===historyOverlay) closeFullHistory(); });
 
-  // ===== Auto-renew (unchanged logic, no “today” line) =====
+  // ===== Auto-renew (summary + next time) =====
   function todayISO(d=new Date()){ return d.toISOString().slice(0,10); }
   function hhmm(d=new Date()){ return d.toTimeString().slice(0,5); }
   function shouldRunToday(e,now=new Date()){
@@ -213,7 +264,6 @@
     all.forEach(e=>{ const a=+e.amount||0; (e.type||'add')==='add'? add+=a : sub+=a; });
     const cur=localStorage.getItem('currency')||'$';
     renewalSummaryEl.textContent = `🔁 Scheduled (all time): ${all.length} | +${cur}${add.toFixed(2)} / -${cur}${sub.toFixed(2)}`;
-    // Next time hint (first future time today)
     const times = all.map(e=>e.time).filter(Boolean).sort();
     const next = times.find(t=>t>hhmm());
     renewalNextEl.textContent = next? `Next run at ${next}` : '';
