@@ -63,10 +63,16 @@
       border: none; background: transparent; color: inherit;
     }
 
+    /* Popups */
+    .backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.35);
+      display: none; z-index: 998; /* below the popup */
+    }
     .category-popup, .category-totals {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: #fff; padding: 20px; border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 999; max-width: 90%;
+      display: none;
     }
     .category-popup h3, .category-totals h3 { margin-bottom: 15px; text-align: center; }
     .category-popup button, .category-totals button {
@@ -76,6 +82,14 @@
     .category-popup button:last-child, .category-totals button:last-child { background: #ccc; color: #000; }
 
     .small { font-size: 12px; opacity: .85; text-align:center; }
+
+    /* Safety button (only shows if needed) */
+    .ui-reset {
+      position: fixed; left: 12px; bottom: 20px; z-index: 1000;
+      font-size: 12px; padding: 6px 8px; border-radius: 8px; border: none;
+      background:#eaeaea; color:#333; display:none;
+    }
+    body.dark-mode .ui-reset { background:#2a2a2a; color:#ddd; }
   </style>
 </head>
 <body>
@@ -122,8 +136,14 @@
   </div>
 
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
-  <div id="category-popup" class="category-popup" style="display:none;"></div>
-  <div id="category-totals" class="category-totals" style="display:none;"></div>
+
+  <!-- Backdrop and popups -->
+  <div id="backdrop" class="backdrop"></div>
+  <div id="category-popup" class="category-popup"></div>
+  <div id="category-totals" class="category-totals"></div>
+
+  <!-- Force-close UI if something gets stuck -->
+  <button id="uiReset" class="ui-reset" onclick="forceCloseUI()">Force-Close UI</button>
 
   <script>
     // ===== Elements & State =====
@@ -132,6 +152,8 @@
     const historyDiv = document.getElementById('history');
     const popup = document.getElementById('category-popup');
     const totalsPopup = document.getElementById('category-totals');
+    const backdrop = document.getElementById('backdrop');
+    const uiResetBtn = document.getElementById('uiReset');
     const renewalSummaryEl = document.getElementById('renewal-summary');
     const renewalNextEl = document.getElementById('renewal-next');
     const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
@@ -143,6 +165,9 @@
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const weekdayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     const categoryList = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+
+    // Safety: ensure popups are hidden on load
+    hideAllOverlays();
 
     // ===== Clock & Theme =====
     function updateClock() {
@@ -185,19 +210,41 @@
       updateBudgetDisplay(); renderHistory(); clearInput();
     }
 
+    // ===== Overlays helpers =====
+    function showBackdrop() {
+      backdrop.style.display = 'block';
+      uiResetBtn.style.display = 'inline-block'; // show safety button
+    }
+    function hideBackdrop() {
+      backdrop.style.display = 'none';
+      // only hide the safety button if both overlays are closed
+      if (popup.style.display === 'none' && totalsPopup.style.display === 'none') {
+        uiResetBtn.style.display = 'none';
+      }
+    }
+    backdrop.addEventListener('click', hideAllOverlays);
+
+    function hideAllOverlays() {
+      popup.style.display = 'none';
+      totalsPopup.style.display = 'none';
+      hideBackdrop();
+    }
+    function forceCloseUI() { hideAllOverlays(); } // exposed for the button
+
     function showCategoryPopup() {
       const buttons = categoryList.map(c => `<button onclick="confirmCategory('${c}')">${c}</button>`).join('');
       popup.innerHTML = `
         <h3>Select Category</h3>
         ${buttons}
-        <button onclick="popup.style.display='none'">Cancel</button>
+        <button onclick="hideAllOverlays()">Cancel</button>
       `;
       popup.style.display = 'block';
+      showBackdrop();
     }
 
     function confirmCategory(category) {
       const value = parseFloat(inputDisplay.value);
-      popup.style.display = 'none';
+      hideAllOverlays();
       clearInput();
       if (isNaN(value)) return;
       const timestamp = new Date().toLocaleString();
@@ -249,9 +296,11 @@
       });
       const close = document.createElement('button');
       close.textContent = 'Close';
-      close.onclick = ()=> totalsPopup.style.display='none';
+      close.onclick = hideAllOverlays;
       totalsPopup.appendChild(close);
+
       totalsPopup.style.display = 'block';
+      showBackdrop();
     }
 
     // ===== Auto-Renew (all-time summary + next time) =====
@@ -312,11 +361,8 @@
 
       updateBudgetDisplay(); renderHistory(); renderAllTimeSummary();
 
-      // “Next” time hint for any with time later today
-      const times = all
-        .filter(e=>e.time)
-        .map(e=>e.time)
-        .sort();
+      // Next time hint for any with time later today
+      const times = all.filter(e=>e.time).map(e=>e.time).sort();
       const nowT = hhmm();
       const next = times.find(t => t > nowT);
       renewalNextEl.textContent = next ? `Next run at ${next}` : '';
@@ -324,7 +370,15 @@
 
     // Init
     updateBudgetDisplay(); renderHistory(); renderAllTimeSummary(); runAutoRenewals(true);
-    setInterval(runAutoRenewals, 30000);
+
+    // Re-apply periodically
+    const interval = setInterval(runAutoRenewals, 30000);
+
+    // Last safety: show a visible error if anything breaks
+    window.addEventListener('error', (e)=>{
+      console.error(e.message);
+      uiResetBtn.style.display = 'inline-block';
+    });
   </script>
 </body>
 </html>
