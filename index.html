@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Money Budgeter</title>
   <style>
@@ -25,100 +25,44 @@
       background: #1e1e1e;
       box-shadow: 0 5px 15px rgba(255,255,255,0.05);
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 15px;
-      color: #007bff;
-    }
-    #clock, #budget, #renewal-info {
-      text-align: center;
-      margin: 8px 0;
-    }
+    h1 { text-align: center; margin-bottom: 15px; color: #007bff; }
+    #clock, #budget, #renewal-info { text-align: center; margin: 8px 0; }
     .buttons, .numpad {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin: 15px 0;
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 10px; margin: 15px 0;
     }
     button {
-      flex: 1 1 45%;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      background: #007bff;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
+      flex: 1 1 45%; padding: 12px; border: none; border-radius: 12px;
+      font-size: 15px; background: #007bff; color: white; font-weight: bold;
+      cursor: pointer; transition: background 0.3s;
     }
     button:hover { background: #0056b3; }
     .numpad button {
-      flex: 1 1 30%;
-      padding: 15px;
-      font-size: 18px;
-      background: #444;
+      flex: 1 1 30%; padding: 15px; font-size: 18px; background: #444;
     }
     #history {
-      max-height: 180px;
-      overflow-y: auto;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      padding: 10px;
+      max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #ccc;
+      border-radius: 12px; padding: 10px;
     }
-    body.dark-mode #history {
-      background: #2c2c2c;
-      border-color: #666;
-    }
-    #mode-toggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      font-size: 26px;
-      cursor: pointer;
-    }
+    body.dark-mode #history { background: #2c2c2c; border-color: #666; }
+    #mode-toggle { position: fixed; bottom: 20px; right: 20px; font-size: 26px; cursor: pointer; }
     #input-display {
-      width: 100%;
-      text-align: right;
-      font-size: 24px;
-      padding: 10px;
-      border: none;
-      background: transparent;
-      color: inherit;
+      width: 100%; text-align: right; font-size: 24px; padding: 10px;
+      border: none; background: transparent; color: inherit;
     }
     .category-popup, .category-totals {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      z-index: 999;
-      max-width: 90%;
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: #fff; padding: 20px; border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 999; max-width: 90%;
     }
-    .category-popup h3, .category-totals h3 {
-      margin-bottom: 15px;
-      text-align: center;
-    }
+    .category-popup h3, .category-totals h3 { margin-bottom: 15px; text-align: center; }
     .category-popup button, .category-totals button {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      background: #007bff;
-      color: white;
+      width: 100%; margin-bottom: 10px; padding: 10px; border: none;
+      border-radius: 8px; font-size: 16px; background: #007bff; color: white;
     }
-    .category-popup button:last-child,
-    .category-totals button:last-child {
-      background: #ccc;
-      color: #000;
-    }
+    .category-popup button:last-child, .category-totals button:last-child { background: #ccc; color: #000; }
+    /* small helper text */
+    .muted { font-size: 12px; opacity: .8; text-align:center; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -126,7 +70,9 @@
     <h1>Money Budgeter</h1>
     <div id="clock">🕒 Time: --:--</div>
     <div id="budget">Budget: $0</div>
+
     <div id="renewal-info"></div>
+    <div class="muted" id="renewal-next"></div>
 
     <input id="input-display" placeholder="Enter amount" readonly />
 
@@ -142,7 +88,7 @@
       <button onclick="appendNumber('9')">9</button>
       <button onclick="appendNumber('0')">0</button>
       <button onclick="appendNumber('.')">.</button>
-      <button onclick="clearInput()">⌫</button>
+      <button onclick="backspace()">⌫</button>
     </div>
 
     <div class="buttons">
@@ -162,25 +108,75 @@
   <div id="category-totals" class="category-totals" style="display:none;"></div>
 
   <script>
+    // ====== Elements & State ======
     const inputDisplay = document.getElementById('input-display');
     const budgetDisplay = document.getElementById('budget');
     const historyDiv = document.getElementById('history');
     const popup = document.getElementById('category-popup');
     const totalsPopup = document.getElementById('category-totals');
+    const renewalInfoEl = document.getElementById('renewal-info');
+    const renewalNextEl = document.getElementById('renewal-next');
 
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
     let history = JSON.parse(localStorage.getItem('history')) || [];
+    let appliedMap = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {}; // {id: 'YYYY-MM-DD'}
 
-    updateBudgetDisplay();
-    renderHistory();
+    // ====== Utilities ======
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const weekdayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-    function appendNumber(num) {
-      inputDisplay.value += num;
+    function nowLocal() { return new Date(); } // keep simple
+
+    function todayISO(d=nowLocal()) {
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
     }
 
-    function clearInput() {
-      inputDisplay.value = '';
+    function hhmm(d=nowLocal()) {
+      return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false});
     }
+
+    function parseHHMM(s) {
+      if (!s) return null;
+      const [h,m] = s.split(':').map(n=>parseInt(n,10));
+      if (isNaN(h)||isNaN(m)) return null;
+      const d = nowLocal();
+      d.setHours(h); d.setMinutes(m); d.setSeconds(0); d.setMilliseconds(0);
+      return d;
+    }
+
+    function compareTimeStrLE(a, b) { // "HH:MM" <= "HH:MM"
+      return a.localeCompare(b) <= 0;
+    }
+
+    function saveAll() {
+      localStorage.setItem('budget', budget);
+      localStorage.setItem('history', JSON.stringify(history));
+      localStorage.setItem('autoRenewalsApplied', JSON.stringify(appliedMap));
+    }
+
+    // ====== Clock & Theme ======
+    function updateClock() {
+      const n = nowLocal();
+      document.getElementById('clock').textContent =
+        `🕒 Time: ${n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true})}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    const savedMode = localStorage.getItem('theme');
+    if (savedMode === 'dark') document.body.classList.add('dark-mode'); else document.body.classList.add('light-mode');
+
+    function toggleMode() {
+      const isDark = document.body.classList.contains('dark-mode');
+      document.body.classList.toggle('dark-mode', !isDark);
+      document.body.classList.toggle('light-mode', isDark);
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    // ====== Calculator input ======
+    function appendNumber(num){ inputDisplay.value += num; }
+    function backspace(){ inputDisplay.value = inputDisplay.value.slice(0,-1); }
+    function clearInput(){ inputDisplay.value = ''; }
 
     function submitAmount(type) {
       const value = parseFloat(inputDisplay.value);
@@ -189,12 +185,9 @@
       if (type === 'add') {
         budget += value;
         history.push({ type: 'Add', value, timestamp });
-        localStorage.setItem('budget', budget);
-        localStorage.setItem('history', JSON.stringify(history));
-        updateBudgetDisplay();
-        renderHistory();
-        clearInput();
       }
+      saveAll();
+      updateBudgetDisplay(); renderHistory(); clearInput();
     }
 
     function showCategoryPopup() {
@@ -215,45 +208,22 @@
       popup.style.display = 'none';
       clearInput();
       if (isNaN(value)) return;
-
       const timestamp = new Date().toLocaleString();
       budget -= value;
       history.push({ type: `Subtract (${category})`, value, timestamp });
-      localStorage.setItem('budget', budget);
-      localStorage.setItem('history', JSON.stringify(history));
-      updateBudgetDisplay();
-      renderHistory();
-    }
-
-    function viewCategoryTotals() {
-      const categories = ['Leisure', 'Transportation', 'Food', 'Groceries', 'Others'];
-      const totals = {};
-      categories.forEach(cat => totals[cat] = 0);
-
-      history.forEach(entry => {
-        const match = entry.type.match(/Subtract \(([^)]+)\)/);
-        if (match && totals.hasOwnProperty(match[1])) {
-          totals[match[1]] += entry.value;
-        }
-      });
-
-      totalsPopup.innerHTML = '<h3>Category Totals</h3>';
-      categories.forEach(cat => {
-        totalsPopup.innerHTML += `<button disabled>${cat}: $${totals[cat].toFixed(2)}</button>`;
-      });
-      totalsPopup.innerHTML += '<button onclick="totalsPopup.style.display=\'none\'">Close</button>';
-      totalsPopup.style.display = 'block';
+      saveAll();
+      updateBudgetDisplay(); renderHistory();
     }
 
     function clearHistory() {
       history = [];
-      localStorage.setItem('history', JSON.stringify(history));
+      saveAll();
       renderHistory();
     }
 
     function resetBudget() {
       budget = 0;
-      localStorage.setItem('budget', budget);
+      saveAll();
       updateBudgetDisplay();
     }
 
@@ -271,19 +241,102 @@
       });
     }
 
-    function toggleMode() {
-      const body = document.body;
-      const isDark = body.classList.toggle('dark-mode');
-      body.classList.toggle('light-mode', !isDark);
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    function viewCategoryTotals() {
+      const categories = ['Leisure','Transportation','Food','Groceries','Others'];
+      const totals = Object.fromEntries(categories.map(c=>[c,0]));
+      history.forEach(h=>{
+        const m = h.type.match(/^Subtract \((.+)\)$/);
+        if (m && totals[m[1]] !== undefined) totals[m[1]] += h.value;
+      });
+      totalsPopup.innerHTML = '<h3>Category Totals</h3>';
+      categories.forEach(cat=>{
+        const btn = document.createElement('button');
+        btn.disabled = true;
+        btn.textContent = `${cat}: $${totals[cat].toFixed(2)}`;
+        totalsPopup.appendChild(btn);
+      });
+      const close = document.createElement('button');
+      close.textContent = 'Close';
+      close.onclick = ()=> totalsPopup.style.display='none';
+      totalsPopup.appendChild(close);
+      totalsPopup.style.display = 'block';
     }
 
-    const savedMode = localStorage.getItem('theme');
-    if (savedMode === 'dark') {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.add('light-mode');
+    // ====== Auto-Renew: schedule matching & application ======
+    function shouldRunToday(entry, now=new Date()) {
+      // Check month
+      const monthOk = !entry.months?.length || entry.months.includes(monthNames[now.getMonth()]);
+      // Check any of: weekday OR day-of-month OR specific exact date
+      const weekdayOk = (entry.days?.length || 0) > 0 ? entry.days.includes(weekdayNames[now.getDay()]) : false;
+      const dom = String(now.getDate()); // '1'..'31'
+      const calDayOk = (entry.calendarDays?.length || 0) > 0 ? entry.calendarDays.includes(dom) : false;
+      let exactDateOk = false;
+      if (entry.date) {
+        const iso = todayISO(now);
+        exactDateOk = iso === entry.date;
+      }
+      const scheduleOk = monthOk && (weekdayOk || calDayOk || exactDateOk || (!entry.days?.length && !entry.calendarDays?.length && !entry.date));
+      // Time check
+      const timeOk = entry.time ? compareTimeStrLE(entry.time, hhmm(now)) : true;
+      return scheduleOk && timeOk;
     }
+
+    function runAutoRenewals() {
+      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+      const today = todayISO();
+      let adds=0, subs=0, countToday=0;
+
+      // Summary for today (regardless of applied)
+      all.forEach(e=>{
+        if (shouldRunToday(e)) {
+          countToday++;
+          if (e.type === 'add') adds += (parseFloat(e.amount)||0);
+          else subs += (parseFloat(e.amount)||0);
+        }
+      });
+
+      // Apply due items that haven't been applied today
+      all.forEach(e=>{
+        // ensure id
+        if (!e.id) { e.id = 'r' + Date.now() + Math.random().toString(36).slice(2); }
+        const already = appliedMap[e.id] === today;
+        if (!already && shouldRunToday(e)) {
+          const amt = parseFloat(e.amount) || 0;
+          if (e.type === 'add') {
+            budget += amt;
+            history.push({ type:'Auto Add', value: amt, timestamp: new Date().toLocaleString() });
+          } else {
+            budget -= amt;
+            history.push({ type:'Auto Subtract', value: amt, timestamp: new Date().toLocaleString() });
+          }
+          appliedMap[e.id] = today;
+        }
+      });
+
+      // Save any assigned ids + changes
+      localStorage.setItem('autoRenewals', JSON.stringify(all));
+      saveAll();
+      updateBudgetDisplay(); renderHistory();
+
+      const currency = localStorage.getItem('currency') || '$';
+      const net = (adds - subs).toFixed(2);
+      renewalInfoEl.textContent = countToday
+        ? `🔁 Today’s auto-renewals: ${countToday} | +${currency}${adds.toFixed(2)} / -${currency}${subs.toFixed(2)} | Net: ${currency}${net}`
+        : '🔁 No auto-renewals scheduled for today';
+
+      // Show “next” hint = earliest time among entries today (if any time is in future)
+      const timesToday = (JSON.parse(localStorage.getItem('autoRenewals')) || [])
+        .filter(e=>shouldRunToday({...e, time: e.time || null}, new Date(new Date().setHours(0,0,0,0)))) // schedule today ignoring time
+        .map(e=>e.time).filter(Boolean).sort();
+      const nowStr = hhmm();
+      const next = timesToday.find(t => t > nowStr);
+      renewalNextEl.textContent = next ? `Next run at ${next}` : '';
+    }
+
+    // Initial render
+    updateBudgetDisplay(); renderHistory(); runAutoRenewals();
+    // Re-check every 30 seconds so times get picked up
+    setInterval(runAutoRenewals, 30000);
   </script>
 </body>
 </html>
