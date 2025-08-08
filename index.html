@@ -18,14 +18,32 @@
   button:hover{background:#005ed6}
   .numpad button{flex:1 1 30%;padding:14px;background:#444}
   #input-display{width:100%;text-align:right;font-size:24px;padding:10px;border:none;background:transparent;color:inherit}
+
   .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
   .history-toggle{flex:0 0 auto;padding:6px 10px;border-radius:10px;font-size:12px;background:#e5f0ff;color:#0a3a8b;border:none}
   body.dark-mode .history-toggle{background:#243146;color:#d7e6ff}
   #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px}
   body.dark-mode #history{background:#2c2c2c;border-color:#666}
+
   #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer}
 
-  /* Fullscreen history overlay */
+  /* ---- Centered modal + overlay ---- */
+  #overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; z-index:9998;
+  }
+  .modal{
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(420px,92vw); max-height:80vh; overflow:auto;
+    background:#ffffff; color:#111; border-radius:12px; padding:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.35); display:none; z-index:9999;
+  }
+  body.dark-mode .modal{background:#1f2937;color:#e5e7eb}
+  .modal h3{text-align:center;margin-bottom:10px}
+  .modal .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff}
+  .modal .btn:last-child{background:#aaa;color:#111}
+
+  /* ---- Fullscreen history overlay ---- */
   #history-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.6);
     display:none; align-items:center; justify-content:center; z-index:9999;
@@ -76,7 +94,7 @@
       <button onclick="resetBudget()">Reset</button>
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
       <button onclick="viewCategoryTotals()">📊 View Categories</button>
-         </div>
+    </div>
 
     <div class="history-header">
       <div style="font-weight:600">History</div>
@@ -88,9 +106,10 @@
   <!-- theme toggle -->
   <div id="mode-toggle" onclick="toggleMode()" aria-label="Toggle theme">🌙</div>
 
-  <!-- simple popups -->
-  <div id="category-popup" class="popup" aria-hidden="true"></div>
-  <div id="totals-popup" class="popup" aria-hidden="true"></div>
+  <!-- overlay + centered modals -->
+  <div id="overlay"></div>
+  <div id="categoryModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
+  <div id="totalsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
 
   <!-- fullscreen history overlay -->
   <div id="history-overlay" aria-hidden="true">
@@ -108,8 +127,9 @@
   const budgetEl = document.getElementById('budget');
   const historyEl = document.getElementById('history');
   const inputEl = document.getElementById('input-display');
-  const catPopup = document.getElementById('category-popup');
-  const totalsPopup = document.getElementById('totals-popup');
+  const overlay = document.getElementById('overlay');
+  const catModal = document.getElementById('categoryModal');
+  const totalsModal = document.getElementById('totalsModal');
   const renewalSummaryEl = document.getElementById('renewal-summary');
   const renewalNextEl = document.getElementById('renewal-next');
   const modeBtn = document.getElementById('mode-toggle');
@@ -129,10 +149,7 @@
 
   // ===== Theme =====
   if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); } else { document.body.classList.add('light-mode'); }
-  function updateModeIcon(){
-    // Light mode shows moon (tap to go dark), dark mode shows sun (tap to go light)
-    modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
-  }
+  function updateModeIcon(){ modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙'; }
   updateModeIcon();
   function toggleMode(){
     const dark=document.body.classList.contains('dark-mode');
@@ -163,24 +180,45 @@
     saveBudget(); renderHistory(); clearInput();
   }
 
+  // ===== Overlay + modal helpers =====
+  function openOverlay(){ overlay.style.display='block'; document.body.style.overflow='hidden'; }
+  function closeOverlay(){ overlay.style.display='none'; document.body.style.overflow=''; }
+  function openModal(el){ el.style.display='block'; el.setAttribute('aria-hidden','false'); openOverlay(); }
+  function closeModal(el){ el.style.display='none'; el.setAttribute('aria-hidden','true'); if(!anyModalOpen()) closeOverlay(); }
+  function anyModalOpen(){ return catModal.style.display==='block' || totalsModal.style.display==='block'; }
+  overlay.addEventListener('click', ()=>{ closeModal(catModal); closeModal(totalsModal); });
+
   function openSubtract(){
-    catPopup.innerHTML = '<h3>Select Category</h3>' +
+    catModal.innerHTML = '<h3>Select Category</h3>' +
       categories.map(c=>`<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
-      `<button class="btn" onclick="closePopup('category')">Close</button>`;
-    openPopup('category');
+      `<button class="btn" onclick="closeModal(catModal)">Close</button>`;
+    openModal(catModal);
   }
   function doSubtract(cat){
     const v=parseFloat(inputEl.value);
-    closePopup('category'); clearInput();
+    closeModal(catModal); clearInput();
     if(isNaN(v)) return;
     const ts=new Date().toLocaleString();
     budget-=v; history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
     saveBudget(); renderHistory();
   }
 
+  function viewCategoryTotals(){
+    const totals = Object.fromEntries(categories.map(c=>[c,0]));
+    history.forEach(h=>{
+      const m=h.type.match(/^Subtract \((.+)\)$/);
+      if(m && totals[m[1]]!==undefined) totals[m[1]]+=h.value;
+    });
+    const cur=localStorage.getItem('currency')||'$';
+    totalsModal.innerHTML = '<h3>Category Totals</h3>' +
+      categories.map(c=>`<button class="btn" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('') +
+      `<button class="btn" onclick="closeModal(totalsModal)">Close</button>`;
+    openModal(totalsModal);
+  }
+
+  // ===== History controls =====
   function clearHistory(){ history=[]; localStorage.setItem('history','[]'); renderHistory(); }
   function resetBudget(){ budget=0; saveBudget(); }
-
   function saveBudget(){
     localStorage.setItem('budget',budget);
     localStorage.setItem('history',JSON.stringify(history));
@@ -199,33 +237,8 @@
     });
   }
 
-  // ===== Popups (simple, non-blocking) =====
-  function openPopup(which){
-    const el = which==='category'?catPopup:totalsPopup;
-    el.classList.add('open'); el.setAttribute('aria-hidden','false');
-  }
-  function closePopup(which){
-    const el = which==='category'?catPopup:totalsPopup;
-    el.classList.remove('open'); el.setAttribute('aria-hidden','true');
-  }
-  closePopup('category'); closePopup('totals');
-
-  function viewCategoryTotals(){
-    const totals = Object.fromEntries(categories.map(c=>[c,0]));
-    history.forEach(h=>{
-      const m=h.type.match(/^Subtract \((.+)\)$/);
-      if(m && totals[m[1]]!==undefined) totals[m[1]]+=h.value;
-    });
-    const cur=localStorage.getItem('currency')||'$';
-    totalsPopup.innerHTML = '<h3>Category Totals</h3>' +
-      categories.map(c=>`<button class="btn" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('') +
-      `<button class="btn" onclick="closePopup('totals')">Close</button>`;
-    openPopup('totals');
-  }
-
   // ===== Fullscreen History =====
   function openFullHistory(){
-    // render into overlay
     historyFull.innerHTML='';
     history.slice().reverse().forEach(it=>{
       const row=document.createElement('div');
@@ -240,11 +253,11 @@
     historyOverlay.style.display='none';
     historyOverlay.setAttribute('aria-hidden','true');
   }
-  expandBtn.addEventListener('click', openFullHistory);
+  document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
   closeHistoryBtn.addEventListener('click', closeFullHistory);
   historyOverlay.addEventListener('click',(e)=>{ if(e.target===historyOverlay) closeFullHistory(); });
 
-  // ===== Auto-renew (summary + next time) =====
+  // ===== Auto-renew summary + next (no manual refresh button) =====
   function todayISO(d=new Date()){ return d.toISOString().slice(0,10); }
   function hhmm(d=new Date()){ return d.toTimeString().slice(0,5); }
   function shouldRunToday(e,now=new Date()){
