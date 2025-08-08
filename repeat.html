@@ -5,27 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Repeat Transactions</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px; margin: 0; transition: background 0.3s, color 0.3s;
-    }
+    body { font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; transition: background 0.3s, color 0.3s; }
     body.light-mode { background: #ffffff; color: #003366; }
     body.dark-mode  { background: #000000; color: #eeeeee; }
-
     h1 { text-align: center; margin-bottom: 20px; color: #007bff; }
 
     label { display: block; margin: 12px 0 6px; }
-
     input[type="number"], input[type="time"], input[type="date"] {
-      width: 100%; padding: 12px; font-size: 16px; border-radius: 12px;
-      border: 1px solid #ccc; margin-bottom: 15px;
+      width: 100%; padding: 12px; font-size: 16px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 15px;
     }
 
     .bubble-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
     .bubble {
       padding: 10px 15px; border-radius: 20px; border: none;
-      background-color: #007bff; color: white; cursor: pointer; font-size: 14px;
-      user-select: none;
+      background-color: #007bff; color: white; cursor: pointer; font-size: 14px; user-select: none;
     }
     .bubble.selected { background-color: #0056b3; }
 
@@ -33,18 +26,22 @@
     .toggle-group .bubble { background: #9bbcf5; color: #00285c; }
     .toggle-group .bubble.selected { background: #007bff; color: #fff; }
 
-    .collapsible {
-      background-color: #007bff; color: white; cursor: pointer; padding: 10px;
-      width: 100%; border: none; text-align: left; font-size: 16px;
-      border-radius: 12px; margin: 10px 0;
-    }
+    .collapsible { background-color: #007bff; color: white; cursor: pointer; padding: 10px; width: 100%;
+      border: none; text-align: left; font-size: 16px; border-radius: 12px; margin: 10px 0; }
     .content { padding: 10px 10px 5px; display: none; border-radius: 12px; background: #f2f7ff; }
 
+    .btn-row { display:flex; gap:10px; }
     button.save-btn {
       width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 12px;
       background-color: #007bff; color: white; cursor: pointer; margin-top: 8px;
     }
-    .back-button { margin-top: 10px; background-color: #888; }
+    .back-button { background-color: #888; }
+
+    .saved-list { margin-top: 18px; font-size: 14px; }
+    .saved-item {
+      border: 1px solid #c9defd; border-radius: 10px; padding: 8px; margin-bottom: 8px; background: #eef5ff;
+    }
+    body.dark-mode .saved-item { background: #111827; border-color: #374151; }
   </style>
 </head>
 <body>
@@ -97,11 +94,16 @@
   <label>Specific Date (optional)</label>
   <input type="date" id="date" />
 
-  <button class="save-btn" id="saveButton">Save</button>
+  <div class="btn-row">
+    <button class="save-btn" id="saveAddAnother">Save & Add Another</button>
+    <button class="save-btn" id="saveAndBack">Save & Back</button>
+  </div>
   <button class="save-btn back-button" onclick="window.location.href='index.html'">← Back</button>
 
+  <div class="saved-list" id="savedList"></div>
+
   <script>
-    // Theme
+    // Theme apply
     const mode = localStorage.getItem('theme');
     if (mode === 'dark') document.body.classList.add('dark-mode'); else document.body.classList.add('light-mode');
 
@@ -144,8 +146,8 @@
 
     // Draft persistence
     const DRAFT_KEY = 'repeatDraft';
-    function saveDraft() {
-      const draft = {
+    function currentDraft() {
+      return {
         amount: document.getElementById('amount').value,
         time: document.getElementById('time').value,
         type: document.querySelector('#typeGroup .bubble.selected')?.dataset.type || '',
@@ -154,10 +156,9 @@
         calendarDays: [...document.querySelectorAll('#dateButtons .bubble.selected')].map(b=>b.dataset.value),
         date: document.getElementById('date').value
       };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     }
-
-    function restoreDraft() {
+    function saveDraft(){ localStorage.setItem(DRAFT_KEY, JSON.stringify(currentDraft())); }
+    function restoreDraft(){
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
       try {
@@ -168,51 +169,82 @@
           const t = document.querySelector(`#typeGroup .bubble[data-type="${d.type}"]`);
           if (t) t.classList.add('selected');
         }
-        (d.days||[]).forEach(v=>{
-          const el = document.querySelector(`#dayButtons .bubble[data-value="${v}"]`);
-          if (el) el.classList.add('selected');
-        });
-        (d.months||[]).forEach(v=>{
-          const el = document.querySelector(`#monthButtons .bubble[data-value="${v}"]`);
-          if (el) el.classList.add('selected');
-        });
-        (d.calendarDays||[]).forEach(v=>{
-          const el = document.querySelector(`#dateButtons .bubble[data-value="${v}"]`);
-          if (el) el.classList.add('selected');
-        });
+        (d.days||[]).forEach(v=>{ document.querySelector(`#dayButtons .bubble[data-value="${v}"]`)?.classList.add('selected'); });
+        (d.months||[]).forEach(v=>{ document.querySelector(`#monthButtons .bubble[data-value="${v}"]`)?.classList.add('selected'); });
+        (d.calendarDays||[]).forEach(v=>{ document.querySelector(`#dateButtons .bubble[data-value="${v}"]`)?.classList.add('selected'); });
         document.getElementById('date').value = d.date || '';
       } catch {}
     }
-
-    document.getElementById('amount').addEventListener('input', saveDraft);
-    document.getElementById('time').addEventListener('input', saveDraft);
-    document.getElementById('date').addEventListener('input', saveDraft);
-
+    ['amount','time','date'].forEach(id => {
+      document.getElementById(id).addEventListener('input', saveDraft);
+    });
     restoreDraft();
 
-    // Save
-    document.getElementById('saveButton').addEventListener('click', function () {
-      const amount = parseFloat(document.getElementById('amount').value) || 0;
-      const time = document.getElementById('time').value || '';
-      const type = document.querySelector('#typeGroup .bubble.selected')?.dataset.type || 'add';
-      const days = [...document.querySelectorAll('#dayButtons .bubble.selected')].map(b=>b.dataset.value);
-      const months = [...document.querySelectorAll('#monthButtons .bubble.selected')].map(b=>b.dataset.value);
-      const calendarDays = [...document.querySelectorAll('#dateButtons .bubble.selected')].map(b=>b.dataset.value);
-      const date = document.getElementById('date').value || null;
+    // Saved list
+    function renderSavedList(){
+      const container = document.getElementById('savedList');
+      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+      const currency = localStorage.getItem('currency') || '$';
+      if (!all.length) { container.innerHTML = '<em>No saved renewals yet.</em>'; return; }
+      container.innerHTML = '<strong>Saved Renewals (all time)</strong>';
+      all.slice().reverse().forEach(e=>{
+        const el = document.createElement('div');
+        const addSub = (e.type||'add') === 'add' ? '+' : '-';
+        const days = (e.days||[]).join(', ');
+        const months = (e.months||[]).join(', ');
+        const cds = (e.calendarDays||[]).join(', ');
+        el.className = 'saved-item';
+        el.textContent = `${addSub}${currency}${Number(e.amount||0).toFixed(2)} @ ${e.time||'--:--'} | days: [${days||'—'}] | nums: [${cds||'—'}] | months: [${months||'—'}] | date: ${e.date||'—'}`;
+        container.appendChild(el);
+      });
+    }
+    renderSavedList();
 
-      const entry = {
+    function buildEntryFromUI(){
+      const d = currentDraft();
+      return {
         id: 'r' + Date.now() + Math.random().toString(36).slice(2),
-        amount, time, type, days, months, calendarDays, date
+        amount: Number(d.amount)||0,
+        time: d.time || '',
+        type: d.type || 'add',
+        days: d.days || [],
+        months: d.months || [],
+        calendarDays: d.calendarDays || [],
+        date: d.date || null
       };
-
+    }
+    function saveEntry(entry){
       const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
       all.push(entry);
       localStorage.setItem('autoRenewals', JSON.stringify(all));
+    }
+    function clearFormButKeepSelections(){
+      // Clear amount/time/date only, keep selected bubbles and type (so user can add many quickly)
+      document.getElementById('amount').value = '';
+      document.getElementById('time').value = '';
+      document.getElementById('date').value = '';
+      saveDraft();
+    }
 
-      // Clear draft after saving
-      localStorage.removeItem(DRAFT_KEY);
+    document.getElementById('saveAddAnother').addEventListener('click', ()=>{
+      const entry = buildEntryFromUI();
+      saveEntry(entry);
+      clearFormButKeepSelections();
+      renderSavedList();
+    });
 
+    document.getElementById('saveAndBack').addEventListener('click', ()=>{
+      const entry = buildEntryFromUI();
+      saveEntry(entry);
+      localStorage.removeItem('repeatDraft');
       window.location.href = 'index.html';
+    });
+
+    // Ensure months section remembers open/closed between sessions (optional)
+    const OPEN_KEY = 'monthsOpen';
+    if (localStorage.getItem(OPEN_KEY) === '1') monthsContent.style.display = 'block';
+    monthsToggle.addEventListener('click', ()=> {
+      localStorage.setItem(OPEN_KEY, monthsContent.style.display === 'block' ? '1' : '0');
     });
   </script>
 </body>
