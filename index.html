@@ -1,96 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Money Budgeter</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      transition: background 0.3s, color 0.3s;
-      padding: 20px;
-    }
-    body.light-mode { background: #fff; color: #000; }
-    body.dark-mode  { background: #121212; color: #eee; }
-
-    .calculator-box {
-      width: 360px; margin: 0 auto; background: #f7f7f7;
-      border-radius: 20px; padding: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    body.dark-mode .calculator-box { background: #1e1e1e; box-shadow: 0 5px 15px rgba(255,255,255,0.05); }
-
-    h1 { text-align: center; margin-bottom: 15px; color: #007bff; }
-    #clock, #budget { text-align: center; margin: 8px 0; }
-
-    #renewal-summary, #renewal-next {
-      text-align:center; margin: 6px 0; font-size: 14px;
-    }
-
-    .buttons, .numpad {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0;
-    }
-    button {
-      flex: 1 1 45%; padding: 12px; border: none; border-radius: 12px;
-      font-size: 15px; background: #007bff; color: white; font-weight: bold;
-      cursor: pointer; transition: background 0.3s;
-    }
-    button:hover { background: #0056b3; }
-    .numpad button { flex: 1 1 30%; padding: 15px; font-size: 18px; background: #444; }
-
-    .history-header {
-      display:flex; justify-content: space-between; align-items:center; margin: 6px 0 8px;
-    }
-    .history-title { font-weight: 600; }
-    .history-toggle {
-      flex: 0 0 auto; padding: 6px 10px; border-radius: 10px; font-size: 12px;
-      background: #e5f0ff; color:#0a3a8b; border: none; cursor: pointer;
-    }
-    body.dark-mode .history-toggle { background:#243146; color:#d7e6ff; }
-
-    #history {
-      max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #ccc;
-      border-radius: 12px; padding: 10px; transition:max-height .25s ease;
-    }
-    #history.expanded { max-height: 80vh; }
-    body.dark-mode #history { background: #2c2c2c; border-color: #666; }
-
-    #mode-toggle { position: fixed; bottom: 20px; right: 20px; font-size: 26px; cursor: pointer; }
-
-    #input-display {
-      width: 100%; text-align: right; font-size: 24px; padding: 10px;
-      border: none; background: transparent; color: inherit;
-    }
-
-    /* Popups */
-    .backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,.35);
-      display: none; z-index: 998; /* below the popup */
-    }
-    .category-popup, .category-totals {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #fff; padding: 20px; border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 999; max-width: 90%;
-      display: none;
-    }
-    .category-popup h3, .category-totals h3 { margin-bottom: 15px; text-align: center; }
-    .category-popup button, .category-totals button {
-      width: 100%; margin-bottom: 10px; padding: 10px; border: none;
-      border-radius: 8px; font-size: 16px; background: #007bff; color: white;
-    }
-    .category-popup button:last-child, .category-totals button:last-child { background: #ccc; color: #000; }
-
-    .small { font-size: 12px; opacity: .85; text-align:center; }
-
-    /* Safety button (only shows if needed) */
-    .ui-reset {
-      position: fixed; left: 12px; bottom: 20px; z-index: 1000;
-      font-size: 12px; padding: 6px 8px; border-radius: 8px; border: none;
-      background:#eaeaea; color:#333; display:none;
-    }
-    body.dark-mode .ui-reset { background:#2a2a2a; color:#ddd; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Money Budgeter</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Segoe UI,system-ui,Arial,sans-serif;padding:20px;transition:background .2s,color .2s}
+  body.light-mode{background:#fff;color:#000}
+  body.dark-mode{background:#121212;color:#eee}
+  .calculator-box{width:360px;margin:0 auto;background:#f7f7f7;border-radius:20px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.08)}
+  body.dark-mode .calculator-box{background:#1e1e1e;box-shadow:0 5px 15px rgba(255,255,255,.05)}
+  h1{text-align:center;margin-bottom:12px;color:#007bff}
+  #clock,#budget,#renewal-summary,#renewal-next{text-align:center;margin:6px 0}
+  .numpad,.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
+  button{flex:1 1 45%;padding:12px;border:none;border-radius:12px;font-weight:600;background:#007bff;color:#fff;cursor:pointer}
+  button:hover{background:#005ed6}
+  .numpad button{flex:1 1 30%;padding:14px;background:#444}
+  #input-display{width:100%;text-align:right;font-size:24px;padding:10px;border:none;background:transparent;color:inherit}
+  .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
+  .history-toggle{flex:0 0 auto;padding:6px 10px;border-radius:10px;font-size:12px;background:#e5f0ff;color:#0a3a8b;border:none}
+  body.dark-mode .history-toggle{background:#243146;color:#d7e6ff}
+  #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px;transition:max-height .2s}
+  #history.expanded{max-height:80vh}
+  body.dark-mode #history{background:#2c2c2c;border-color:#666}
+  #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer}
+  /* Popups: default inert (no pointer), only active when .open */
+  .popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+         min-width:240px;max-width:90vw;background:#fff;color:#000;border-radius:12px;
+         padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+         pointer-events:none;opacity:0;transition:opacity .15s}
+  .popup.open{pointer-events:auto;opacity:1}
+  body.dark-mode .popup{background:#1f2937;color:#e5e7eb}
+  .popup h3{text-align:center;margin-bottom:10px}
+  .popup .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff}
+  .popup .btn:last-child{background:#aaa;color:#111}
+</style>
 </head>
 <body>
   <div class="calculator-box">
@@ -98,29 +43,21 @@
     <div id="clock">🕒 Time: --:--</div>
     <div id="budget">Budget: $0</div>
 
-    <div id="renewal-summary" class="small"></div>
-    <div id="renewal-next" class="small"></div>
+    <div id="renewal-summary" style="font-size:12px;opacity:.85"></div>
+    <div id="renewal-next" style="font-size:12px;opacity:.85"></div>
 
-    <input id="input-display" placeholder="Enter amount" readonly />
+    <input id="input-display" placeholder="Enter amount" readonly/>
 
     <div class="numpad">
-      <button onclick="appendNumber('1')">1</button>
-      <button onclick="appendNumber('2')">2</button>
-      <button onclick="appendNumber('3')">3</button>
-      <button onclick="appendNumber('4')">4</button>
-      <button onclick="appendNumber('5')">5</button>
-      <button onclick="appendNumber('6')">6</button>
-      <button onclick="appendNumber('7')">7</button>
-      <button onclick="appendNumber('8')">8</button>
-      <button onclick="appendNumber('9')">9</button>
-      <button onclick="appendNumber('0')">0</button>
-      <button onclick="appendNumber('.')">.</button>
-      <button onclick="backspace()">⌫</button>
+      <button onclick="appendNumber('1')">1</button><button onclick="appendNumber('2')">2</button><button onclick="appendNumber('3')">3</button>
+      <button onclick="appendNumber('4')">4</button><button onclick="appendNumber('5')">5</button><button onclick="appendNumber('6')">6</button>
+      <button onclick="appendNumber('7')">7</button><button onclick="appendNumber('8')">8</button><button onclick="appendNumber('9')">9</button>
+      <button onclick="appendNumber('0')">0</button><button onclick="appendNumber('.')">.</button><button onclick="backspace()">⌫</button>
     </div>
 
     <div class="buttons">
       <button onclick="submitAmount('add')">Add</button>
-      <button onclick="showCategoryPopup()">Subtract</button>
+      <button onclick="openSubtract()">Subtract</button>
       <button onclick="clearHistory()">Clear History</button>
       <button onclick="resetBudget()">Reset</button>
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
@@ -129,256 +66,182 @@
     </div>
 
     <div class="history-header">
-      <div class="history-title">History</div>
-      <button class="history-toggle" id="toggleHistoryBtn">Expand ⇵</button>
+      <div style="font-weight:600">History</div>
+      <button id="toggleHistoryBtn" class="history-toggle">Expand ⇵</button>
     </div>
     <div id="history"></div>
   </div>
 
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
 
-  <!-- Backdrop and popups -->
-  <div id="backdrop" class="backdrop"></div>
-  <div id="category-popup" class="category-popup"></div>
-  <div id="category-totals" class="category-totals"></div>
+  <!-- popups -->
+  <div id="category-popup" class="popup" aria-hidden="true"></div>
+  <div id="totals-popup" class="popup" aria-hidden="true"></div>
 
-  <!-- Force-close UI if something gets stuck -->
-  <button id="uiReset" class="ui-reset" onclick="forceCloseUI()">Force-Close UI</button>
+<script>
+  // ===== State =====
+  const budgetEl = document.getElementById('budget');
+  const historyEl = document.getElementById('history');
+  const inputEl = document.getElementById('input-display');
+  const catPopup = document.getElementById('category-popup');
+  const totalsPopup = document.getElementById('totals-popup');
+  const renewalSummaryEl = document.getElementById('renewal-summary');
+  const renewalNextEl = document.getElementById('renewal-next');
 
-  <script>
-    // ===== Elements & State =====
-    const inputDisplay = document.getElementById('input-display');
-    const budgetDisplay = document.getElementById('budget');
-    const historyDiv = document.getElementById('history');
-    const popup = document.getElementById('category-popup');
-    const totalsPopup = document.getElementById('category-totals');
-    const backdrop = document.getElementById('backdrop');
-    const uiResetBtn = document.getElementById('uiReset');
-    const renewalSummaryEl = document.getElementById('renewal-summary');
-    const renewalNextEl = document.getElementById('renewal-next');
-    const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+  let budget = parseFloat(localStorage.getItem('budget')) || 0;
+  let history = JSON.parse(localStorage.getItem('history')) || [];
+  let appliedMap = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
+  const categories = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-    let budget = parseFloat(localStorage.getItem('budget')) || 0;
-    let history = JSON.parse(localStorage.getItem('history')) || [];
-    let appliedMap = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {}; // {id: 'YYYY-MM-DD'}
+  // ===== Theme =====
+  (localStorage.getItem('theme')==='dark'?document.body.classList.add('dark-mode'):document.body.classList.add('light-mode'));
+  function toggleMode(){
+    const dark=document.body.classList.contains('dark-mode');
+    document.body.classList.toggle('dark-mode',!dark);
+    document.body.classList.toggle('light-mode',dark);
+    localStorage.setItem('theme',dark?'light':'dark');
+  }
 
-    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const weekdayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const categoryList = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+  // ===== Clock =====
+  function tickClock(){
+    const n=new Date();
+    document.getElementById('clock').textContent='🕒 Time: '+
+      n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:true});
+  }
+  setInterval(tickClock,1000); tickClock();
 
-    // Safety: ensure popups are hidden on load
-    hideAllOverlays();
+  // ===== Calculator =====
+  function appendNumber(n){ inputEl.value+=n; }
+  function backspace(){ inputEl.value=inputEl.value.slice(0,-1); }
+  function clearInput(){ inputEl.value=''; }
 
-    // ===== Clock & Theme =====
-    function updateClock() {
-      const n = new Date();
-      document.getElementById('clock').textContent =
-        `🕒 Time: ${n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true})}`;
-    }
-    setInterval(updateClock, 1000); updateClock();
+  function submitAmount(type){
+    const v=parseFloat(inputEl.value);
+    if(isNaN(v)) return;
+    const ts=new Date().toLocaleString();
+    if(type==='add'){ budget+=v; history.push({type:'Add',value:v,timestamp:ts}); }
+    saveBudget(); renderHistory(); clearInput();
+  }
 
-    const savedMode = localStorage.getItem('theme');
-    if (savedMode === 'dark') document.body.classList.add('dark-mode'); else document.body.classList.add('light-mode');
-    function toggleMode() {
-      const isDark = document.body.classList.contains('dark-mode');
-      document.body.classList.toggle('dark-mode', !isDark);
-      document.body.classList.toggle('light-mode', isDark);
-      localStorage.setItem('theme', isDark ? 'light' : 'dark');
-    }
+  function openSubtract(){
+    catPopup.innerHTML = '<h3>Select Category</h3>' +
+      categories.map(c=>`<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
+      `<button class="btn" onclick="closePopup('category')">Close</button>`;
+    openPopup('category');
+  }
+  function doSubtract(cat){
+    const v=parseFloat(inputEl.value);
+    closePopup('category'); clearInput();
+    if(isNaN(v)) return;
+    const ts=new Date().toLocaleString();
+    budget-=v; history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
+    saveBudget(); renderHistory();
+  }
 
-    // ===== History expand/collapse =====
-    toggleHistoryBtn.addEventListener('click', () => {
-      const expanded = historyDiv.classList.toggle('expanded');
-      toggleHistoryBtn.textContent = expanded ? 'Collapse ⇵' : 'Expand ⇵';
+  function clearHistory(){ history=[]; localStorage.setItem('history','[]'); renderHistory(); }
+  function resetBudget(){ budget=0; saveBudget(); }
+
+  function saveBudget(){
+    localStorage.setItem('budget',budget);
+    localStorage.setItem('history',JSON.stringify(history));
+    updateBudget();
+  }
+  function updateBudget(){
+    const cur=localStorage.getItem('currency')||'$';
+    budgetEl.textContent=`Budget: ${cur}${budget.toFixed(2)}`;
+  }
+  function renderHistory(){
+    historyEl.innerHTML='';
+    history.slice().reverse().forEach(it=>{
+      const d=document.createElement('div');
+      d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      historyEl.appendChild(d);
     });
+  }
 
-    // ===== Calculator input =====
-    function appendNumber(num){ inputDisplay.value += num; }
-    function backspace(){ inputDisplay.value = inputDisplay.value.slice(0,-1); }
-    function clearInput(){ inputDisplay.value = ''; }
+  // ===== Popups (no overlay, no block unless open) =====
+  function openPopup(which){
+    const el = which==='category'?catPopup:totalsPopup;
+    el.classList.add('open');
+    el.setAttribute('aria-hidden','false');
+  }
+  function closePopup(which){
+    const el = which==='category'?catPopup:totalsPopup;
+    el.classList.remove('open');
+    el.setAttribute('aria-hidden','true');
+  }
+  // Hard-close any stuck popup on load
+  closePopup('category'); closePopup('totals');
 
-    function submitAmount(type) {
-      const value = parseFloat(inputDisplay.value);
-      if (isNaN(value)) return;
-      const timestamp = new Date().toLocaleString();
-      if (type === 'add') {
-        budget += value;
-        history.push({ type: 'Add', value, timestamp });
-      }
-      localStorage.setItem('budget', budget);
-      localStorage.setItem('history', JSON.stringify(history));
-      updateBudgetDisplay(); renderHistory(); clearInput();
-    }
+  function viewCategoryTotals(){
+    const totals = Object.fromEntries(categories.map(c=>[c,0]));
+    history.forEach(h=>{
+      const m=h.type.match(/^Subtract \((.+)\)$/);
+      if(m && totals[m[1]]!==undefined) totals[m[1]]+=h.value;
+    });
+    const cur=localStorage.getItem('currency')||'$';
+    totalsPopup.innerHTML = '<h3>Category Totals</h3>' +
+      categories.map(c=>`<button class="btn" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('') +
+      `<button class="btn" onclick="closePopup('totals')">Close</button>`;
+    openPopup('totals');
+  }
 
-    // ===== Overlays helpers =====
-    function showBackdrop() {
-      backdrop.style.display = 'block';
-      uiResetBtn.style.display = 'inline-block'; // show safety button
-    }
-    function hideBackdrop() {
-      backdrop.style.display = 'none';
-      // only hide the safety button if both overlays are closed
-      if (popup.style.display === 'none' && totalsPopup.style.display === 'none') {
-        uiResetBtn.style.display = 'none';
-      }
-    }
-    backdrop.addEventListener('click', hideAllOverlays);
+  // ===== History expand =====
+  document.getElementById('toggleHistoryBtn').addEventListener('click',()=>{
+    const exp=historyEl.classList.toggle('expanded');
+    document.getElementById('toggleHistoryBtn').textContent = exp?'Collapse ⇵':'Expand ⇵';
+  });
 
-    function hideAllOverlays() {
-      popup.style.display = 'none';
-      totalsPopup.style.display = 'none';
-      hideBackdrop();
-    }
-    function forceCloseUI() { hideAllOverlays(); } // exposed for the button
-
-    function showCategoryPopup() {
-      const buttons = categoryList.map(c => `<button onclick="confirmCategory('${c}')">${c}</button>`).join('');
-      popup.innerHTML = `
-        <h3>Select Category</h3>
-        ${buttons}
-        <button onclick="hideAllOverlays()">Cancel</button>
-      `;
-      popup.style.display = 'block';
-      showBackdrop();
-    }
-
-    function confirmCategory(category) {
-      const value = parseFloat(inputDisplay.value);
-      hideAllOverlays();
-      clearInput();
-      if (isNaN(value)) return;
-      const timestamp = new Date().toLocaleString();
-      budget -= value;
-      history.push({ type: \`Subtract (\${category})\`, value, timestamp });
-      localStorage.setItem('budget', budget);
-      localStorage.setItem('history', JSON.stringify(history));
-      updateBudgetDisplay(); renderHistory();
-    }
-
-    function clearHistory() {
-      history = [];
-      localStorage.setItem('history', JSON.stringify(history));
-      renderHistory();
-    }
-
-    function resetBudget() {
-      budget = 0;
-      localStorage.setItem('budget', budget);
-      updateBudgetDisplay();
-    }
-
-    function updateBudgetDisplay() {
-      const currency = localStorage.getItem('currency') || '$';
-      budgetDisplay.innerText = `Budget: ${currency}${budget.toFixed(2)}`;
-    }
-
-    function renderHistory() {
-      historyDiv.innerHTML = '';
-      history.slice().reverse().forEach(item => {
-        const div = document.createElement('div');
-        div.textContent = `${item.timestamp} — ${item.type}: $${item.value.toFixed(2)}`;
-        historyDiv.appendChild(div);
-      });
-    }
-
-    function viewCategoryTotals() {
-      const totals = Object.fromEntries(categoryList.map(c=>[c,0]));
-      history.forEach(h=>{
-        const m = h.type.match(/^Subtract \((.+)\)$/);
-        if (m && totals[m[1]] !== undefined) totals[m[1]] += h.value;
-      });
-      totalsPopup.innerHTML = '<h3>Category Totals</h3>';
-      categoryList.forEach(cat=>{
-        const btn = document.createElement('button');
-        btn.disabled = true;
-        btn.textContent = `${cat}: $${totals[cat].toFixed(2)}`;
-        totalsPopup.appendChild(btn);
-      });
-      const close = document.createElement('button');
-      close.textContent = 'Close';
-      close.onclick = hideAllOverlays;
-      totalsPopup.appendChild(close);
-
-      totalsPopup.style.display = 'block';
-      showBackdrop();
-    }
-
-    // ===== Auto-Renew (all-time summary + next time) =====
-    function todayISO(d=new Date()){
-      return d.toISOString().slice(0,10);
-    }
-    function hhmm(d=new Date()){
-      return d.toTimeString().slice(0,5); // "HH:MM"
-    }
-    function shouldRunToday(entry, now=new Date()) {
-      const monthOk = !entry.months?.length || entry.months.includes(monthNames[now.getMonth()]);
-      const weekdayOk = (entry.days?.length || 0) > 0 ? entry.days.includes(weekdayNames[now.getDay()]) : false;
-      const dom = String(now.getDate()); // "1".."31"
-      const calDayOk = (entry.calendarDays?.length || 0) > 0 ? entry.calendarDays.includes(dom) : false;
-      let exactDateOk = false;
-      if (entry.date) exactDateOk = todayISO(now) === entry.date;
-      const scheduleOk = monthOk && (weekdayOk || calDayOk || exactDateOk || (!entry.days?.length && !entry.calendarDays?.length && !entry.date));
-      const timeOk = entry.time ? (entry.time <= hhmm(now)) : true;
-      return scheduleOk && timeOk;
-    }
-    function renderAllTimeSummary() {
-      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-      let addSum = 0, subSum = 0;
+  // ===== Auto-renew (unchanged logic, no “today” line) =====
+  function todayISO(d=new Date()){ return d.toISOString().slice(0,10); }
+  function hhmm(d=new Date()){ return d.toTimeString().slice(0,5); }
+  function shouldRunToday(e,now=new Date()){
+    const monthOk = !e.months?.length || e.months.includes(months[now.getMonth()]);
+    const weekdayOk = (e.days?.length||0)>0 ? e.days.includes(weekdays[now.getDay()]) : false;
+    const dom=String(now.getDate());
+    const domOk=(e.calendarDays?.length||0)>0 ? e.calendarDays.includes(dom) : false;
+    const exact = e.date ? (todayISO(now)===e.date) : false;
+    const scheduleOk = monthOk && (weekdayOk || domOk || exact || (!e.days?.length && !e.calendarDays?.length && !e.date));
+    const timeOk = e.time ? (e.time <= hhmm(now)) : true;
+    return scheduleOk && timeOk;
+  }
+  function renderAllTimeSummary(){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    let add=0, sub=0;
+    all.forEach(e=>{ const a=+e.amount||0; (e.type||'add')==='add'? add+=a : sub+=a; });
+    const cur=localStorage.getItem('currency')||'$';
+    renewalSummaryEl.textContent = `🔁 Scheduled (all time): ${all.length} | +${cur}${add.toFixed(2)} / -${cur}${sub.toFixed(2)}`;
+    // Next time hint (first future time today)
+    const times = all.map(e=>e.time).filter(Boolean).sort();
+    const next = times.find(t=>t>hhmm());
+    renewalNextEl.textContent = next? `Next run at ${next}` : '';
+  }
+  function runAutoRenewals(renderOnly=false){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    const today=todayISO();
+    if(!renderOnly){
       all.forEach(e=>{
-        const amt = Number(e.amount)||0;
-        if ((e.type||'add') === 'add') addSum += amt; else subSum += amt;
+        if(!e.id) e.id='r'+Date.now()+Math.random().toString(36).slice(2);
+        const already = appliedMap[e.id]===today;
+        if(!already && shouldRunToday(e)){
+          const amt=+e.amount||0, ts=new Date().toLocaleString();
+          if((e.type||'add')==='add'){ budget+=amt; history.push({type:'Auto Add',value:amt,timestamp:ts}); }
+          else{ budget-=amt; history.push({type:'Auto Subtract',value:amt,timestamp:ts}); }
+          appliedMap[e.id]=today;
+        }
       });
-      const currency = localStorage.getItem('currency') || '$';
-      renewalSummaryEl.textContent =
-        `🔁 Scheduled (all time): ${all.length} | +${currency}${addSum.toFixed(2)} / -${currency}${subSum.toFixed(2)}`;
+      localStorage.setItem('autoRenewals',JSON.stringify(all));
+      localStorage.setItem('autoRenewalsApplied',JSON.stringify(appliedMap));
+      saveBudget();
     }
-    function runAutoRenewals(forceRenderOnly=false) {
-      const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-      const today = todayISO();
+    renderAllTimeSummary();
+  }
 
-      if (!forceRenderOnly) {
-        all.forEach(e=>{
-          if (!e.id) { e.id = 'r' + Date.now() + Math.random().toString(36).slice(2); }
-          const already = appliedMap[e.id] === today;
-          if (!already && shouldRunToday(e)) {
-            const amt = Number(e.amount)||0;
-            const ts = new Date().toLocaleString();
-            if ((e.type||'add') === 'add') {
-              budget += amt;
-              history.push({ type:'Auto Add', value: amt, timestamp: ts });
-            } else {
-              budget -= amt;
-              history.push({ type:'Auto Subtract', value: amt, timestamp: ts });
-            }
-            appliedMap[e.id] = today;
-          }
-        });
-        localStorage.setItem('autoRenewals', JSON.stringify(all));
-        localStorage.setItem('autoRenewalsApplied', JSON.stringify(appliedMap));
-        localStorage.setItem('budget', budget);
-        localStorage.setItem('history', JSON.stringify(history));
-      }
-
-      updateBudgetDisplay(); renderHistory(); renderAllTimeSummary();
-
-      // Next time hint for any with time later today
-      const times = all.filter(e=>e.time).map(e=>e.time).sort();
-      const nowT = hhmm();
-      const next = times.find(t => t > nowT);
-      renewalNextEl.textContent = next ? `Next run at ${next}` : '';
-    }
-
-    // Init
-    updateBudgetDisplay(); renderHistory(); renderAllTimeSummary(); runAutoRenewals(true);
-
-    // Re-apply periodically
-    const interval = setInterval(runAutoRenewals, 30000);
-
-    // Last safety: show a visible error if anything breaks
-    window.addEventListener('error', (e)=>{
-      console.error(e.message);
-      uiResetBtn.style.display = 'inline-block';
-    });
-  </script>
+  // ===== Init =====
+  updateBudget(); renderHistory(); runAutoRenewals(true);
+  setInterval(runAutoRenewals,30000);
+</script>
 </body>
 </html>
