@@ -39,10 +39,21 @@
     button:hover { background: #0056b3; }
     .numpad button { flex: 1 1 30%; padding: 15px; font-size: 18px; background: #444; }
 
+    .history-header {
+      display:flex; justify-content: space-between; align-items:center; margin: 6px 0 8px;
+    }
+    .history-title { font-weight: 600; }
+    .history-toggle {
+      flex: 0 0 auto; padding: 6px 10px; border-radius: 10px; font-size: 12px;
+      background: #e5f0ff; color:#0a3a8b; border: none; cursor: pointer;
+    }
+    body.dark-mode .history-toggle { background:#243146; color:#d7e6ff; }
+
     #history {
       max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #ccc;
-      border-radius: 12px; padding: 10px;
+      border-radius: 12px; padding: 10px; transition:max-height .25s ease;
     }
+    #history.expanded { max-height: 80vh; }
     body.dark-mode #history { background: #2c2c2c; border-color: #666; }
 
     #mode-toggle { position: fixed; bottom: 20px; right: 20px; font-size: 26px; cursor: pointer; }
@@ -103,6 +114,10 @@
       <button onclick="runAutoRenewals(true)">↻ Refresh Renewals</button>
     </div>
 
+    <div class="history-header">
+      <div class="history-title">History</div>
+      <button class="history-toggle" id="toggleHistoryBtn">Expand ⇵</button>
+    </div>
     <div id="history"></div>
   </div>
 
@@ -119,6 +134,7 @@
     const totalsPopup = document.getElementById('category-totals');
     const renewalSummaryEl = document.getElementById('renewal-summary');
     const renewalNextEl = document.getElementById('renewal-next');
+    const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
 
     let budget = parseFloat(localStorage.getItem('budget')) || 0;
     let history = JSON.parse(localStorage.getItem('history')) || [];
@@ -126,6 +142,7 @@
 
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const weekdayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const categoryList = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
 
     // ===== Clock & Theme =====
     function updateClock() {
@@ -143,6 +160,12 @@
       document.body.classList.toggle('light-mode', isDark);
       localStorage.setItem('theme', isDark ? 'light' : 'dark');
     }
+
+    // ===== History expand/collapse =====
+    toggleHistoryBtn.addEventListener('click', () => {
+      const expanded = historyDiv.classList.toggle('expanded');
+      toggleHistoryBtn.textContent = expanded ? 'Collapse ⇵' : 'Expand ⇵';
+    });
 
     // ===== Calculator input =====
     function appendNumber(num){ inputDisplay.value += num; }
@@ -163,13 +186,10 @@
     }
 
     function showCategoryPopup() {
+      const buttons = categoryList.map(c => `<button onclick="confirmCategory('${c}')">${c}</button>`).join('');
       popup.innerHTML = `
         <h3>Select Category</h3>
-        <button onclick="confirmCategory('Leisure')">Leisure</button>
-        <button onclick="confirmCategory('Transportation')">Transportation</button>
-        <button onclick="confirmCategory('Food')">Food</button>
-        <button onclick="confirmCategory('Groceries')">Groceries</button>
-        <button onclick="confirmCategory('Others')">Others</button>
+        ${buttons}
         <button onclick="popup.style.display='none'">Cancel</button>
       `;
       popup.style.display = 'block';
@@ -182,7 +202,7 @@
       if (isNaN(value)) return;
       const timestamp = new Date().toLocaleString();
       budget -= value;
-      history.push({ type: `Subtract (${category})`, value, timestamp });
+      history.push({ type: \`Subtract (\${category})\`, value, timestamp });
       localStorage.setItem('budget', budget);
       localStorage.setItem('history', JSON.stringify(history));
       updateBudgetDisplay(); renderHistory();
@@ -215,14 +235,13 @@
     }
 
     function viewCategoryTotals() {
-      const categories = ['Leisure','Transportation','Food','Groceries','Others'];
-      const totals = Object.fromEntries(categories.map(c=>[c,0]));
+      const totals = Object.fromEntries(categoryList.map(c=>[c,0]));
       history.forEach(h=>{
         const m = h.type.match(/^Subtract \((.+)\)$/);
         if (m && totals[m[1]] !== undefined) totals[m[1]] += h.value;
       });
       totalsPopup.innerHTML = '<h3>Category Totals</h3>';
-      categories.forEach(cat=>{
+      categoryList.forEach(cat=>{
         const btn = document.createElement('button');
         btn.disabled = true;
         btn.textContent = `${cat}: $${totals[cat].toFixed(2)}`;
@@ -235,14 +254,13 @@
       totalsPopup.style.display = 'block';
     }
 
-    // ===== Auto-Renew logic =====
+    // ===== Auto-Renew (all-time summary + next time) =====
     function todayISO(d=new Date()){
       return d.toISOString().slice(0,10);
     }
     function hhmm(d=new Date()){
       return d.toTimeString().slice(0,5); // "HH:MM"
     }
-
     function shouldRunToday(entry, now=new Date()) {
       const monthOk = !entry.months?.length || entry.months.includes(monthNames[now.getMonth()]);
       const weekdayOk = (entry.days?.length || 0) > 0 ? entry.days.includes(weekdayNames[now.getDay()]) : false;
@@ -254,7 +272,6 @@
       const timeOk = entry.time ? (entry.time <= hhmm(now)) : true;
       return scheduleOk && timeOk;
     }
-
     function renderAllTimeSummary() {
       const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
       let addSum = 0, subSum = 0;
@@ -266,7 +283,6 @@
       renewalSummaryEl.textContent =
         `🔁 Scheduled (all time): ${all.length} | +${currency}${addSum.toFixed(2)} / -${currency}${subSum.toFixed(2)}`;
     }
-
     function runAutoRenewals(forceRenderOnly=false) {
       const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
       const today = todayISO();
@@ -296,7 +312,7 @@
 
       updateBudgetDisplay(); renderHistory(); renderAllTimeSummary();
 
-      // Next time hint for entries later today
+      // “Next” time hint for any with time later today
       const times = all
         .filter(e=>e.time)
         .map(e=>e.time)
