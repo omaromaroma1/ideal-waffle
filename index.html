@@ -1,236 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Money Budgeter</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: white;
-    color: black;
-    margin: 0;
-    padding: 0;
-    text-align: center;
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Segoe UI,system-ui,Arial,sans-serif;padding:20px;transition:background .2s,color .2s}
+  body.light-mode{background:#fff;color:#000}
+  body.dark-mode{background:#121212;color:#eee}
+  .calculator-box{width:360px;margin:0 auto;background:#f7f7f7;border-radius:20px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.08)}
+  body.dark-mode .calculator-box{background:#1e1e1e;box-shadow:0 5px 15px rgba(255,255,255,.05)}
+  h1{text-align:center;margin-bottom:12px;color:#007bff}
+  #clock,#budget,#renewal-summary,#renewal-next{text-align:center;margin:6px 0}
+  .numpad,.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
+  button{flex:1 1 45%;padding:12px;border:none;border-radius:12px;font-weight:600;background:#007bff;color:#fff;cursor:pointer}
+  button:hover{background:#005ed6}
+  .numpad button{flex:1 1 30%;padding:14px;background:#444}
+  #input-display{width:100%;text-align:right;font-size:24px;padding:10px;border:none;background:transparent;color:inherit}
+
+  .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
+  .history-toggle{flex:0 0 auto;padding:6px 10px;border-radius:10px;font-size:12px;background:#e5f0ff;color:#0a3a8b;border:none}
+  body.dark-mode .history-toggle{background:#243146;color:#d7e6ff}
+  #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px}
+  body.dark-mode #history{background:#2c2c2c;border-color:#666}
+
+  #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer}
+
+  /* ---- Centered modal + overlay ---- */
+  #overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; z-index:9998;
   }
-  body.dark-mode {
-    background-color: #121212;
-    color: white;
+  .modal{
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(420px,92vw); max-height:80vh; overflow:auto;
+    background:#ffffff; color:#111; border-radius:12px; padding:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.35); display:none; z-index:9999;
   }
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #007bff;
-    color: white;
+  body.dark-mode .modal{background:#1f2937;color:#e5e7eb}
+  .modal h3{text-align:center;margin-bottom:10px}
+  .modal .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff}
+  .modal .btn:last-child{background:#aaa;color:#111}
+
+  /* ---- Fullscreen history overlay ---- */
+  #history-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.6);
+    display:none; align-items:center; justify-content:center; z-index:9999;
   }
-  header h1 {
-    margin: 0;
-    font-size: 1.5rem;
+  #history-panel{
+    width: min(800px, 94vw);
+    height: min(90vh, 800px);
+    background:#ffffff; color:#111; border-radius:16px; display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden;
   }
-  #budget {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin: 15px 0;
-    color: #28a745;
+  body.dark-mode #history-panel{ background:#1f2937; color:#e5e7eb }
+  .panel-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.1);
   }
-  body.dark-mode #budget {
-    color: #5cd65c;
+  body.dark-mode .panel-header{ border-color:rgba(255,255,255,.12) }
+  .panel-title{font-weight:700}
+  .panel-btn{
+    padding:8px 10px; border:none; border-radius:10px; background:#007bff; color:#fff; cursor:pointer; font-weight:600;
   }
-  .buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
-  .buttons button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-  }
-  .buttons button:hover {
-    background-color: #0056b3;
-  }
-  #history {
-    max-height: 150px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.05);
-    padding: 10px;
-    border-radius: 8px;
-    margin: 10px;
-  }
-  body.dark-mode #history {
-    background: rgba(255,255,255,0.1);
-  }
-  /* Modal styling */
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    text-align: left;
-  }
-  body.dark-mode .modal-content {
-    background: #333;
-    color: white;
-  }
-  .modal-content button {
-    margin-top: 10px;
-  }
+  .panel-body{padding:10px 12px; overflow:auto; flex:1}
+  .history-item{padding:8px 6px; border-bottom:1px solid rgba(0,0,0,.08)}
+  body.dark-mode .history-item{border-color:rgba(255,255,255,.08)}
 </style>
 </head>
 <body>
-<header>
-  <h1>Money Budgeter</h1>
-  <button id="themeToggle">🌙</button>
-</header>
+  <div class="calculator-box">
+    <h1>Money Budgeter</h1>
+    <div id="clock">🕒 Time: --:--</div>
+    <div id="budget">Budget: $0</div>
 
-<div id="budget">$0.00</div>
+    <div id="renewal-summary" style="font-size:12px;opacity:.85"></div>
+    <div id="renewal-next" style="font-size:12px;opacity:.85"></div>
 
-<div class="buttons">
-  <button onclick="addAmount()">Add</button>
-  <button onclick="subtractAmount()">Subtract</button>
-  <button onclick="clearHistory()">Clear History</button>
-  <button onclick="resetBudget()">Reset</button>
-  <button onclick="window.location.href='repeat.html'">Repeat ➕</button>
-  <button onclick="viewCategories()">📊 View Categories</button>
-</div>
+    <input id="input-display" placeholder="Enter amount" readonly/>
 
-<div id="history"></div>
+    <div class="numpad">
+      <button onclick="appendNumber('1')">1</button><button onclick="appendNumber('2')">2</button><button onclick="appendNumber('3')">3</button>
+      <button onclick="appendNumber('4')">4</button><button onclick="appendNumber('5')">5</button><button onclick="appendNumber('6')">6</button>
+      <button onclick="appendNumber('7')">7</button><button onclick="appendNumber('8')">8</button><button onclick="appendNumber('9')">9</button>
+      <button onclick="appendNumber('0')">0</button><button onclick="appendNumber('.')">.</button><button onclick="backspace()">⌫</button>
+    </div>
 
-<!-- Modal -->
-<div id="modal" class="modal" style="display:none;">
-  <div class="modal-content" id="modalContent"></div>
-</div>
+    <div class="buttons">
+      <button onclick="submitAmount('add')">Add</button>
+      <button onclick="openSubtract()">Subtract</button>
+      <button onclick="clearHistory()">Clear History</button>
+      <button onclick="resetBudget()">Reset</button>
+      <button onclick="location.href='repeat.html'">Repeat ➕</button>
+      <button onclick="viewCategoryTotals()">📊 View Categories</button>
+    </div>
+
+    <div class="history-header">
+      <div style="font-weight:600">History</div>
+      <button id="toggleHistoryBtn" class="history-toggle">Expand ⇵</button>
+    </div>
+    <div id="history"></div>
+  </div>
+
+  <!-- theme toggle -->
+  <div id="mode-toggle" onclick="toggleMode()" aria-label="Toggle theme">🌙</div>
+
+  <!-- overlay + centered modals -->
+  <div id="overlay"></div>
+  <div id="categoryModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
+  <div id="totalsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
+
+  <!-- fullscreen history overlay -->
+  <div id="history-overlay" aria-hidden="true">
+    <div id="history-panel">
+      <div class="panel-header">
+        <div class="panel-title">History</div>
+        <button class="panel-btn" id="closeHistory">Close</button>
+      </div>
+      <div id="history-full" class="panel-body"></div>
+    </div>
+  </div>
 
 <script>
-let budget = parseFloat(localStorage.getItem('budget')) || 0;
-let historyData = JSON.parse(localStorage.getItem('history')) || [];
-let categories = JSON.parse(localStorage.getItem('categories')) || {
-  Leisure: 0,
-  Transportation: 0,
-  Food: 0,
-  Groceries: 0,
-  Others: 0,
-  Games: 0,
-  Friends: 0
-};
-
-function updateBudgetDisplay() {
-  document.getElementById('budget').textContent = `$${budget.toFixed(2)}`;
-  localStorage.setItem('budget', budget);
-}
-
-function saveHistory() {
-  localStorage.setItem('history', JSON.stringify(historyData));
-}
-
-function addAmount() {
-  let amount = parseFloat(prompt("Enter amount to add:"));
-  if (!isNaN(amount)) {
-    budget += amount;
-    historyData.push(`${new Date().toLocaleString()} — Add: $${amount.toFixed(2)}`);
-    saveHistory();
-    updateBudgetDisplay();
-    renderHistory();
-  }
-}
-
-function subtractAmount() {
-  const modal = document.getElementById('modal');
-  const content = document.getElementById('modalContent');
-  content.innerHTML = `<h3>Select Category</h3>`;
-  Object.keys(categories).forEach(cat => {
-    let btn = document.createElement('button');
-    btn.textContent = cat;
-    btn.onclick = () => {
-      let amount = parseFloat(prompt(`Enter amount to subtract from ${cat}:`));
-      if (!isNaN(amount)) {
-        budget -= amount;
-        categories[cat] += amount;
-        localStorage.setItem('categories', JSON.stringify(categories));
-        historyData.push(`${new Date().toLocaleString()} — Subtract (${cat}): $${amount.toFixed(2)}`);
-        saveHistory();
-        updateBudgetDisplay();
-        renderHistory();
-      }
-      modal.style.display = 'none';
-    };
-    content.appendChild(btn);
-  });
-  let closeBtn = document.createElement('button');
-  closeBtn.textContent = "Close";
-  closeBtn.onclick = () => modal.style.display = 'none';
-  content.appendChild(closeBtn);
-  modal.style.display = 'flex';
-}
-
-function viewCategories() {
-  const modal = document.getElementById('modal');
-  const content = document.getElementById('modalContent');
-  content.innerHTML = `<h3>Category Totals</h3>` + 
-    Object.entries(categories).map(([cat, val]) => `${cat}: $${val.toFixed(2)}`).join('<br>');
-  let closeBtn = document.createElement('button');
-  closeBtn.textContent = "Close";
-  closeBtn.onclick = () => modal.style.display = 'none';
-  content.appendChild(closeBtn);
-  modal.style.display = 'flex';
-}
-
-function clearHistory() {
-  if (confirm("Clear history?")) {
-    historyData = [];
-    categories = { Leisure: 0, Transportation: 0, Food: 0, Groceries: 0, Others: 0, Games: 0, Friends: 0 };
-    saveHistory();
-    localStorage.setItem('categories', JSON.stringify(categories));
-    renderHistory();
-  }
-}
-
-function resetBudget() {
-  if (confirm("Reset budget?")) {
-    budget = 0;
-    updateBudgetDisplay();
-  }
-}
-
-function renderHistory() {
+  // ===== State =====
+  const budgetEl = document.getElementById('budget');
   const historyEl = document.getElementById('history');
-  historyEl.innerHTML = historyData.map(item => `<div>${item}</div>`).join('');
-}
+  const inputEl = document.getElementById('input-display');
+  const overlay = document.getElementById('overlay');
+  const catModal = document.getElementById('categoryModal');
+  const totalsModal = document.getElementById('totalsModal');
+  const renewalSummaryEl = document.getElementById('renewal-summary');
+  const renewalNextEl = document.getElementById('renewal-next');
+  const modeBtn = document.getElementById('mode-toggle');
 
-document.getElementById('themeToggle').onclick = () => {
-  document.body.classList.toggle('dark-mode');
-  localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-  document.getElementById('themeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
-};
+  // Fullscreen history elements
+  const historyOverlay = document.getElementById('history-overlay');
+  const historyFull = document.getElementById('history-full');
+  const closeHistoryBtn = document.getElementById('closeHistory');
+  const expandBtn = document.getElementById('toggleHistoryBtn');
 
-if (localStorage.getItem('theme') === 'dark') {
-  document.body.classList.add('dark-mode');
-  document.getElementById('themeToggle').textContent = '☀️';
-}
+  let budget = parseFloat(localStorage.getItem('budget')) || 0;
+  let history = JSON.parse(localStorage.getItem('history')) || [];
+  let appliedMap = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
+  const categories = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-updateBudgetDisplay();
-renderHistory();
+  // ===== Theme =====
+  if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); } else { document.body.classList.add('light-mode'); }
+  function updateModeIcon(){ modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙'; }
+  updateModeIcon();
+  function toggleMode(){
+    const dark=document.body.classList.contains('dark-mode');
+    document.body.classList.toggle('dark-mode',!dark);
+    document.body.classList.toggle('light-mode',dark);
+    localStorage.setItem('theme',dark?'light':'dark');
+    updateModeIcon();
+  }
+
+  // ===== Clock =====
+  function tickClock(){
+    const n=new Date();
+    document.getElementById('clock').textContent='🕒 Time: '+
+      n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:true});
+  }
+  setInterval(tickClock,1000); tickClock();
+
+  // ===== Calculator =====
+  function appendNumber(n){ inputEl.value+=n; }
+  function backspace(){ inputEl.value=inputEl.value.slice(0,-1); }
+  function clearInput(){ inputEl.value=''; }
+
+  function submitAmount(type){
+    const v=parseFloat(inputEl.value);
+    if(isNaN(v)) return;
+    const ts=new Date().toLocaleString();
+    if(type==='add'){ budget+=v; history.push({type:'Add',value:v,timestamp:ts}); }
+    saveBudget(); renderHistory(); clearInput();
+  }
+
+  // ===== Overlay + modal helpers =====
+  function openOverlay(){ overlay.style.display='block'; document.body.style.overflow='hidden'; }
+  function closeOverlay(){ overlay.style.display='none'; document.body.style.overflow=''; }
+  function openModal(el){ el.style.display='block'; el.setAttribute('aria-hidden','false'); openOverlay(); }
+  function closeModal(el){ el.style.display='none'; el.setAttribute('aria-hidden','true'); if(!anyModalOpen()) closeOverlay(); }
+  function anyModalOpen(){ return catModal.style.display==='block' || totalsModal.style.display==='block'; }
+  overlay.addEventListener('click', ()=>{ closeModal(catModal); closeModal(totalsModal); });
+
+  function openSubtract(){
+    catModal.innerHTML = '<h3>Select Category</h3>' +
+      categories.map(c=>`<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
+      `<button class="btn" onclick="closeModal(catModal)">Close</button>`;
+    openModal(catModal);
+  }
+  function doSubtract(cat){
+    const v=parseFloat(inputEl.value);
+    closeModal(catModal); clearInput();
+    if(isNaN(v)) return;
+    const ts=new Date().toLocaleString();
+    budget-=v; history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
+    saveBudget(); renderHistory();
+  }
+
+  function viewCategoryTotals(){
+    const totals = Object.fromEntries(categories.map(c=>[c,0]));
+    history.forEach(h=>{
+      const m=h.type.match(/^Subtract \((.+)\)$/);
+      if(m && totals[m[1]]!==undefined) totals[m[1]]+=h.value;
+    });
+    const cur=localStorage.getItem('currency')||'$';
+    totalsModal.innerHTML = '<h3>Category Totals</h3>' +
+      categories.map(c=>`<button class="btn" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('') +
+      `<button class="btn" onclick="closeModal(totalsModal)">Close</button>`;
+    openModal(totalsModal);
+  }
+
+  // ===== History controls =====
+  function clearHistory(){ history=[]; localStorage.setItem('history','[]'); renderHistory(); }
+  function resetBudget(){ budget=0; saveBudget(); }
+  function saveBudget(){
+    localStorage.setItem('budget',budget);
+    localStorage.setItem('history',JSON.stringify(history));
+    updateBudget();
+  }
+  function updateBudget(){
+    const cur=localStorage.getItem('currency')||'$';
+    budgetEl.textContent=`Budget: ${cur}${budget.toFixed(2)}`;
+  }
+  function renderHistory(){
+    historyEl.innerHTML='';
+    history.slice().reverse().forEach(it=>{
+      const d=document.createElement('div');
+      d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      historyEl.appendChild(d);
+    });
+  }
+
+  // ===== Fullscreen History =====
+  function openFullHistory(){
+    historyFull.innerHTML='';
+    history.slice().reverse().forEach(it=>{
+      const row=document.createElement('div');
+      row.className='history-item';
+      row.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      historyFull.appendChild(row);
+    });
+    historyOverlay.style.display='flex';
+    historyOverlay.setAttribute('aria-hidden','false');
+  }
+  function closeFullHistory(){
+    historyOverlay.style.display='none';
+    historyOverlay.setAttribute('aria-hidden','true');
+  }
+  document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
+  closeHistoryBtn.addEventListener('click', closeFullHistory);
+  historyOverlay.addEventListener('click',(e)=>{ if(e.target===historyOverlay) closeFullHistory(); });
+
+  // ===== Auto-renew summary + next (no manual refresh button) =====
+  function todayISO(d=new Date()){ return d.toISOString().slice(0,10); }
+  function hhmm(d=new Date()){ return d.toTimeString().slice(0,5); }
+  function shouldRunToday(e,now=new Date()){
+    const monthOk = !e.months?.length || e.months.includes(months[now.getMonth()]);
+    const weekdayOk = (e.days?.length||0)>0 ? e.days.includes(weekdays[now.getDay()]) : false;
+    const dom=String(now.getDate());
+    const domOk=(e.calendarDays?.length||0)>0 ? e.calendarDays.includes(dom) : false;
+    const exact = e.date ? (todayISO(now)===e.date) : false;
+    const scheduleOk = monthOk && (weekdayOk || domOk || exact || (!e.days?.length && !e.calendarDays?.length && !e.date));
+    const timeOk = e.time ? (e.time <= hhmm(now)) : true;
+    return scheduleOk && timeOk;
+  }
+  function renderAllTimeSummary(){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    let add=0, sub=0;
+    all.forEach(e=>{ const a=+e.amount||0; (e.type||'add')==='add'? add+=a : sub+=a; });
+    const cur=localStorage.getItem('currency')||'$';
+    renewalSummaryEl.textContent = `🔁 Scheduled (all time): ${all.length} | +${cur}${add.toFixed(2)} / -${cur}${sub.toFixed(2)}`;
+    const times = all.map(e=>e.time).filter(Boolean).sort();
+    const next = times.find(t=>t>hhmm());
+    renewalNextEl.textContent = next? `Next run at ${next}` : '';
+  }
+  function runAutoRenewals(renderOnly=false){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    const today=todayISO();
+    if(!renderOnly){
+      all.forEach(e=>{
+        if(!e.id) e.id='r'+Date.now()+Math.random().toString(36).slice(2);
+        const already = appliedMap[e.id]===today;
+        if(!already && shouldRunToday(e)){
+          const amt=+e.amount||0, ts=new Date().toLocaleString();
+          if((e.type||'add')==='add'){ budget+=amt; history.push({type:'Auto Add',value:amt,timestamp:ts}); }
+          else{ budget-=amt; history.push({type:'Auto Subtract',value:amt,timestamp:ts}); }
+          appliedMap[e.id]=today;
+        }
+      });
+      localStorage.setItem('autoRenewals',JSON.stringify(all));
+      localStorage.setItem('autoRenewalsApplied',JSON.stringify(appliedMap));
+      saveBudget();
+    }
+    renderAllTimeSummary();
+  }
+
+  // ===== Init =====
+  updateBudget(); renderHistory(); runAutoRenewals(true);
+  setInterval(runAutoRenewals,30000);
 </script>
 </body>
 </html>
