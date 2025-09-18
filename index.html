@@ -18,15 +18,12 @@
   button:hover{background:#005ed6}
   .numpad button{flex:1 1 30%;padding:14px;background:#444}
   #input-display{width:100%;text-align:right;font-size:24px;padding:10px;border:none;background:transparent;color:inherit}
-
   .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
   .history-toggle{flex:0 0 auto;padding:6px 10px;border-radius:10px;font-size:12px;background:#e5f0ff;color:#0a3a8b;border:none}
   body.dark-mode .history-toggle{background:#243146;color:#d7e6ff}
   #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px}
   body.dark-mode #history{background:#2c2c2c;border-color:#666}
-
   #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer}
-
   /* ---- Centered modal + overlay ---- */
   #overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.45);
@@ -42,7 +39,42 @@
   .modal h3{text-align:center;margin-bottom:10px}
   .modal .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff}
   .modal .btn:last-child{background:#aaa;color:#111}
-
+  /* New styles for photo controls */
+  .photo-controls {
+    margin: 12px 0;
+  }
+  #camera-stream {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: none;
+  }
+  #startCameraBtn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  #captureControls {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #captureControls .btn {
+    flex: 1 1 48%; /* 48% width with 4% gap */
+  }
+  #captured-photo {
+    max-width: 100%;
+    margin-top: 10px;
+    display: none;
+  }
+  .history-item img {
+    max-width: 80px;
+    height: auto;
+    margin-left: 10px;
+    border-radius: 4px;
+  }
+  .clickable {
+    cursor: pointer;
+  }
   /* ---- Fullscreen history overlay ---- */
   #history-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.6);
@@ -74,19 +106,15 @@
     <h1>Money Budgeter</h1>
     <div id="clock">🕒 Time: --:--</div>
     <div id="budget">Budget: $0</div>
-
     <div id="renewal-summary" style="font-size:12px;opacity:.85"></div>
     <div id="renewal-next" style="font-size:12px;opacity:.85"></div>
-
     <input id="input-display" placeholder="Enter amount" readonly/>
-
     <div class="numpad">
       <button onclick="appendNumber('1')">1</button><button onclick="appendNumber('2')">2</button><button onclick="appendNumber('3')">3</button>
       <button onclick="appendNumber('4')">4</button><button onclick="appendNumber('5')">5</button><button onclick="appendNumber('6')">6</button>
       <button onclick="appendNumber('7')">7</button><button onclick="appendNumber('8')">8</button><button onclick="appendNumber('9')">9</button>
       <button onclick="appendNumber('0')">0</button><button onclick="appendNumber('.')">.</button><button onclick="backspace()">⌫</button>
     </div>
-
     <div class="buttons">
       <button onclick="submitAmount('add')">Add</button>
       <button onclick="openSubtract()">Subtract</button>
@@ -95,22 +123,20 @@
       <button onclick="location.href='repeat.html'">Repeat ➕</button>
       <button onclick="viewCategoryTotals()">📊 View Categories</button>
     </div>
-
     <div class="history-header">
       <div style="font-weight:600">History</div>
       <button id="toggleHistoryBtn" class="history-toggle">Expand ⇵</button>
     </div>
     <div id="history"></div>
   </div>
-
   <!-- theme toggle -->
   <div id="mode-toggle" onclick="toggleMode()" aria-label="Toggle theme">🌙</div>
-
   <!-- overlay + centered modals -->
   <div id="overlay"></div>
   <div id="categoryModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
   <div id="totalsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
-
+  <!-- new photo modal -->
+  <div id="photoModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"></div>
   <!-- fullscreen history overlay -->
   <div id="history-overlay" aria-hidden="true">
     <div id="history-panel">
@@ -121,7 +147,6 @@
       <div id="history-full" class="panel-body"></div>
     </div>
   </div>
-
 <script>
   // ===== State =====
   const budgetEl = document.getElementById('budget');
@@ -133,19 +158,18 @@
   const renewalSummaryEl = document.getElementById('renewal-summary');
   const renewalNextEl = document.getElementById('renewal-next');
   const modeBtn = document.getElementById('mode-toggle');
-
   // Fullscreen history elements
   const historyOverlay = document.getElementById('history-overlay');
   const historyFull = document.getElementById('history-full');
   const closeHistoryBtn = document.getElementById('closeHistory');
   const expandBtn = document.getElementById('toggleHistoryBtn');
-
   let budget = parseFloat(localStorage.getItem('budget')) || 0;
   let history = JSON.parse(localStorage.getItem('history')) || [];
   let appliedMap = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
   const categories = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
   const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  let capturedPhoto = null; // New state variable for photo storage
 
   // ===== Theme =====
   if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); } else { document.body.classList.add('light-mode'); }
@@ -158,7 +182,6 @@
     localStorage.setItem('theme',dark?'light':'dark');
     updateModeIcon();
   }
-
   // ===== Clock =====
   function tickClock(){
     const n=new Date();
@@ -166,12 +189,10 @@
       n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:true});
   }
   setInterval(tickClock,1000); tickClock();
-
   // ===== Calculator =====
   function appendNumber(n){ inputEl.value+=n; }
   function backspace(){ inputEl.value=inputEl.value.slice(0,-1); }
   function clearInput(){ inputEl.value=''; }
-
   function submitAmount(type){
     const v=parseFloat(inputEl.value);
     if(isNaN(v)) return;
@@ -179,30 +200,118 @@
     if(type==='add'){ budget+=v; history.push({type:'Add',value:v,timestamp:ts}); }
     saveBudget(); renderHistory(); clearInput();
   }
-
   // ===== Overlay + modal helpers =====
   function openOverlay(){ overlay.style.display='block'; document.body.style.overflow='hidden'; }
   function closeOverlay(){ overlay.style.display='none'; document.body.style.overflow=''; }
   function openModal(el){ el.style.display='block'; el.setAttribute('aria-hidden','false'); openOverlay(); }
-  function closeModal(el){ el.style.display='none'; el.setAttribute('aria-hidden','true'); if(!anyModalOpen()) closeOverlay(); }
+  function closeModal(el){ 
+    el.style.display='none'; 
+    el.setAttribute('aria-hidden','true'); 
+    if(!anyModalOpen()) closeOverlay(); 
+    // Reset camera state when closing Subtract modal
+    if (el === catModal) {
+      stopCamera();
+      capturedPhoto = null;
+      const img = document.getElementById('captured-photo');
+      if (img) {
+        img.src = '';
+        img.style.display = 'none';
+      }
+    }
+  }
   function anyModalOpen(){ return catModal.style.display==='block' || totalsModal.style.display==='block'; }
   overlay.addEventListener('click', ()=>{ closeModal(catModal); closeModal(totalsModal); });
-
+  // ===== Subtract with photo controls =====
   function openSubtract(){
-    catModal.innerHTML = '<h3>Select Category</h3>' +
-      categories.map(c=>`<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
-      `<button class="btn" onclick="closeModal(catModal)">Close</button>`;
+    catModal.innerHTML = `
+      <h3>Select Category & Optional Photo</h3>
+      <div class="photo-controls">
+        <video id="camera-stream" width="100%" height="200px" autoplay muted></video>
+        <button class="btn" id="startCameraBtn" onclick="startCamera()">🎥 Start Camera</button>
+        <div id="captureControls">
+          <button class="btn" id="captureBtn" onclick="capturePhoto()">📸 Capture</button>
+          <button class="btn" id="clearPhotoBtn" onclick="clearPhoto()">×</button>
+        </div>
+        <img id="captured-photo" class="history-photo" style="display:none;" />
+      </div>
+      ${categories.map(c=>`<button class="btn" onclick="doSubtractWithPhoto('${c}')">${c}</button>`).join('')}
+      <button class="btn" onclick="closeModal(catModal)">Close</button>
+    `;
     openModal(catModal);
+    clearPhoto(); // Reset photo state
   }
-  function doSubtract(cat){
-    const v=parseFloat(inputEl.value);
-    closeModal(catModal); clearInput();
-    if(isNaN(v)) return;
-    const ts=new Date().toLocaleString();
-    budget-=v; history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
-    saveBudget(); renderHistory();
+  function startCamera() {
+    const video = document.getElementById('camera-stream');
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(stream => {
+        video.srcObject = stream;
+        video.style.display = 'block';
+        const captureControls = document.getElementById('captureControls');
+        if (captureControls) captureControls.style.display = 'flex';
+      })
+      .catch(err => {
+        console.error('Error accessing camera:', err);
+        alert('Failed to access camera. Please enable permissions.');
+      });
   }
+  function capturePhoto() {
+    const video = document.getElementById('camera-stream');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    capturedPhoto = canvas.toDataURL('image/jpeg');
+    const img = document.getElementById('captured-photo');
+    if (img) {
+      img.src = capturedPhoto;
+      img.style.display = 'block';
+    }
+    stopCamera();
+  }
+  function stopCamera() {
+    const video = document.getElementById('camera-stream');
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+    }
+    video.style.display = 'none';
+    const captureControls = document.getElementById('captureControls');
+    if (captureControls) captureControls.style.display = 'none';
+  }
+  function clearPhoto() {
+    capturedPhoto = null;
+    const img = document.getElementById('captured-photo');
+    if (img) {
+      img.src = '';
+      img.style.display = 'none';
+    }
+    stopCamera();
+  }
+  // Modified Subtract handler with photo support
+  function doSubtractWithPhoto(cat) {
+    const v = parseFloat(inputEl.value);
+    if (isNaN(v)) {
+      closeModal(catModal);
+      clearInput();
+      return;
+    }
+    
+    const ts = new Date().toLocaleString();
+    const historyEntry = {
+      type: `Subtract (${cat})`,
+      value: v,
+      timestamp: ts,
+      photo: capturedPhoto // Include photo if captured
+    };
 
+    budget -= v;
+    history.push(historyEntry);
+    saveBudget();
+    renderHistory();
+    closeModal(catModal);
+    clearInput();
+  }
+  // ===== Category totals modal =====
   function viewCategoryTotals(){
     const totals = Object.fromEntries(categories.map(c=>[c,0]));
     history.forEach(h=>{
@@ -215,7 +324,6 @@
       `<button class="btn" onclick="closeModal(totalsModal)">Close</button>`;
     openModal(totalsModal);
   }
-
   // ===== History controls =====
   function clearHistory(){ history=[]; localStorage.setItem('history','[]'); renderHistory(); }
   function resetBudget(){ budget=0; saveBudget(); }
@@ -232,18 +340,26 @@
     historyEl.innerHTML='';
     history.slice().reverse().forEach(it=>{
       const d=document.createElement('div');
-      d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      d.className = 'history-item';
+      let content = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      if (it.photo) {
+        content += `<img src="${it.photo}" class="clickable history-photo" alt="Receipt photo">`;
+      }
+      d.innerHTML = content;
       historyEl.appendChild(d);
     });
   }
-
   // ===== Fullscreen History =====
   function openFullHistory(){
     historyFull.innerHTML='';
     history.slice().reverse().forEach(it=>{
       const row=document.createElement('div');
       row.className='history-item';
-      row.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      let content = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+      if (it.photo) {
+        content += `<img src="${it.photo}" class="clickable history-photo" alt="Receipt photo">`;
+      }
+      row.innerHTML = content;
       historyFull.appendChild(row);
     });
     historyOverlay.style.display='flex';
@@ -253,10 +369,38 @@
     historyOverlay.style.display='none';
     historyOverlay.setAttribute('aria-hidden','true');
   }
+  // Show photo in modal when clicked
+  function showPhoto(photoUrl) {
+    const modal = document.getElementById('photoModal');
+    modal.innerHTML = `
+      <h3>Receipt Photo</h3>
+      <img src="${photoUrl}" style="max-width: 100%; max-height: 80vh; margin: 10px 0;" alt="Receipt photo">
+      <button class="btn" onclick="closeModal(modal)">Close</button>
+    `;
+    openModal(modal);
+  }
+  // Event listeners for photo clicks
+  historyEl.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target.classList?.contains('clickable') && target.tagName === 'IMG') {
+      showPhoto(target.src);
+    }
+  });
+  historyOverlay.addEventListener('click', (e) => {
+    const target = e.target;
+    // Close overlay when clicking outside content
+    if (target === historyOverlay) {
+      closeFullHistory();
+      return;
+    }
+    // Show photo when clicking image
+    if (target.classList?.contains('clickable') && target.tagName === 'IMG') {
+      showPhoto(target.src);
+    }
+  });
+  // Button listeners
   document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
   closeHistoryBtn.addEventListener('click', closeFullHistory);
-  historyOverlay.addEventListener('click',(e)=>{ if(e.target===historyOverlay) closeFullHistory(); });
-
   // ===== Auto-renew summary + next (no manual refresh button) =====
   function todayISO(d=new Date()){ return d.toISOString().slice(0,10); }
   function hhmm(d=new Date()){ return d.toTimeString().slice(0,5); }
@@ -300,7 +444,6 @@
     }
     renderAllTimeSummary();
   }
-
   // ===== Init =====
   updateBudget(); renderHistory(); runAutoRenewals(true);
   setInterval(runAutoRenewals,30000);
