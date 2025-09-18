@@ -151,7 +151,7 @@
   const overlay = document.getElementById('overlay');
   const catModal = document.getElementById('categoryModal');
   const totalsModal = document.getElementById('totalsModal');
-  const photoModal = document.getElementById('photoModal'); // Added photo modal reference
+  const photoModal = document.getElementById('photoModal');
   const renewalSummaryEl = document.getElementById('renewal-summary');
   const renewalNextEl = document.getElementById('renewal-next');
   const modeBtn = document.getElementById('mode-toggle');
@@ -165,7 +165,8 @@
   const categories = ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
   const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  let capturedPhoto = null; // Tracks captured photo data URL
+  let capturedPhoto = null;
+  let currentCameraStream = null; // Track active camera stream
 
   // ===== Theme =====
   if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); } else { document.body.classList.add('light-mode'); }
@@ -193,8 +194,12 @@
   // ===== Camera Controls =====
   function startCamera() {
     const video = document.getElementById('camera-stream');
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: { exact: 'user' } }, // Start with front camera
+      audio: false 
+    })
       .then(stream => {
+        currentCameraStream = stream; // Store active stream
         video.srcObject = stream;
         video.style.display = 'block';
         document.getElementById('captureControls').style.display = 'flex';
@@ -207,11 +212,12 @@
   }
 
   function stopCamera() {
-    const video = document.getElementById('camera-stream');
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
+    if (currentCameraStream) {
+      currentCameraStream.getTracks().forEach(track => track.stop());
+      currentCameraStream = null;
     }
+    const video = document.getElementById('camera-stream');
+    video.srcObject = null;
     video.style.display = 'none';
     document.getElementById('captureControls').style.display = 'none';
     document.getElementById('flipCameraBtn').style.display = 'none';
@@ -219,29 +225,42 @@
 
   function flipCamera() {
     const video = document.getElementById('camera-stream');
-    if (!video.srcObject) return; // Only flip if camera is active
+    if (!currentCameraStream) return; // Only flip if camera is active
 
-    const track = video.srcObject.getTracks()[0];
-    const currentFacingMode = track.facingMode;
-    const capabilities = track.getCapabilities();
+    const currentTrack = currentCameraStream.getTracks()[0];
+    if (!currentTrack) return;
 
-    // Check if opposite mode is supported
+    const currentFacingMode = currentTrack.facingMode;
+    const capabilities = currentTrack.getCapabilities();
+
+    // Determine opposite mode
     const oppositeMode = currentFacingMode === 'user' ? 'environment' : 'user';
+
+    // Check if opposite mode is supported (exact)
     if (!capabilities.facingMode?.includes(oppositeMode)) {
-      alert('Device does not support flipping the camera.');
+      alert('Device does not support flipping to the ' + oppositeMode + ' camera.');
       return;
     }
 
-    // Request new stream with opposite facing mode
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: oppositeMode }, audio: false })
+    // Stop current stream
+    stopCamera();
+
+    // Request new stream with opposite mode
+    navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: { exact: oppositeMode } }, 
+      audio: false 
+    })
       .then(newStream => {
-        // Stop existing track
-        track.stop();
+        currentCameraStream = newStream; // Update stored stream
         video.srcObject = newStream;
+        video.style.display = 'block';
+        document.getElementById('captureControls').style.display = 'flex';
+        document.getElementById('flipCameraBtn').style.display = 'block';
       })
       .catch(err => {
         console.error('Flip error:', err);
         alert('Failed to flip camera. Please check permissions.');
+        startCamera(); // Try to restore front camera if flip fails
       });
   }
 
@@ -291,6 +310,7 @@
     `;
     openModal(catModal);
     clearPhoto(); // Reset photo state
+    stopCamera(); // Ensure no leftover streams
   }
 
   // ===== History & Modals =====
@@ -323,7 +343,7 @@
   overlay.addEventListener('click', () => {
     closeModal(catModal);
     closeModal(totalsModal);
-    closeModal(photoModal); // Close photo modal when clicking overlay
+    closeModal(photoModal);
   });
 
   // Show full-size photo modal
@@ -406,8 +426,8 @@
       d.className='history-item';
       let content = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
       if (it.photo) {
-        content += `<img src="${it.photo}" class="history-photo" alt="Receipt" 
-                        onclick="showPhoto('${it.photo}')">`;
+        content += `<img src="${it.photo}" class="history-photo clickable" alt="Receipt" 
+                      onclick="showPhoto('${it.photo}')">`;
       }
       d.innerHTML = content;
       historyEl.appendChild(d);
@@ -422,8 +442,8 @@
       row.className='history-item';
       let content = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
       if (it.photo) {
-        content += `<img src="${it.photo}" class="history-photo" alt="Receipt" 
-                        onclick="showPhoto('${it.photo}')">`;
+        content += `<img src="${it.photo}" class="history-photo clickable" alt="Receipt" 
+                      onclick="showPhoto('${it.photo}')">`;
       }
       row.innerHTML = content;
       historyFull.appendChild(row);
