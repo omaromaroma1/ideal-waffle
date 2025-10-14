@@ -114,6 +114,19 @@ function submitAmount(type){
   saveBudget(); renderHistory(); clearInput();
 }
 
+/* ======= Overlay helpers ======= */
+function openOverlay(){ overlay.style.display='block'; }
+function closeOverlay(){ overlay.style.display='none'; }
+overlay.addEventListener('click', ()=>{
+  closeSettings(); closeTempModals();
+});
+function showModal(el){ el.style.display='block'; openOverlay(); }   // <-- NEW: ensures modal becomes visible
+function closeTempModals(){
+  document.querySelectorAll('.sleek-modal').forEach(el=>el.remove());
+  closeOverlay();
+}
+
+/* ======= Subtract ======= */
 function openSubtract(){
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
@@ -121,7 +134,7 @@ function openSubtract(){
     categories.map(c => `<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
     `<button class="btn" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
   document.body.appendChild(m);
-  openOverlay();
+  showModal(m); // <-- make it visible + show overlay
 }
 function doSubtract(cat){
   const v = parseFloat(inputEl.value);
@@ -176,24 +189,11 @@ function toggleMode(){
   }
 })();
 
-/* ======= Overlay helpers ======= */
-function openOverlay(){ overlay.style.display='block'; }
-function closeOverlay(){ overlay.style.display='none'; }
-overlay.addEventListener('click', ()=>{
-  // close settings or any temp modals
-  closeSettings(); closeTempModals();
-});
-function closeTempModals(){
-  document.querySelectorAll('.sleek-modal').forEach(el=>el.remove());
-  closeOverlay();
-}
-
 /* ======= Settings ======= */
-function openSettings(){ renderSettings(); settingsModal.style.display='block'; openOverlay(); }
+function openSettings(){ renderSettings(); showModal(settingsModal); }
 function closeSettings(){ settingsModal.style.display='none'; closeOverlay(); }
 
 function renderSettings(){
-  // set toggle states
   const tRepeat = document.getElementById('toggleRepeat');
   const tClear  = document.getElementById('toggleClear');
   const tReset  = document.getElementById('toggleReset');
@@ -201,19 +201,16 @@ function renderSettings(){
   tClear.checked  = !!featureSettings.clear;
   tReset.checked  = !!featureSettings.reset;
 
-  // apply to UI immediately
   applyFeatureVisibility();
 
-  // bind change handlers (bind once)
   tRepeat.onchange = ()=>{ featureSettings.repeat=tRepeat.checked; persistFeatures(); applyFeatureVisibility(); };
   tClear.onchange  = ()=>{ featureSettings.clear=tClear.checked;   persistFeatures(); applyFeatureVisibility(); };
   tReset.onchange  = ()=>{ featureSettings.reset=tReset.checked;   persistFeatures(); applyFeatureVisibility(); };
 
-  // categories list
-  const list = document.getElementById('categoryList');
-  list.innerHTML = '';
+  const list=document.getElementById('categoryList');
+  list.innerHTML='';
   categories.forEach((c,i)=>{
-    const row = document.createElement('div');
+    const row=document.createElement('div');
     row.innerHTML = `${c}
       <button style="float:right;background:red;color:#fff;border:none;border-radius:6px;padding:2px 6px;"
         onclick="removeCategory(${i})">X</button>`;
@@ -230,15 +227,13 @@ function persistFeatures(){
   localStorage.setItem('featureSettings', JSON.stringify(featureSettings));
 }
 
-// category CRUD
 function addCategory(){
-  const inp = document.getElementById('newCategoryInput');
-  const val = (inp.value||'').trim();
-  if (!val || categories.includes(val)) return;
+  const inp=document.getElementById('newCategoryInput');
+  const val=(inp.value||'').trim();
+  if(!val || categories.includes(val)) return;
   categories.push(val);
   localStorage.setItem('categories', JSON.stringify(categories));
-  inp.value='';
-  renderSettings();
+  inp.value=''; renderSettings();
 }
 function removeCategory(i){
   categories.splice(i,1);
@@ -291,12 +286,11 @@ function viewCategoryTotals(){
     categories.map(c=>`<div style="margin:6px 0;">${c}: ${cur}${totals[c].toFixed(2)}</div>`).join('') +
     `<button class="btn" onclick="closeTempModals()">${closeTxt}</button>`;
   document.body.appendChild(m);
-  openOverlay();
+  showModal(m); // <-- make it visible + show overlay
 }
 
 /* ======= Fullscreen history ======= */
 function openFullHistory(){
-  // create overlay panel inside main overlay layer
   const holder = document.createElement('div');
   holder.className = 'sleek-modal';
   holder.style.position='fixed';
@@ -330,23 +324,13 @@ function openFullHistory(){
 document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
 
 /* ======= Init ======= */
-function initFeatureVisibilityFromStorage(){
-  // ensure buttons reflect saved featureSettings on first render
-  applyFeatureVisibility();
-}
-function initThemeIcon(){
-  // set correct icon on load
-  const dark = document.body.classList.contains('dark-mode');
-  modeBtn.textContent = dark ? '☀️' : '🌙';
-}
-function initClock(){ tickClock(); }
-
 function init(){
   updateBudget();
   renderHistory();
-  initFeatureVisibilityFromStorage();
-  initThemeIcon();
-  initClock();
+  // apply saved feature visibility on load
+  applyFeatureVisibility();
+  // theme icon
+  modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
 }
 init();
 </script>
