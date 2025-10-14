@@ -10,7 +10,7 @@
   <div class="calculator-box">
     <div id="settings-icon" onclick="openSettings()">⚙️</div>
     <h1 id="title">Money Budgeter</h1>
-    <div id="clock">🕒 Time: --:--</div>
+    <div id="clock">🕒 --:--</div>
     <div id="budget">Budget: $0</div>
 
     <input id="input-display" placeholder="Enter amount" readonly />
@@ -46,11 +46,12 @@
     <div id="history"></div>
   </div>
 
+  <!-- Theme toggle -->
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
 
-  <!-- Settings Modal -->
+  <!-- Overlay + Settings modal -->
   <div id="overlay"></div>
-  <div id="settingsModal" class="modal">
+  <div id="settingsModal" class="modal" aria-modal="true" role="dialog">
     <h3 id="settingsTitle">Settings</h3>
     <hr />
     <h4 id="languageLabel">Language:</h4>
@@ -59,9 +60,9 @@
     </button>
 
     <h4 id="featuresLabel">Features:</h4>
-    <label><span id="toggleRepeatLbl">Show Repeat</span><input type="checkbox" id="toggleRepeat" checked /></label>
-    <label><span id="toggleClearLbl">Show Clear History</span><input type="checkbox" id="toggleClear" checked /></label>
-    <label><span id="toggleResetLbl">Show Reset</span><input type="checkbox" id="toggleReset" checked /></label>
+    <label><span id="toggleRepeatLbl">Show Repeat</span><input type="checkbox" id="toggleRepeat" /></label>
+    <label><span id="toggleClearLbl">Show Clear History</span><input type="checkbox" id="toggleClear" /></label>
+    <label><span id="toggleResetLbl">Show Reset</span><input type="checkbox" id="toggleReset" /></label>
 
     <h4 id="categoryLabel">Custom Categories:</h4>
     <div id="categoryList"></div>
@@ -71,135 +72,194 @@
   </div>
 
 <script>
+/* ======= State ======= */
 const modeBtn = document.getElementById('mode-toggle');
 const overlay = document.getElementById('overlay');
 const settingsModal = document.getElementById('settingsModal');
 const historyEl = document.getElementById('history');
-let categories = JSON.parse(localStorage.getItem('categories')) || ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+const repeatBtn = document.getElementById('repeatBtn');
+const clearBtn  = document.getElementById('clearBtn');
+const resetBtn  = document.getElementById('resetBtn');
+
+let categories = JSON.parse(localStorage.getItem('categories')) ||
+  ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) ||
+  { repeat:true, clear:true, reset:true };
 let lang = localStorage.getItem('lang') || 'en';
-let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) || { repeat:true, clear:true, reset:true };
 let budget = parseFloat(localStorage.getItem('budget')) || 0;
 let history = JSON.parse(localStorage.getItem('history')) || [];
 
-// ========== Clock ==========
-function tickClock() {
+/* ======= Clock ======= */
+function tickClock(){
   const n = new Date();
-  document.getElementById('clock').textContent = '🕒 ' + n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('clock').textContent =
+    '🕒 ' + n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 }
-setInterval(tickClock, 1000);
-tickClock();
+setInterval(tickClock,1000); tickClock();
 
-// ========== Calculator ==========
+/* ======= Calculator ======= */
 const inputEl = document.getElementById('input-display');
-function appendNumber(n){inputEl.value+=n;}
-function backspace(){inputEl.value=inputEl.value.slice(0,-1);}
-function clearInput(){inputEl.value='';}
+function appendNumber(n){ inputEl.value += n; }
+function backspace(){ inputEl.value = inputEl.value.slice(0,-1); }
+function clearInput(){ inputEl.value = ''; }
+
 function submitAmount(type){
-  const v=parseFloat(inputEl.value);
-  if(isNaN(v))return;
-  const ts=new Date().toLocaleString();
-  if(type==='add'){budget+=v;history.push({type:'Add',value:v,timestamp:ts});}
-  saveBudget();renderHistory();clearInput();
+  const v = parseFloat(inputEl.value);
+  if (isNaN(v)) return;
+  const ts = new Date().toLocaleString();
+  if (type==='add'){
+    budget += v;
+    history.push({type:'Add', value:v, timestamp:ts});
+  }
+  saveBudget(); renderHistory(); clearInput();
 }
+
 function openSubtract(){
-  const modal=document.createElement('div');
-  modal.className='modal';
-  modal.innerHTML='<h3>'+(lang==='ar'?'اختر الفئة':'Select Category')+'</h3>'+
-  categories.map(c=>`<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('')+
-  `<button class="btn" onclick="this.parentElement.remove()">Close</button>`;
-  document.body.appendChild(modal);
-  modal.style.display='block';
+  const m = document.createElement('div');
+  m.className = 'modal sleek-modal';
+  m.innerHTML = '<h3>'+ (lang==='ar'?'اختر الفئة':'Select Category') +'</h3>' +
+    categories.map(c => `<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
+    `<button class="btn" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
+  document.body.appendChild(m);
+  openOverlay();
 }
 function doSubtract(cat){
-  const v=parseFloat(inputEl.value);
-  if(isNaN(v))return;
-  const ts=new Date().toLocaleString();
-  budget-=v;history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
-  saveBudget();renderHistory();clearInput();
-  document.querySelectorAll('.modal').forEach(m=>m.remove());
+  const v = parseFloat(inputEl.value);
+  if (isNaN(v)) { closeTempModals(); return; }
+  const ts = new Date().toLocaleString();
+  budget -= v;
+  history.push({type:`Subtract (${cat})`, value:v, timestamp:ts});
+  saveBudget(); renderHistory(); clearInput();
+  closeTempModals();
 }
-function saveBudget(){
-  localStorage.setItem('budget',budget);
-  localStorage.setItem('history',JSON.stringify(history));
-  updateBudget();
-}
-function updateBudget(){
-  document.getElementById('budget').textContent=`Budget: $${budget.toFixed(2)}`;
+
+/* ======= History ======= */
+function renderHistory(){
+  historyEl.innerHTML = '';
+  history.slice().reverse().forEach(it=>{
+    const d=document.createElement('div');
+    d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+    historyEl.appendChild(d);
+  });
 }
 function clearHistory(){
-  history=[];
+  history = [];
   localStorage.setItem('history','[]');
   renderHistory();
 }
 function resetBudget(){
-  budget=0;
+  budget = 0;
   saveBudget();
 }
-function renderHistory(){
-  historyEl.innerHTML='';
-  history.slice().reverse().forEach(it=>{
-    const d=document.createElement('div');
-    d.textContent=`${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
-    historyEl.appendChild(d);
-  });
+function saveBudget(){
+  localStorage.setItem('budget', budget);
+  localStorage.setItem('history', JSON.stringify(history));
+  updateBudget();
+}
+function updateBudget(){
+  document.getElementById('budget').textContent = `Budget: $${budget.toFixed(2)}`;
 }
 
-// ========== Theme ==========
+/* ======= Theme ======= */
 function toggleMode(){
-  const dark=document.body.classList.contains('dark-mode');
-  document.body.classList.toggle('dark-mode',!dark);
-  document.body.classList.toggle('light-mode',dark);
-  localStorage.setItem('theme',dark?'light':'dark');
-  modeBtn.textContent=dark?'🌙':'☀️';
+  const dark = document.body.classList.contains('dark-mode');
+  document.body.classList.toggle('dark-mode', !dark);
+  document.body.classList.toggle('light-mode', dark);
+  localStorage.setItem('theme', dark ? 'light' : 'dark');
+  modeBtn.textContent = dark ? '🌙' : '☀️';
 }
-if(localStorage.getItem('theme')==='dark'){
-  document.body.classList.add('dark-mode');
-  modeBtn.textContent='☀️';
-}else{document.body.classList.add('light-mode');}
+(function initTheme(){
+  if (localStorage.getItem('theme')==='dark'){
+    document.body.classList.add('dark-mode'); modeBtn.textContent='☀️';
+  } else {
+    document.body.classList.add('light-mode');
+  }
+})();
 
-// ========== Settings ==========
-function openSettings(){renderSettings();settingsModal.style.display='block';overlay.style.display='block';}
-function closeSettings(){settingsModal.style.display='none';overlay.style.display='none';}
-overlay.onclick=()=>closeSettings();
+/* ======= Overlay helpers ======= */
+function openOverlay(){ overlay.style.display='block'; }
+function closeOverlay(){ overlay.style.display='none'; }
+overlay.addEventListener('click', ()=>{
+  // close settings or any temp modals
+  closeSettings(); closeTempModals();
+});
+function closeTempModals(){
+  document.querySelectorAll('.sleek-modal').forEach(el=>el.remove());
+  closeOverlay();
+}
+
+/* ======= Settings ======= */
+function openSettings(){ renderSettings(); settingsModal.style.display='block'; openOverlay(); }
+function closeSettings(){ settingsModal.style.display='none'; closeOverlay(); }
 
 function renderSettings(){
-  document.getElementById('toggleRepeat').checked=featureSettings.repeat;
-  document.getElementById('toggleClear').checked=featureSettings.clear;
-  document.getElementById('toggleReset').checked=featureSettings.reset;
-  const list=document.getElementById('categoryList');
-  list.innerHTML='';
+  // set toggle states
+  const tRepeat = document.getElementById('toggleRepeat');
+  const tClear  = document.getElementById('toggleClear');
+  const tReset  = document.getElementById('toggleReset');
+  tRepeat.checked = !!featureSettings.repeat;
+  tClear.checked  = !!featureSettings.clear;
+  tReset.checked  = !!featureSettings.reset;
+
+  // apply to UI immediately
+  applyFeatureVisibility();
+
+  // bind change handlers (bind once)
+  tRepeat.onchange = ()=>{ featureSettings.repeat=tRepeat.checked; persistFeatures(); applyFeatureVisibility(); };
+  tClear.onchange  = ()=>{ featureSettings.clear=tClear.checked;   persistFeatures(); applyFeatureVisibility(); };
+  tReset.onchange  = ()=>{ featureSettings.reset=tReset.checked;   persistFeatures(); applyFeatureVisibility(); };
+
+  // categories list
+  const list = document.getElementById('categoryList');
+  list.innerHTML = '';
   categories.forEach((c,i)=>{
-    const row=document.createElement('div');
-    row.innerHTML=`${c} <button style="float:right;background:red;color:#fff;border:none;border-radius:6px;padding:2px 6px;" onclick="removeCategory(${i})">X</button>`;
+    const row = document.createElement('div');
+    row.innerHTML = `${c}
+      <button style="float:right;background:red;color:#fff;border:none;border-radius:6px;padding:2px 6px;"
+        onclick="removeCategory(${i})">X</button>`;
     list.appendChild(row);
   });
 }
 
+function applyFeatureVisibility(){
+  repeatBtn.style.display = featureSettings.repeat ? '' : 'none';
+  clearBtn.style.display  = featureSettings.clear  ? '' : 'none';
+  resetBtn.style.display  = featureSettings.reset  ? '' : 'none';
+}
+function persistFeatures(){
+  localStorage.setItem('featureSettings', JSON.stringify(featureSettings));
+}
+
+// category CRUD
 function addCategory(){
-  const val=document.getElementById('newCategoryInput').value.trim();
-  if(val && !categories.includes(val)){
-    categories.push(val);
-    localStorage.setItem('categories',JSON.stringify(categories));
-    renderSettings();
-    document.getElementById('newCategoryInput').value='';
-  }
+  const inp = document.getElementById('newCategoryInput');
+  const val = (inp.value||'').trim();
+  if (!val || categories.includes(val)) return;
+  categories.push(val);
+  localStorage.setItem('categories', JSON.stringify(categories));
+  inp.value='';
+  renderSettings();
 }
 function removeCategory(i){
   categories.splice(i,1);
-  localStorage.setItem('categories',JSON.stringify(categories));
+  localStorage.setItem('categories', JSON.stringify(categories));
   renderSettings();
 }
 
-// ========== Language ==========
+/* ======= Language ======= */
 function toggleLanguage(){
-  lang=lang==='en'?'ar':'en';
-  localStorage.setItem('lang',lang);
+  lang = (lang==='en') ? 'ar' : 'en';
+  localStorage.setItem('lang', lang);
   applyLanguage();
 }
 function applyLanguage(){
-  const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
-  const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
-  const t=lang==='ar'?ar:en;
+  const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',
+    categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
+    toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
+  const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',
+    categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
+    toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
+  const t=(lang==='ar')?ar:en;
   document.getElementById('title').textContent=t.title;
   document.getElementById('settingsTitle').textContent=t.settingsTitle;
   document.getElementById('languageLabel').textContent=t.languageLabel;
@@ -210,30 +270,85 @@ function applyLanguage(){
   document.getElementById('toggleResetLbl').textContent=t.toggleResetLbl;
   document.getElementById('langBtn').textContent=t.langBtn;
   document.getElementById('historyLabel').textContent=t.historyLabel;
-  document.body.setAttribute('dir',lang==='ar'?'rtl':'ltr');
+  document.body.setAttribute('dir', (lang==='ar')?'rtl':'ltr');
 }
 applyLanguage();
 
+/* ======= Category totals ======= */
 function viewCategoryTotals(){
-  const totals=Object.fromEntries(categories.map(c=>[c,0]));
+  const totals = Object.fromEntries(categories.map(c=>[c,0]));
   history.forEach(h=>{
-    const m=h.type.match(/^Subtract \((.+)\)$/);
-    if(m&&totals[m[1]]!==undefined)totals[m[1]]+=h.value;
+    const m = h.type.match(/^Subtract \((.+)\)$/);
+    if (m && totals[m[1]]!==undefined) totals[m[1]] += h.value;
   });
   const cur='$';
-  let html=`<h3>${lang==='ar'?'إجمالي الفئات':'Category Totals'}</h3>`;
-  html+=categories.map(c=>`<div style="margin:6px 0;">${c}: ${cur}${totals[c].toFixed(2)}</div>`).join('');
-  html+=`<button class="btn" onclick="document.querySelectorAll('.sleek-modal').forEach(m=>m.remove());overlay.style.display='none'">${lang==='ar'?'إغلاق':'Close'}</button>`;
-  const modal=document.createElement('div');
-  modal.className='modal sleek-modal';
-  modal.innerHTML=html;
-  document.body.appendChild(modal);
-  modal.style.display='block';
-  overlay.style.display='block';
+  const title = (lang==='ar'?'إجمالي الفئات':'Category Totals');
+  const closeTxt = (lang==='ar'?'إغلاق':'Close');
+
+  const m = document.createElement('div');
+  m.className = 'modal sleek-modal';
+  m.innerHTML = `<h3>${title}</h3>` +
+    categories.map(c=>`<div style="margin:6px 0;">${c}: ${cur}${totals[c].toFixed(2)}</div>`).join('') +
+    `<button class="btn" onclick="closeTempModals()">${closeTxt}</button>`;
+  document.body.appendChild(m);
+  openOverlay();
 }
 
-updateBudget();
-renderHistory();
+/* ======= Fullscreen history ======= */
+function openFullHistory(){
+  // create overlay panel inside main overlay layer
+  const holder = document.createElement('div');
+  holder.className = 'sleek-modal';
+  holder.style.position='fixed';
+  holder.style.inset='0';
+  holder.style.zIndex='10000';
+  holder.style.display='flex';
+  holder.style.justifyContent='center';
+  holder.style.alignItems='center';
+
+  const panel = document.createElement('div');
+  panel.style.width='min(800px, 94vw)';
+  panel.style.maxHeight='90vh';
+  panel.style.overflow='auto';
+  panel.style.borderRadius='16px';
+  panel.style.padding='16px';
+  panel.style.background = document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff';
+  panel.style.color = document.body.classList.contains('dark-mode') ? '#e5e7eb' : '#111';
+  panel.style.boxShadow='0 20px 60px rgba(0,0,0,.35)';
+  panel.innerHTML =
+    `<h3 style="text-align:center;margin-bottom:10px;">${lang==='ar'?'السجل الكامل':'Full History'}</h3>` +
+    history.slice().reverse().map(it =>
+      `<div style="padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.08);">
+        ${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}
+      </div>`
+    ).join('') +
+    `<button class="btn" style="margin-top:10px;width:100%;" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
+  holder.appendChild(panel);
+  document.body.appendChild(holder);
+  openOverlay();
+}
+document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
+
+/* ======= Init ======= */
+function initFeatureVisibilityFromStorage(){
+  // ensure buttons reflect saved featureSettings on first render
+  applyFeatureVisibility();
+}
+function initThemeIcon(){
+  // set correct icon on load
+  const dark = document.body.classList.contains('dark-mode');
+  modeBtn.textContent = dark ? '☀️' : '🌙';
+}
+function initClock(){ tickClock(); }
+
+function init(){
+  updateBudget();
+  renderHistory();
+  initFeatureVisibilityFromStorage();
+  initThemeIcon();
+  initClock();
+}
+init();
 </script>
 </body>
 </html>
