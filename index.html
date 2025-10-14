@@ -120,21 +120,26 @@ function closeOverlay(){ overlay.style.display='none'; }
 overlay.addEventListener('click', ()=>{
   closeSettings(); closeTempModals();
 });
-function showModal(el){ el.style.display='block'; openOverlay(); }   // <-- NEW: ensures modal becomes visible
+function showModal(el){ el.style.display='block'; openOverlay(); }
 function closeTempModals(){
   document.querySelectorAll('.sleek-modal').forEach(el=>el.remove());
   closeOverlay();
 }
 
-/* ======= Subtract ======= */
+/* ======= Subtract (stacked buttons) ======= */
 function openSubtract(){
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
-  m.innerHTML = '<h3>'+ (lang==='ar'?'اختر الفئة':'Select Category') +'</h3>' +
-    categories.map(c => `<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('') +
+  m.innerHTML =
+    '<h3>'+ (lang==='ar'?'اختر الفئة':'Select Category') +'</h3>' +
+    '<div style="display:flex;flex-direction:column;align-items:center;width:100%;">' +
+      categories.map(c =>
+        `<button class="btn" style="width:90%;margin:6px 0;" onclick="doSubtract('${c}')">${c}</button>`
+      ).join('') +
+    '</div>' +
     `<button class="btn" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
   document.body.appendChild(m);
-  showModal(m); // <-- make it visible + show overlay
+  showModal(m); // visible + overlay
 }
 function doSubtract(cat){
   const v = parseFloat(inputEl.value);
@@ -282,11 +287,16 @@ function viewCategoryTotals(){
 
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
-  m.innerHTML = `<h3>${title}</h3>` +
-    categories.map(c=>`<div style="margin:6px 0;">${c}: ${cur}${totals[c].toFixed(2)}</div>`).join('') +
+  m.innerHTML =
+    `<h3>${title}</h3>` +
+    '<div style="display:flex;flex-direction:column;align-items:center;width:100%;">' +
+      categories.map(c =>
+        `<button class="btn" style="width:90%;margin:6px 0;" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`
+      ).join('') +
+    '</div>' +
     `<button class="btn" onclick="closeTempModals()">${closeTxt}</button>`;
   document.body.appendChild(m);
-  showModal(m); // <-- make it visible + show overlay
+  showModal(m);
 }
 
 /* ======= Fullscreen history ======= */
