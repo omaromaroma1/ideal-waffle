@@ -1,65 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Money Budgeter</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0;transition:all .2s ease}
-  body{font-family:Segoe UI,system-ui,Arial,sans-serif;padding:20px;transition:background .3s,color .3s}
-  body.light-mode{background:#fff;color:#000}
-  body.dark-mode{background:#121212;color:#eee}
-  .calculator-box{width:360px;margin:0 auto;background:#f7f7f7;border-radius:20px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.08);position:relative}
-  body.dark-mode .calculator-box{background:#1e1e1e;box-shadow:0 5px 15px rgba(255,255,255,.05)}
-  h1{text-align:center;margin-bottom:12px;color:#007bff}
-  #clock,#budget,#renewal-summary,#renewal-next{text-align:center;margin:6px 0}
-  #budget{font-size:3rem;font-weight:bold}
-  .numpad,.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
-  button{flex:1 1 45%;padding:12px;border:none;border-radius:12px;font-weight:600;background:#007bff;color:#fff;cursor:pointer}
-  button:hover{background:#005ed6}
-  .numpad button{flex:1 1 30%;padding:16px;background:#444;font-size:1.6rem}
-  #input-display{width:100%;text-align:right;font-size:24px;padding:10px;border:none;background:transparent;color:inherit}
-
-  .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
-  .history-toggle{flex:0 0 auto;padding:6px 10px;border-radius:10px;font-size:12px;background:#e5f0ff;color:#0a3a8b;border:none}
-  body.dark-mode .history-toggle{background:#243146;color:#d7e6ff}
-  #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px}
-  body.dark-mode #history{background:#2c2c2c;border-color:#666}
-
-  #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer;z-index:1000;}
-
-  #settings-icon {
-    position:absolute; top:10px; right:15px; font-size:22px; cursor:pointer;
-    transition:transform .4s ease;
-  }
-  #settings-icon:hover { transform:rotate(90deg) scale(1.1); }
-
-  /* Overlay and modal styling */
-  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9998}
-  .modal{
-    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-    width:min(420px,92vw);max-height:85vh;overflow:auto;
-    background:linear-gradient(135deg,#ffffff 0%,#f7f7f7 100%);
-    color:#111;border-radius:12px;padding:20px;
-    box-shadow:0 20px 60px rgba(0,0,0,.35);
-    display:none;z-index:9999;
-    animation:fadeIn .25s ease;
-  }
-  body.dark-mode .modal{
-    background:linear-gradient(135deg,#1e1e1e 0%,#2b2b2b 100%);
-    color:#e5e7eb;
-  }
-  .modal h3{text-align:center;margin-bottom:10px;color:#007bff}
-  .modal h4{margin:10px 0;color:#007bff}
-  .modal .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff;font-weight:600}
-  .modal .btn:hover{transform:scale(1.03)}
-  .modal label{display:flex;align-items:center;justify-content:space-between;margin:6px 0;padding:4px 0}
-  @keyframes fadeIn{from{opacity:0;transform:translate(-50%,-45%);}to{opacity:1;transform:translate(-50%,-50%);}}
-
-  /* Arabic (RTL) mode */
-  body[dir="rtl"] { direction:rtl;text-align:right; }
-  body[dir="rtl"] .calculator-box h1 { text-align:center; }
-</style>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="calculator-box">
@@ -68,16 +13,21 @@
     <div id="clock">🕒 Time: --:--</div>
     <div id="budget">Budget: $0</div>
 
-    <div id="renewal-summary" style="font-size:12px;opacity:.85"></div>
-    <div id="renewal-next" style="font-size:12px;opacity:.85"></div>
-
-    <input id="input-display" placeholder="Enter amount" readonly/>
+    <input id="input-display" placeholder="Enter amount" readonly />
 
     <div class="numpad">
-      <button onclick="appendNumber('1')">1</button><button onclick="appendNumber('2')">2</button><button onclick="appendNumber('3')">3</button>
-      <button onclick="appendNumber('4')">4</button><button onclick="appendNumber('5')">5</button><button onclick="appendNumber('6')">6</button>
-      <button onclick="appendNumber('7')">7</button><button onclick="appendNumber('8')">8</button><button onclick="appendNumber('9')">9</button>
-      <button onclick="appendNumber('0')">0</button><button onclick="appendNumber('.')">.</button><button onclick="backspace()">⌫</button>
+      <button onclick="appendNumber('1')">1</button>
+      <button onclick="appendNumber('2')">2</button>
+      <button onclick="appendNumber('3')">3</button>
+      <button onclick="appendNumber('4')">4</button>
+      <button onclick="appendNumber('5')">5</button>
+      <button onclick="appendNumber('6')">6</button>
+      <button onclick="appendNumber('7')">7</button>
+      <button onclick="appendNumber('8')">8</button>
+      <button onclick="appendNumber('9')">9</button>
+      <button onclick="appendNumber('0')">0</button>
+      <button onclick="appendNumber('.')">.</button>
+      <button onclick="backspace()">⌫</button>
     </div>
 
     <div class="buttons">
@@ -90,41 +40,124 @@
     </div>
 
     <div class="history-header">
-      <div style="font-weight:600" id="historyLabel">History</div>
+      <div id="historyLabel">History</div>
       <button id="toggleHistoryBtn" class="history-toggle">Expand ⇵</button>
     </div>
     <div id="history"></div>
   </div>
 
-  <div id="mode-toggle" onclick="toggleMode()" aria-label="Toggle theme">🌙</div>
+  <div id="mode-toggle" onclick="toggleMode()">🌙</div>
 
+  <!-- Settings Modal -->
   <div id="overlay"></div>
   <div id="settingsModal" class="modal">
     <h3 id="settingsTitle">Settings</h3>
-    <hr/>
+    <hr />
     <h4 id="languageLabel">Language:</h4>
-    <button class="btn" onclick="toggleLanguage()"><span id="langBtn">Switch to Arabic 🇸🇦</span></button>
+    <button class="btn" onclick="toggleLanguage()">
+      <span id="langBtn">Switch to Arabic 🇸🇦</span>
+    </button>
 
     <h4 id="featuresLabel">Features:</h4>
-    <label><span id="toggleRepeatLbl">Show Repeat</span><input type="checkbox" id="toggleRepeat" checked/></label>
-    <label><span id="toggleClearLbl">Show Clear History</span><input type="checkbox" id="toggleClear" checked/></label>
-    <label><span id="toggleResetLbl">Show Reset</span><input type="checkbox" id="toggleReset" checked/></label>
+    <label><span id="toggleRepeatLbl">Show Repeat</span><input type="checkbox" id="toggleRepeat" checked /></label>
+    <label><span id="toggleClearLbl">Show Clear History</span><input type="checkbox" id="toggleClear" checked /></label>
+    <label><span id="toggleResetLbl">Show Reset</span><input type="checkbox" id="toggleReset" checked /></label>
 
     <h4 id="categoryLabel">Custom Categories:</h4>
     <div id="categoryList"></div>
-    <input type="text" id="newCategoryInput" placeholder="Add new category" style="width:100%;padding:8px;border-radius:8px;margin-top:5px;"/>
+    <input type="text" id="newCategoryInput" placeholder="Add new category" />
     <button class="btn" onclick="addCategory()">Add Category</button>
     <button class="btn" onclick="closeSettings()">Close</button>
   </div>
 
 <script>
-const modeBtn=document.getElementById('mode-toggle');
-const overlay=document.getElementById('overlay');
-const settingsModal=document.getElementById('settingsModal');
-let categories=JSON.parse(localStorage.getItem('categories'))||['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
-let lang=localStorage.getItem('lang')||'en';
-let featureSettings=JSON.parse(localStorage.getItem('featureSettings'))||{repeat:true,clear:true,reset:true};
+const modeBtn = document.getElementById('mode-toggle');
+const overlay = document.getElementById('overlay');
+const settingsModal = document.getElementById('settingsModal');
+const historyEl = document.getElementById('history');
+let categories = JSON.parse(localStorage.getItem('categories')) || ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+let lang = localStorage.getItem('lang') || 'en';
+let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) || { repeat:true, clear:true, reset:true };
+let budget = parseFloat(localStorage.getItem('budget')) || 0;
+let history = JSON.parse(localStorage.getItem('history')) || [];
 
+// ========== Clock ==========
+function tickClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent = '🕒 ' + n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// ========== Calculator ==========
+const inputEl = document.getElementById('input-display');
+function appendNumber(n){inputEl.value+=n;}
+function backspace(){inputEl.value=inputEl.value.slice(0,-1);}
+function clearInput(){inputEl.value='';}
+function submitAmount(type){
+  const v=parseFloat(inputEl.value);
+  if(isNaN(v))return;
+  const ts=new Date().toLocaleString();
+  if(type==='add'){budget+=v;history.push({type:'Add',value:v,timestamp:ts});}
+  saveBudget();renderHistory();clearInput();
+}
+function openSubtract(){
+  const modal=document.createElement('div');
+  modal.className='modal';
+  modal.innerHTML='<h3>'+(lang==='ar'?'اختر الفئة':'Select Category')+'</h3>'+
+  categories.map(c=>`<button class="btn" onclick="doSubtract('${c}')">${c}</button>`).join('')+
+  `<button class="btn" onclick="this.parentElement.remove()">Close</button>`;
+  document.body.appendChild(modal);
+  modal.style.display='block';
+}
+function doSubtract(cat){
+  const v=parseFloat(inputEl.value);
+  if(isNaN(v))return;
+  const ts=new Date().toLocaleString();
+  budget-=v;history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
+  saveBudget();renderHistory();clearInput();
+  document.querySelectorAll('.modal').forEach(m=>m.remove());
+}
+function saveBudget(){
+  localStorage.setItem('budget',budget);
+  localStorage.setItem('history',JSON.stringify(history));
+  updateBudget();
+}
+function updateBudget(){
+  document.getElementById('budget').textContent=`Budget: $${budget.toFixed(2)}`;
+}
+function clearHistory(){
+  history=[];
+  localStorage.setItem('history','[]');
+  renderHistory();
+}
+function resetBudget(){
+  budget=0;
+  saveBudget();
+}
+function renderHistory(){
+  historyEl.innerHTML='';
+  history.slice().reverse().forEach(it=>{
+    const d=document.createElement('div');
+    d.textContent=`${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+    historyEl.appendChild(d);
+  });
+}
+
+// ========== Theme ==========
+function toggleMode(){
+  const dark=document.body.classList.contains('dark-mode');
+  document.body.classList.toggle('dark-mode',!dark);
+  document.body.classList.toggle('light-mode',dark);
+  localStorage.setItem('theme',dark?'light':'dark');
+  modeBtn.textContent=dark?'🌙':'☀️';
+}
+if(localStorage.getItem('theme')==='dark'){
+  document.body.classList.add('dark-mode');
+  modeBtn.textContent='☀️';
+}else{document.body.classList.add('light-mode');}
+
+// ========== Settings ==========
 function openSettings(){renderSettings();settingsModal.style.display='block';overlay.style.display='block';}
 function closeSettings(){settingsModal.style.display='none';overlay.style.display='none';}
 overlay.onclick=()=>closeSettings();
@@ -151,42 +184,21 @@ function addCategory(){
     document.getElementById('newCategoryInput').value='';
   }
 }
-
 function removeCategory(i){
   categories.splice(i,1);
   localStorage.setItem('categories',JSON.stringify(categories));
   renderSettings();
 }
 
-document.getElementById('toggleRepeat').onchange=()=>{
-  featureSettings.repeat=document.getElementById('toggleRepeat').checked;
-  document.getElementById('repeatBtn').style.display=featureSettings.repeat?'':'none';
-  localStorage.setItem('featureSettings',JSON.stringify(featureSettings));
-};
-document.getElementById('toggleClear').onchange=()=>{
-  featureSettings.clear=document.getElementById('toggleClear').checked;
-  document.getElementById('clearBtn').style.display=featureSettings.clear?'':'none';
-  localStorage.setItem('featureSettings',JSON.stringify(featureSettings));
-};
-document.getElementById('toggleReset').onchange=()=>{
-  featureSettings.reset=document.getElementById('toggleReset').checked;
-  document.getElementById('resetBtn').style.display=featureSettings.reset?'':'none';
-  localStorage.setItem('featureSettings',JSON.stringify(featureSettings));
-};
-
-// Language
+// ========== Language ==========
 function toggleLanguage(){
   lang=lang==='en'?'ar':'en';
   localStorage.setItem('lang',lang);
   applyLanguage();
 }
 function applyLanguage(){
-  const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',
-    categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
-    toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
-  const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',
-    categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
-    toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
+  const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
+  const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
   const t=lang==='ar'?ar:en;
   document.getElementById('title').textContent=t.title;
   document.getElementById('settingsTitle').textContent=t.settingsTitle;
@@ -202,7 +214,6 @@ function applyLanguage(){
 }
 applyLanguage();
 
-// Category totals modal
 function viewCategoryTotals(){
   const totals=Object.fromEntries(categories.map(c=>[c,0]));
   history.forEach(h=>{
@@ -221,12 +232,8 @@ function viewCategoryTotals(){
   overlay.style.display='block';
 }
 
-// Dark mode toggle
-function toggleMode(){
-  const dark=document.body.classList.contains('dark-mode');
-  document.body.classList.toggle('dark-mode',!dark);
-  document.body.classList.toggle('light-mode',dark);
-  localStorage.setItem('theme',dark?'light':'dark');
-  modeBtn.textContent=dark?'🌙':'☀️';
-}
-if(localStorage
+updateBudget();
+renderHistory();
+</script>
+</body>
+</html>
