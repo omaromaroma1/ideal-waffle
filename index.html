@@ -13,11 +13,11 @@
   body.dark-mode .calculator-box{background:#1e1e1e;box-shadow:0 5px 15px rgba(255,255,255,.05)}
   h1{text-align:center;margin-bottom:12px;color:#007bff}
   #clock,#budget,#renewal-summary,#renewal-next{text-align:center;margin:6px 0}
-  #budget{font-size:2rem;font-weight:bold}
+  #budget{font-size:3rem;font-weight:bold}
   .numpad,.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
   button{flex:1 1 45%;padding:12px;border:none;border-radius:12px;font-weight:600;background:#007bff;color:#fff;cursor:pointer}
   button:hover{background:#005ed6}
-  .numpad button{flex:1 1 30%;padding:14px;background:#444;font-size:1.5rem}
+  .numpad button{flex:1 1 30%;padding:16px;background:#444;font-size:1.6rem}
   #input-display{width:100%;text-align:right;font-size:24px;padding:10px;border:none;background:transparent;color:inherit}
 
   .history-header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
@@ -26,58 +26,39 @@
   #history{max-height:220px;overflow:auto;background:#fff;border:1px solid #ccc;border-radius:12px;padding:10px}
   body.dark-mode #history{background:#2c2c2c;border-color:#666}
 
-  #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer}
+  #mode-toggle{position:fixed;right:16px;bottom:16px;font-size:26px;cursor:pointer;z-index:1000;}
 
-  /* ---- Settings icon ---- */
   #settings-icon {
     position:absolute; top:10px; right:15px; font-size:22px; cursor:pointer;
     transition:transform .4s ease;
   }
   #settings-icon:hover { transform:rotate(90deg) scale(1.1); }
 
-  /* ---- Centered modal ---- */
+  /* Overlay and modal styling */
   #overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9998}
   .modal{
     position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
     width:min(420px,92vw);max-height:85vh;overflow:auto;
-    background:#ffffff;color:#111;border-radius:12px;padding:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;z-index:9999;
+    background:linear-gradient(135deg,#ffffff 0%,#f7f7f7 100%);
+    color:#111;border-radius:12px;padding:20px;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+    display:none;z-index:9999;
+    animation:fadeIn .25s ease;
   }
-  body.dark-mode .modal{background:#1f2937;color:#e5e7eb}
-  .modal h3{text-align:center;margin-bottom:10px}
-  .modal .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff}
-  .modal .btn:last-child{background:#aaa;color:#111}
+  body.dark-mode .modal{
+    background:linear-gradient(135deg,#1e1e1e 0%,#2b2b2b 100%);
+    color:#e5e7eb;
+  }
+  .modal h3{text-align:center;margin-bottom:10px;color:#007bff}
+  .modal h4{margin:10px 0;color:#007bff}
+  .modal .btn{display:block;width:100%;margin-bottom:8px;padding:10px;border:none;border-radius:10px;background:#007bff;color:#fff;font-weight:600}
+  .modal .btn:hover{transform:scale(1.03)}
   .modal label{display:flex;align-items:center;justify-content:space-between;margin:6px 0;padding:4px 0}
+  @keyframes fadeIn{from{opacity:0;transform:translate(-50%,-45%);}to{opacity:1;transform:translate(-50%,-50%);}}
 
-  /* ---- Sleek settings modal ---- */
-  #settingsModal {
-    animation: fadeIn 0.25s ease;
-    border: none;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    background: linear-gradient(135deg, #ffffff 0%, #f7f7f7 100%);
-  }
-  body.dark-mode #settingsModal {
-    background: linear-gradient(135deg, #1e1e1e 0%, #2b2b2b 100%);
-  }
-  #settingsModal h3, #settingsModal h4 {
-    text-align: center;
-    margin: 10px 0;
-    color: #007bff;
-  }
-  #settingsModal .btn {
-    border-radius: 10px;
-    font-weight: 600;
-    transition: transform .1s ease;
-  }
-  #settingsModal .btn:hover { transform: scale(1.03); }
-  @keyframes fadeIn {
-    from {opacity:0; transform:translate(-50%,-45%);}
-    to {opacity:1; transform:translate(-50%,-50%);}
-  }
-
-  /* RTL for Arabic mode */
-  body[dir="rtl"] { direction: rtl; text-align: right; }
-  body[dir="rtl"] .calculator-box h1 { text-align: center; }
+  /* Arabic (RTL) mode */
+  body[dir="rtl"] { direction:rtl;text-align:right; }
+  body[dir="rtl"] .calculator-box h1 { text-align:center; }
 </style>
 </head>
 <body>
@@ -115,10 +96,8 @@
     <div id="history"></div>
   </div>
 
-  <!-- theme toggle -->
   <div id="mode-toggle" onclick="toggleMode()" aria-label="Toggle theme">🌙</div>
 
-  <!-- overlay + settings modal -->
   <div id="overlay"></div>
   <div id="settingsModal" class="modal">
     <h3 id="settingsTitle">Settings</h3>
@@ -135,7 +114,6 @@
     <div id="categoryList"></div>
     <input type="text" id="newCategoryInput" placeholder="Add new category" style="width:100%;padding:8px;border-radius:8px;margin-top:5px;"/>
     <button class="btn" onclick="addCategory()">Add Category</button>
-
     <button class="btn" onclick="closeSettings()">Close</button>
   </div>
 
@@ -196,7 +174,7 @@ document.getElementById('toggleReset').onchange=()=>{
   localStorage.setItem('featureSettings',JSON.stringify(featureSettings));
 };
 
-// === Language toggle ===
+// Language
 function toggleLanguage(){
   lang=lang==='en'?'ar':'en';
   localStorage.setItem('lang',lang);
@@ -224,93 +202,31 @@ function applyLanguage(){
 }
 applyLanguage();
 
-// === View Categories ===
-function viewCategoryTotals() {
-  const totals = Object.fromEntries(categories.map(c => [c, 0]));
-  history.forEach(h => {
-    const match = h.type.match(/^Subtract \((.+)\)$/);
-    if (match && totals[match[1]] !== undefined) totals[match[1]] += h.value;
+// Category totals modal
+function viewCategoryTotals(){
+  const totals=Object.fromEntries(categories.map(c=>[c,0]));
+  history.forEach(h=>{
+    const m=h.type.match(/^Subtract \((.+)\)$/);
+    if(m&&totals[m[1]]!==undefined)totals[m[1]]+=h.value;
   });
-  const cur = localStorage.getItem('currency') || '$';
-  let html = `<h3>${lang === 'ar' ? 'إجمالي الفئات' : 'Category Totals'}</h3>`;
-  html += categories.map(c => `<div style="margin:6px 0;">${c}: ${cur}${totals[c].toFixed(2)}</div>`).join('');
-  html += `<button class="btn" onclick="closeSettingsModal()">${lang === 'ar' ? 'إغلاق' : 'Close'}</button>`;
-  const modal = document.createElement('div');
-  modal.className = 'modal sleek-modal';
-  modal.innerHTML = html;
-  document.body.appendChild(modal);
-  modal.style.display = 'block';
-  overlay.style.display = 'block';
-}
-function closeSettingsModal() {
-  document.querySelectorAll('.sleek-modal').forEach(m => m.remove());
-  overlay.style.display = 'none';
-}
-
-// === Dark mode toggle ===
-function toggleMode() {
-  const dark = document.body.classList.contains('dark-mode');
-  document.body.classList.toggle('dark-mode', !dark);
-  document.body.classList.toggle('light-mode', dark);
-  localStorage.setItem('theme', dark ? 'light' : 'dark');
-  modeBtn.textContent = dark ? '🌙' : '☀️';
-}
-if (localStorage.getItem('theme') === 'dark') {
-  document.body.classList.add('dark-mode');
-  modeBtn.textContent = '☀️';
-} else {
-  document.body.classList.add('light-mode');
-}
-
-// === Expand History ===
-function openFullHistory() {
-  const overlayDiv = document.createElement('div');
-  overlayDiv.id = 'historyOverlay';
-  overlayDiv.style.position = 'fixed';
-  overlayDiv.style.inset = '0';
-  overlayDiv.style.background = 'rgba(0,0,0,.7)';
-  overlayDiv.style.display = 'flex';
-  overlayDiv.style.justifyContent = 'center';
-  overlayDiv.style.alignItems = 'center';
-  overlayDiv.style.zIndex = '9999';
-  const panel = document.createElement('div');
-  panel.style.width = '90%';
-  panel.style.maxWidth = '600px';
-  panel.style.maxHeight = '90vh';
-  panel.style.overflowY = 'auto';
-  panel.style.borderRadius = '16px';
-  panel.style.background = document.body.classList.contains('dark-mode') ? '#1f2937' : '#fff';
-  panel.style.color = document.body.classList.contains('dark-mode') ? '#eee' : '#111';
-  panel.style.padding = '16px';
-  panel.innerHTML =
-    '<h3 style="text-align:center;margin-bottom:10px;">' +
-    (lang === 'ar' ? 'السجل الكامل' : 'Full History') +
-    '</h3>' +
-    history
-      .slice()
-      .reverse()
-      .map(it => `<div style="padding:6px 0;border-bottom:1px solid rgba(0,0,0,.1);">${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}</div>`)
-      .join('') +
-    `<button class="btn" style="margin-top:10px;width:100%;" onclick="document.getElementById('historyOverlay').remove()">${lang === 'ar' ? 'إغلاق' : 'Close'}</button>`;
-  overlayDiv.appendChild(panel);
-  document.body.appendChild(overlayDiv);
-}
-document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
-
-// === Main logic ===
-const inputEl=document.getElementById('input-display');
-let budget=parseFloat(localStorage.getItem('budget'))||0;
-let history=JSON.parse(localStorage.getItem('history'))||[];
-function appendNumber(n){inputEl.value+=n;}
-function backspace(){inputEl.value=inputEl.value.slice(0,-1);}
-function clearInput(){inputEl.value='';}
-function submitAmount(type){
-  const v=parseFloat(inputEl.value);if(isNaN(v))return;
-  const ts=new Date().toLocaleString();
-  if(type==='add'){budget+=v;history.push({type:'Add',value:v,timestamp:ts});}
-  saveBudget();renderHistory();clearInput();
-}
-function openSubtract(){
+  const cur='$';
+  let html=`<h3>${lang==='ar'?'إجمالي الفئات':'Category Totals'}</h3>`;
+  html+=categories.map(c=>`<div style="margin:6px 0;">${c}: ${cur}${totals[c].toFixed(2)}</div>`).join('');
+  html+=`<button class="btn" onclick="document.querySelectorAll('.sleek-modal').forEach(m=>m.remove());overlay.style.display='none'">${lang==='ar'?'إغلاق':'Close'}</button>`;
   const modal=document.createElement('div');
-  modal.className='modal';
-  modal.innerHTML
+  modal.className='modal sleek-modal';
+  modal.innerHTML=html;
+  document.body.appendChild(modal);
+  modal.style.display='block';
+  overlay.style.display='block';
+}
+
+// Dark mode toggle
+function toggleMode(){
+  const dark=document.body.classList.contains('dark-mode');
+  document.body.classList.toggle('dark-mode',!dark);
+  document.body.classList.toggle('light-mode',dark);
+  localStorage.setItem('theme',dark?'light':'dark');
+  modeBtn.textContent=dark?'🌙':'☀️';
+}
+if(localStorage
