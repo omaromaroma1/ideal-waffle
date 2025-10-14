@@ -126,20 +126,22 @@ function closeTempModals(){
   closeOverlay();
 }
 
-/* ======= Subtract (stacked buttons) ======= */
+/* ======= Subtract (stacked + close top-right) ======= */
 function openSubtract(){
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
-  m.innerHTML =
-    '<h3>'+ (lang==='ar'?'اختر الفئة':'Select Category') +'</h3>' +
-    '<div style="display:flex;flex-direction:column;align-items:center;width:100%;">' +
-      categories.map(c =>
+  m.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+      <h3>${lang==='ar'?'اختر الفئة':'Select Category'}</h3>
+      <button class="btn" style="width:auto;padding:6px 10px;font-size:0.9rem;background:red;" onclick="closeTempModals()">✖</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
+      ${categories.map(c =>
         `<button class="btn" style="width:90%;margin:6px 0;" onclick="doSubtract('${c}')">${c}</button>`
-      ).join('') +
-    '</div>' +
-    `<button class="btn" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
+      ).join('')}
+    </div>`;
   document.body.appendChild(m);
-  showModal(m); // visible + overlay
+  showModal(m);
 }
 function doSubtract(cat){
   const v = parseFloat(inputEl.value);
@@ -288,13 +290,15 @@ function viewCategoryTotals(){
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
   m.innerHTML =
-    `<h3>${title}</h3>` +
-    '<div style="display:flex;flex-direction:column;align-items:center;width:100%;">' +
-      categories.map(c =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+      <h3>${title}</h3>
+      <button class="btn" style="width:auto;padding:6px 10px;font-size:0.9rem;background:red;" onclick="closeTempModals()">✖</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
+      ${categories.map(c =>
         `<button class="btn" style="width:90%;margin:6px 0;" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`
-      ).join('') +
-    '</div>' +
-    `<button class="btn" onclick="closeTempModals()">${closeTxt}</button>`;
+      ).join('')}
+    </div>`;
   document.body.appendChild(m);
   showModal(m);
 }
@@ -337,9 +341,7 @@ document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHi
 function init(){
   updateBudget();
   renderHistory();
-  // apply saved feature visibility on load
   applyFeatureVisibility();
-  // theme icon
   modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
 }
 init();
