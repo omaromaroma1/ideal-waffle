@@ -41,11 +41,6 @@
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
   .btn{flex:1 1 260px;padding:12px;border:none;border-radius:14px;font-weight:900;background:rgba(13,27,56,.96);color:#fff;cursor:pointer;box-shadow:0 10px 26px rgba(10,20,40,.40);backdrop-filter:blur(10px) saturate(150%);transition:transform .14s, box-shadow .2s, background .2s}
   .btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(10,20,40,.55);background:rgba(18,36,78,1)}
-  .trash{background:#ef4444;color:#fff;border:none;border-radius:10px;padding:8px 12px;font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(239,68,68,.35)}
-  .saved-title{font-weight:900;margin:16px 0 8px}
-  .saved-list{display:grid;gap:10px}
-  .saved-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(245,248,255,.55);border:1px dashed rgba(160,180,220,.55);backdrop-filter:blur(8px)}
-  body.dark-mode .saved-item{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
 </style>
 </head>
 <body>
@@ -109,11 +104,9 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn" id="saveAddAnother">Save & Add Another</button>
-      <button class="btn" id="saveAndBack">Save & Back</button>
+      <!-- Single Save -->
+      <button class="btn" id="saveBtn">Save</button>
     </div>
-
-    <div id="savedList"></div>
   </div>
 
 <script>
@@ -181,31 +174,13 @@ function saveEntry(e){
   const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
   all.push(e); localStorage.setItem('autoRenewals',JSON.stringify(all));
 }
-function clearInputs(){
-  amountEl.value=''; timeEl.value=''; dateEl.value=''; saveDraft();
-}
 
-/* Buttons */
-document.getElementById('saveAddAnother').addEventListener('click',()=>{ saveEntry(entryFromDraft()); clearInputs(); });
-document.getElementById('saveAndBack').addEventListener('click',()=>{ saveEntry(entryFromDraft()); localStorage.removeItem(DRAFT_KEY); location.href='repeat.html'; });
-
-/* (Optional) show existing list below form for quick check */
-function renderSaved(){
-  const box=document.getElementById('savedList');
-  const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
-  const cur=localStorage.getItem('currency')||'$';
-  if(!all.length){ box.innerHTML=''; return; }
-  box.innerHTML='<div class="saved-title">Saved (latest)</div><div class="saved-list" id="sv"></div>';
-  const sv=document.getElementById('sv');
-  all.slice(-5).reverse().forEach(e=>{
-    const row=document.createElement('div'); row.className='saved-item';
-    const left=document.createElement('div');
-    const sign=(e.type||'add')==='add'?'+':'-';
-    left.textContent = `${sign}${cur}${(+e.amount||0).toFixed(2)} @ ${e.time||'--:--'} (${(e.days||[]).join(', ')||'—'})`;
-    row.appendChild(left); sv.appendChild(row);
-  });
-}
-renderSaved();
+/* Single Save behavior: save then return to list */
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  saveEntry(entryFromDraft());
+  localStorage.removeItem(DRAFT_KEY);
+  location.href='repeat.html';
+});
 </script>
 </body>
 </html>
