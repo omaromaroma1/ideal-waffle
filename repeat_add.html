@@ -10,8 +10,7 @@
     width:min(820px,94vw);margin:0 auto;padding:20px;border-radius:22px;
     background:var(--glass-light);border:1px solid var(--glass-border-light);
     box-shadow:0 12px 32px rgba(0,0,0,.12);backdrop-filter:blur(18px) saturate(140%);
-    position:relative;
-    overflow:hidden;
+    position:relative; overflow:hidden;
   }
   body.dark-mode .repeat-box{
     background:var(--glass-dark);border:1px solid var(--glass-border-dark);
@@ -22,14 +21,17 @@
   body.light-mode .page-title{color:#0a6bff}
   .icon-btn{width:40px;height:40px;border:none;border-radius:12px;background:rgba(13,27,56,.96);color:#fff;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 26px rgba(10,20,40,.4);outline:none}
   .icon-btn:hover{filter:brightness(1.1)}
+
   .field{margin:10px 0 14px}
   .label{font-weight:800;margin:0 0 6px 2px}
   .input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(200,210,230,.7);background:rgba(255,255,255,.7);color:inherit;backdrop-filter:blur(8px);outline:none}
   body.dark-mode .input{border-color:rgba(210,225,255,.18);background:rgba(16,28,58,.55);color:#fff}
+
   .chip-row{display:flex;flex-wrap:wrap;gap:10px}
   .chip{padding:10px 14px;border-radius:999px;background:rgba(13,27,56,.92);color:#fff;font-weight:800;cursor:pointer;user-select:none;box-shadow:0 8px 22px rgba(10,20,40,.35);transition:transform .12s, box-shadow .18s, background .18s}
   .chip:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(15,30,70,.45)}
   .chip.selected{background:rgba(18,36,78,1)}
+
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
   .btn{flex:1 1 260px;padding:12px;border:none;border-radius:14px;font-weight:900;background:rgba(13,27,56,.96);color:#fff;cursor:pointer;box-shadow:0 10px 26px rgba(10,20,40,.40);backdrop-filter:blur(10px) saturate(150%);transition:transform .14s, box-shadow .2s, background .2s}
   .btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(10,20,40,.55);background:rgba(18,36,78,1)}
@@ -82,19 +84,35 @@
   </div>
 
 <script>
+  /* Theme sync */
   if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark-mode');}
   else{document.body.classList.add('light-mode');}
 
+  /* Robust back helper (same behavior as repeat.html) */
   function goTo(path){ window.location.href = path; }
   function goBackOr(fallback){
-    if (window.history.length > 1) { window.history.back(); }
-    else { window.location.href = fallback; }
+    const ref = document.referrer;
+    if (ref && !ref.includes(location.href)) { history.back(); }
+    else { location.href = fallback; }
   }
 
-  function toggleChip(e){ if(e.target.classList.contains('chip')){ e.target.classList.toggle('selected'); saveDraft(); } }
-  document.getElementById('dayButtons').addEventListener('click',toggleChip);
+  /* Chip selection */
+  function toggleChip(e){
+    const el=e.target;
+    if(el.classList.contains('chip')){
+      if(el.dataset.type){           // type chips are single-select
+        document.querySelectorAll('#typeGroup .chip').forEach(x=>x.classList.remove('selected'));
+        el.classList.add('selected');
+      }else{                          // day chips are multi-select
+        el.classList.toggle('selected');
+      }
+      saveDraft();
+    }
+  }
   document.getElementById('typeGroup').addEventListener('click',toggleChip);
+  document.getElementById('dayButtons').addEventListener('click',toggleChip);
 
+  /* Draft (so input survives accidental nav) */
   const DRAFT_KEY='repeatDraft';
   function draftFromUI(){
     return {
@@ -117,16 +135,21 @@
       document.getElementById('date').value=d.date||'';
     }catch{}
   }
+  ['amount','time','date'].forEach(id=>document.getElementById(id).addEventListener('input',saveDraft));
   restoreDraft();
 
+  /* Save */
   function saveEntry(e){
     const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
     all.push(e); localStorage.setItem('autoRenewals',JSON.stringify(all));
   }
-
   document.getElementById('saveBtn').addEventListener('click',()=>{
     const d=draftFromUI();
-    const entry={ id:'r'+Date.now()+Math.random().toString(36).slice(2), amount:+d.amount||0, time:d.time||'', type:d.type||'add', days:d.days||[], date:d.date||null };
+    const entry={
+      id:'r'+Date.now()+Math.random().toString(36).slice(2),
+      amount:+d.amount||0, time:d.time||'', type:d.type||'add',
+      days:d.days||[], date:d.date||null
+    };
     saveEntry(entry);
     localStorage.removeItem(DRAFT_KEY);
     goTo('repeat.html');
