@@ -11,6 +11,7 @@
     background:var(--glass-light);border:1px solid var(--glass-border-light);
     box-shadow:0 12px 32px rgba(0,0,0,.12);backdrop-filter:blur(18px) saturate(140%);
     position:relative;
+    overflow:hidden;
   }
   body.dark-mode .repeat-box{
     background:var(--glass-dark);border:1px solid var(--glass-border-dark);
@@ -19,25 +20,16 @@
   .header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .page-title{font-weight:900;letter-spacing:.2px;color:#7fb4ff}
   body.light-mode .page-title{color:#0a6bff}
-  .icon-btn{width:40px;height:40px;border:none;border-radius:12px;background:rgba(13,27,56,.96);color:#fff;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 26px rgba(10,20,40,.4)}
+  .icon-btn{width:40px;height:40px;border:none;border-radius:12px;background:rgba(13,27,56,.96);color:#fff;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 26px rgba(10,20,40,.4);outline:none}
   .icon-btn:hover{filter:brightness(1.1)}
-
   .field{margin:10px 0 14px}
   .label{font-weight:800;margin:0 0 6px 2px}
-  .input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(200,210,230,.7);background:rgba(255,255,255,.7);color:inherit;backdrop-filter:blur(8px)}
+  .input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(200,210,230,.7);background:rgba(255,255,255,.7);color:inherit;backdrop-filter:blur(8px);outline:none}
   body.dark-mode .input{border-color:rgba(210,225,255,.18);background:rgba(16,28,58,.55);color:#fff}
-
   .chip-row{display:flex;flex-wrap:wrap;gap:10px}
   .chip{padding:10px 14px;border-radius:999px;background:rgba(13,27,56,.92);color:#fff;font-weight:800;cursor:pointer;user-select:none;box-shadow:0 8px 22px rgba(10,20,40,.35);transition:transform .12s, box-shadow .18s, background .18s}
   .chip:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(15,30,70,.45)}
   .chip.selected{background:rgba(18,36,78,1)}
-  .type-row{display:flex;gap:10px}
-
-  .collapse-btn{margin:8px 0 6px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1px solid var(--glass-border-light);background:rgba(210,225,255,.40);color:#0a3a8b;font-weight:800;cursor:pointer;backdrop-filter:blur(10px)}
-  body.dark-mode .collapse-btn{background:rgba(22,36,76,.60);color:#d7e6ff;border-color:var(--glass-border-dark)}
-  .collapse-content{overflow:hidden;max-height:0;transition:max-height .25s ease}
-  .collapse-content.open{max-height:240px}
-
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
   .btn{flex:1 1 260px;padding:12px;border:none;border-radius:14px;font-weight:900;background:rgba(13,27,56,.96);color:#fff;cursor:pointer;box-shadow:0 10px 26px rgba(10,20,40,.40);backdrop-filter:blur(10px) saturate(150%);transition:transform .14s, box-shadow .2s, background .2s}
   .btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(10,20,40,.55);background:rgba(18,36,78,1)}
@@ -46,7 +38,7 @@
 <body>
   <div class="repeat-box">
     <div class="header-row">
-      <button class="icon-btn" onclick="location.href='repeat.html'">←</button>
+      <button class="icon-btn" onclick="goBackOr('repeat.html')">←</button>
       <h2 class="page-title">Add Repeat</h2>
       <span style="width:40px;height:40px"></span>
     </div>
@@ -63,7 +55,7 @@
 
     <div class="field">
       <div class="label">Transaction Type</div>
-      <div class="type-row" id="typeGroup">
+      <div class="chip-row" id="typeGroup">
         <div class="chip" data-type="add">Add</div>
         <div class="chip" data-type="subtract">Subtract</div>
       </div>
@@ -79,108 +71,66 @@
       </div>
     </div>
 
-    <button class="collapse-btn" id="monthsToggle">Select Months</button>
-    <div class="collapse-content" id="monthsContent">
-      <div class="field" style="margin-top:10px">
-        <div class="chip-row" id="monthButtons">
-          <div class="chip" data-value="January">Jan</div><div class="chip" data-value="February">Feb</div>
-          <div class="chip" data-value="March">Mar</div><div class="chip" data-value="April">Apr</div>
-          <div class="chip" data-value="May">May</div><div class="chip" data-value="June">Jun</div>
-          <div class="chip" data-value="July">Jul</div><div class="chip" data-value="August">Aug</div>
-          <div class="chip" data-value="September">Sep</div><div class="chip" data-value="October">Oct</div>
-          <div class="chip" data-value="November">Nov</div><div class="chip" data-value="December">Dec</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="label">Specific Calendar Days (tap numbers)</div>
-      <div class="chip-row" id="dateButtons"></div>
-    </div>
-
     <div class="field">
       <div class="label">Specific Date (optional)</div>
       <input type="date" id="date" class="input" />
     </div>
 
     <div class="btn-row">
-      <!-- Single Save -->
       <button class="btn" id="saveBtn">Save</button>
     </div>
   </div>
 
 <script>
-/* Theme sync */
-if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark-mode');}
-else{document.body.classList.add('light-mode');}
+  if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark-mode');}
+  else{document.body.classList.add('light-mode');}
 
-/* Build 1..31 chips */
-const dateButtons=document.getElementById('dateButtons');
-for(let i=1;i<=31;i++){const b=document.createElement('div');b.className='chip';b.dataset.value=String(i);b.textContent=i;dateButtons.appendChild(b);}
+  function goTo(path){ window.location.href = path; }
+  function goBackOr(fallback){
+    if (window.history.length > 1) { window.history.back(); }
+    else { window.location.href = fallback; }
+  }
 
-/* Chip select handlers */
-function toggleChip(e){ if(e.target.classList.contains('chip')){ e.target.classList.toggle('selected'); saveDraft(); } }
-document.getElementById('dayButtons').addEventListener('click',toggleChip);
-document.getElementById('monthButtons').addEventListener('click',toggleChip);
-document.getElementById('dateButtons').addEventListener('click',toggleChip);
-document.querySelectorAll('#typeGroup .chip').forEach(b=>{
-  b.addEventListener('click',()=>{ document.querySelectorAll('#typeGroup .chip').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); saveDraft(); });
-});
+  function toggleChip(e){ if(e.target.classList.contains('chip')){ e.target.classList.toggle('selected'); saveDraft(); } }
+  document.getElementById('dayButtons').addEventListener('click',toggleChip);
+  document.getElementById('typeGroup').addEventListener('click',toggleChip);
 
-/* Collapsible */
-const monthsToggle=document.getElementById('monthsToggle');
-const monthsContent=document.getElementById('monthsContent');
-monthsToggle.addEventListener('click',()=>monthsContent.classList.toggle('open'));
+  const DRAFT_KEY='repeatDraft';
+  function draftFromUI(){
+    return {
+      amount:document.getElementById('amount').value,
+      time:document.getElementById('time').value,
+      type:document.querySelector('#typeGroup .chip.selected')?.dataset.type||'',
+      days:[...document.querySelectorAll('#dayButtons .chip.selected')].map(b=>b.dataset.value),
+      date:document.getElementById('date').value
+    };
+  }
+  function saveDraft(){ localStorage.setItem(DRAFT_KEY,JSON.stringify(draftFromUI())); }
+  function restoreDraft(){
+    const raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
+    try{
+      const d=JSON.parse(raw);
+      document.getElementById('amount').value=d.amount||'';
+      document.getElementById('time').value=d.time||'';
+      if(d.type){ document.querySelector(`#typeGroup .chip[data-type="${d.type}"]`)?.classList.add('selected'); }
+      (d.days||[]).forEach(v=>document.querySelector(`#dayButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
+      document.getElementById('date').value=d.date||'';
+    }catch{}
+  }
+  restoreDraft();
 
-/* Draft */
-const DRAFT_KEY='repeatDraft';
-const amountEl=document.getElementById('amount');
-const timeEl=document.getElementById('time');
-const dateEl=document.getElementById('date');
-function draftFromUI(){
-  return {
-    amount:amountEl.value,time:timeEl.value,
-    type:document.querySelector('#typeGroup .chip.selected')?.dataset.type||'',
-    days:[...document.querySelectorAll('#dayButtons .chip.selected')].map(b=>b.dataset.value),
-    months:[...document.querySelectorAll('#monthButtons .chip.selected')].map(b=>b.dataset.value),
-    calendarDays:[...document.querySelectorAll('#dateButtons .chip.selected')].map(b=>b.dataset.value),
-    date:dateEl.value
-  };
-}
-function saveDraft(){ localStorage.setItem(DRAFT_KEY,JSON.stringify(draftFromUI())); }
-function restoreDraft(){
-  const raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
-  try{
-    const d=JSON.parse(raw);
-    amountEl.value=d.amount||''; timeEl.value=d.time||'';
-    if(d.type){ document.querySelector(`#typeGroup .chip[data-type="${d.type}"]`)?.classList.add('selected'); }
-    (d.days||[]).forEach(v=>document.querySelector(`#dayButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
-    (d.months||[]).forEach(v=>document.querySelector(`#monthButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
-    (d.calendarDays||[]).forEach(v=>document.querySelector(`#dateButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
-    dateEl.value=d.date||'';
-  }catch{}
-}
-['input','change'].forEach(evt=>{amountEl.addEventListener(evt,saveDraft);timeEl.addEventListener(evt,saveDraft);dateEl.addEventListener(evt,saveDraft);});
-restoreDraft();
+  function saveEntry(e){
+    const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
+    all.push(e); localStorage.setItem('autoRenewals',JSON.stringify(all));
+  }
 
-/* Save */
-function entryFromDraft(){
-  const d=draftFromUI();
-  return { id:'r'+Date.now()+Math.random().toString(36).slice(2),
-    amount:+d.amount||0, time:d.time||'', type:d.type||'add',
-    days:d.days||[], months:d.months||[], calendarDays:d.calendarDays||[], date:d.date||null };
-}
-function saveEntry(e){
-  const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
-  all.push(e); localStorage.setItem('autoRenewals',JSON.stringify(all));
-}
-
-/* Single Save behavior: save then return to list */
-document.getElementById('saveBtn').addEventListener('click',()=>{
-  saveEntry(entryFromDraft());
-  localStorage.removeItem(DRAFT_KEY);
-  location.href='repeat.html';
-});
+  document.getElementById('saveBtn').addEventListener('click',()=>{
+    const d=draftFromUI();
+    const entry={ id:'r'+Date.now()+Math.random().toString(36).slice(2), amount:+d.amount||0, time:d.time||'', type:d.type||'add', days:d.days||[], date:d.date||null };
+    saveEntry(entry);
+    localStorage.removeItem(DRAFT_KEY);
+    goTo('repeat.html');
+  });
 </script>
 </body>
 </html>
