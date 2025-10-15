@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>Money Budgeter — Add</title>
+  <style>
+    :root{
+      --bg: #0b0b0c;
+      --card: #121317;
+      --muted: #aeb4c0;
+      --text: #e8ecf5;
+      --accent: #0a6bff;
+      --chip: #1a1c22;
+      --chip-on: #0a6bff;
+    }
+    *{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{
+      margin:0; padding-top: env(safe-area-inset-top);
+      background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+    }
+    .topbar{
+      position: sticky; top:0; z-index: 10;
+      display:flex; align-items:center; justify-content: space-between;
+      padding: 14px 16px; background: rgba(0,0,0,.35); backdrop-filter: blur(8px);
+      border-bottom: 1px solid #1c1f25;
+    }
+    .title{font-weight:700; letter-spacing:.2px}
+    .iconbtn{
+      width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+      background: #1b1e25; color:#fff; border:1px solid #2a2f39; cursor:pointer; user-select:none;
+    }
+    .container{padding: 18px; max-width: 680px; margin: 0 auto;}
+    .card{background: var(--card); border: 1px solid #1f232b; border-radius:16px; padding:16px; margin-bottom:16px}
+    label{display:block; font-size:13px; color: var(--muted); margin-bottom:6px}
+    input[type="text"], input[type="date"]{
+      width:100%; padding:14px 12px; border-radius:12px; border:1px solid #2a2f39; background:#0f1116;
+      color:#fff; outline:none; font-size:16px;
+    }
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .chips{display:flex; flex-wrap: wrap; gap:10px}
+    .chip{
+      padding:10px 12px; border-radius:999px; background: var(--chip);
+      border:1px solid #2a2f39; cursor:pointer; user-select:none; font-size:14px; color:#cfd6e6;
+    }
+    .chip.active{ background: var(--chip-on); border-color: var(--chip-on); color:#fff}
+    .hidden{display:none !important}
+    .footer{padding: 14px 18px}
+    .btn{
+      width:100%; padding:14px; border-radius:12px; background: var(--accent); border:none; color:#fff;
+      font-weight:700; font-size:16px; cursor:pointer;
+    }
+    /* action sheet */
+    .sheet-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:flex-end; z-index:50}
+    .sheet{width:100%; background:#0f1116; border-top-left-radius:18px; border-top-right-radius:18px; padding:10px; border:1px solid #1f232b}
+    .sheet h4{margin:8px 10px 12px; color:#cfd6e6; font-weight:700}
+    .sheet .opt{display:flex; gap:10px; align-items:center; padding:12px; border-radius:12px; border:1px solid #232834; background:#12151c; cursor:pointer}
+    .opt .dot{width:12px; height:12px; border-radius:999px; background:#2d3342}
+    .opt.active .dot{background: var(--accent)}
+    .sheet .actions{display:flex; gap:10px; margin-top:12px}
+    .sheet .actions .btn{flex:1}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">Add Entry</div>
+    <button class="iconbtn" id="plusBtn" aria-label="Choose type">+</button>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Amount</label>
+          <input id="amount" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" autocomplete="off" placeholder="0.00" />
+        </div>
+        <div>
+          <label>Type</label>
+          <div class="chips" role="group" aria-label="Add/Subtract">
+            <div class="chip active" data-type="add">Add</div>
+            <div class="chip" data-type="subtract">Subtract</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Note (optional)</label>
+        <input id="note" type="text" placeholder="e.g., Groceries" />
+      </div>
+    </div>
+
+    <!-- One-time block -->
+    <div id="oneTimeBlock" class="card hidden">
+      <label>Specific Date</label>
+      <input id="specificDate" type="date" />
+    </div>
+
+    <!-- Repeat block -->
+    <div id="repeatBlock" class="card">
+      <div class="row">
+        <div>
+          <label>Days of Week</label>
+          <div id="dow" class="chips">
+            <div class="chip" data-dow="Mon">Mon</div>
+            <div class="chip" data-dow="Tue">Tue</div>
+            <div class="chip" data-dow="Wed">Wed</div>
+            <div class="chip" data-dow="Thu">Thu</div>
+            <div class="chip" data-dow="Fri">Fri</div>
+            <div class="chip" data-dow="Sat">Sat</div>
+            <div class="chip" data-dow="Sun">Sun</div>
+          </div>
+        </div>
+        <div>
+          <label>Day of Month</label>
+          <div id="dom" class="chips">
+            <!-- A few quick picks; can be expanded -->
+            <div class="chip" data-dom="1">1</div>
+            <div class="chip" data-dom="5">5</div>
+            <div class="chip" data-dom="10">10</div>
+            <div class="chip" data-dom="15">15</div>
+            <div class="chip" data-dom="20">20</div>
+            <div class="chip" data-dom="25">25</div>
+            <div class="chip" data-dom="30">30</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="btn" id="saveBtn">Save</button>
+    </div>
+  </div>
+
+  <!-- Action sheet -->
+  <div class="sheet-backdrop" id="sheet">
+    <div class="sheet">
+      <h4>Choose Entry Type</h4>
+      <div class="opt active" data-mode="repeat"><div class="dot"></div> Repeat</div>
+      <div class="opt" data-mode="one-time"><div class="dot"></div> One time</div>
+      <div class="actions">
+        <button class="btn" id="applyType">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA bridge & no-zoom helpers -->
+  <script src="/pwa-bridge.js"></script>
+  <script>
+  // Disable pinch/double-tap zoom
+  (function(){
+    document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
+    let lastTouch=0;
+    document.addEventListener('touchend', e => { const now=Date.now(); if (now-lastTouch<=300){e.preventDefault();} lastTouch=now; }, {passive:false});
+    document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, {passive:false});
+  })();
+
+  // UI logic
+  const sheet = document.getElementById('sheet');
+  const plusBtn = document.getElementById('plusBtn');
+  const opts = Array.from(document.querySelectorAll('.sheet .opt'));
+  const applyType = document.getElementById('applyType');
+  let currentMode = 'repeat'; // default
+
+  plusBtn.addEventListener('click', () => {
+    sheet.style.display = 'flex';
+  });
+  sheet.addEventListener('click', (e) => {
+    if (e.target === sheet) sheet.style.display = 'none';
+  });
+  opts.forEach(o => o.addEventListener('click', () => {
+    opts.forEach(x=>x.classList.remove('active'));
+    o.classList.add('active');
+  }));
+  function setMode(mode){
+    currentMode = mode;
+    const repeatBlock = document.getElementById('repeatBlock');
+    const oneTimeBlock = document.getElementById('oneTimeBlock');
+    if (mode === 'repeat'){
+      repeatBlock.classList.remove('hidden');
+      oneTimeBlock.classList.add('hidden');
+    } else {
+      oneTimeBlock.classList.remove('hidden');
+      repeatBlock.classList.add('hidden');
+    }
+  }
+  applyType.addEventListener('click', () => {
+    const active = document.querySelector('.sheet .opt.active');
+    const mode = active?.getAttribute('data-mode') || 'repeat';
+    setMode(mode);
+    sheet.style.display = 'none';
+  });
+
+  // amount keypad and no-zoom font size
+  const amt = document.getElementById('amount');
+  if (amt){
+    amt.style.fontSize = '16px';
+    amt.setAttribute('inputmode', 'decimal');
+    amt.setAttribute('pattern', '[0-9]*[.,]?[0-9]*');
+  }
+
+  // chip toggles
+  function enableChips(containerId, single=false){
+    const parent = document.getElementById(containerId);
+    if (!parent) return;
+    parent.addEventListener('click', (e) => {
+      const c = e.target.closest('.chip');
+      if (!c) return;
+      if (single){
+        parent.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        c.classList.add('active');
+      } else {
+        c.classList.toggle('active');
+      }
+    });
+  }
+  enableChips('dow');
+  enableChips('dom');
+
+  // Save button placeholder (hook into your existing save logic if needed)
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    // Example payload (merge with your existing storage format)
+    const type = document.querySelector('.chips [data-type].active')?.getAttribute('data-type') || 'add';
+    const valueRaw = amt.value.replace(',', '.');
+    const value = parseFloat(valueRaw) || 0;
+    const note = document.getElementById('note').value || '';
+    const payload = { mode: currentMode, type, value, note };
+
+    if (currentMode === 'one-time'){
+      payload.date = document.getElementById('specificDate').value || null;
+    } else {
+      payload.daysOfWeek = Array.from(document.querySelectorAll('#dow .chip.active')).map(x=>x.getAttribute('data-dow'));
+      payload.daysOfMonth = Array.from(document.querySelectorAll('#dom .chip.active')).map(x=>x.getAttribute('data-dom'));
+    }
+
+    // Store a draft for now; your app can consume it as needed
+    try {
+      localStorage.setItem('mb:lastAddDraft', JSON.stringify(payload));
+    } catch {}
+
+    alert('Saved draft: ' + JSON.stringify(payload));
+    // window.history.back(); // uncomment if you want to navigate back after save
+  });
+
+  // default state
+  setMode('repeat');
+  </script>
+</body>
+</html>
