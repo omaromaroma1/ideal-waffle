@@ -10,11 +10,7 @@
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
   <style>
-    :root{
-      --bg:#0b1426; --card:#0f1f3a; --border:#1e335a;
-      --text:#eaf0ff; --muted:#a8b3cf; --accent:#0a6bff;
-      --chip:#142646; --chip-on:#0a6bff;
-    }
+    :root{ --bg:#0b1426; --card:#0f1f3a; --border:#1e335a; --text:#eaf0ff; --muted:#a8b3cf; --accent:#0a6bff; --chip:#142646; --chip-on:#0a6bff; }
     *{box-sizing:border-box} html{-webkit-text-size-adjust:100%}
     body{margin:0;padding-top:env(safe-area-inset-top);background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
     .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(8,16,32,.6);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
@@ -45,7 +41,7 @@
         </div>
         <div>
           <label>Type</label>
-          <div class="chips" role="group" aria-label="Add/Subtract">
+          <div class="chips" id="typeChips" role="group" aria-label="Add/Subtract">
             <div class="chip active" data-type="add">Add</div>
             <div class="chip" data-type="subtract">Subtract</div>
           </div>
@@ -56,13 +52,8 @@
     <div class="card">
       <label>Weekdays</label>
       <div id="dow" class="chips">
-        <div class="chip" data-dow="Mon">Mon</div>
-        <div class="chip" data-dow="Tue">Tue</div>
-        <div class="chip" data-dow="Wed">Wed</div>
-        <div class="chip" data-dow="Thu">Thu</div>
-        <div class="chip" data-dow="Fri">Fri</div>
-        <div class="chip" data-dow="Sat">Sat</div>
-        <div class="chip" data-dow="Sun">Sun</div>
+        <div class="chip" data-dow="Mon">Mon</div><div class="chip" data-dow="Tue">Tue</div><div class="chip" data-dow="Wed">Wed</div>
+        <div class="chip" data-dow="Thu">Thu</div><div class="chip" data-dow="Fri">Fri</div><div class="chip" data-dow="Sat">Sat</div><div class="chip" data-dow="Sun">Sun</div>
       </div>
     </div>
 
@@ -77,33 +68,34 @@
   </div>
 
   <script>
-    // prevent zoom
-    (function(){
-      document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
-      let lastTouch=0;
-      document.addEventListener('touchend', e => { const now=Date.now(); if(now-lastTouch<=300){e.preventDefault();} lastTouch=now; }, {passive:false});
-      document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, {passive:false});
-    })();
+    const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+    const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
+    // chips
+    document.getElementById('typeChips').addEventListener('click', (e)=>{
+      const chip = e.target.closest('.chip'); if(!chip) return;
+      document.querySelectorAll('#typeChips .chip').forEach(x=>x.classList.remove('active'));
+      chip.classList.add('active');
+    });
     document.getElementById('dow').addEventListener('click', (e)=>{
       const c = e.target.closest('.chip'); if(!c) return; c.classList.toggle('active');
     });
-    document.addEventListener('click', (e)=>{
-      const chip = e.target.closest('.chip[data-type]'); if(!chip) return;
-      chip.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
-      chip.classList.add('active');
-    });
 
+    // SAVE → persist to mb:repeatEntries then go back
     document.getElementById('saveBtn').addEventListener('click', ()=>{
-      const type = document.querySelector('.chip[data-type].active')?.dataset.type || 'add';
-      const amount = (document.getElementById('amount').value||'').replace(',','.');
+      const type = document.querySelector('#typeChips .chip.active')?.dataset.type || 'add';
+      const amount = parseFloat((document.getElementById('amount').value||'').replace(',','.')) || 0;
       const days = Array.from(document.querySelectorAll('#dow .chip.active')).map(x=>x.dataset.dow);
       const time = document.getElementById('time').value || null;
-      const payload = { mode:'repeat', type, amount: parseFloat(amount)||0, days, time };
-      try { localStorage.setItem('mb:lastAddDraft', JSON.stringify(payload)); } catch(e){}
-      alert('Saved draft: ' + JSON.stringify(payload));
+
+      const entries = get('mb:repeatEntries', []);
+      entries.push({ id: crypto.randomUUID?.() || String(Date.now()), type, amount, days, time, createdAt: new Date().toISOString() });
+      set('mb:repeatEntries', entries);
+
+      window.location.href = 'repeat.html';
     });
 
+    // iOS anti-zoom
     document.querySelectorAll('input').forEach(el=>{ el.style.fontSize='16px'; });
   </script>
 </body>
