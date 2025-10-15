@@ -16,6 +16,7 @@
     box-shadow:0 12px 32px rgba(0,0,0,.12);
     backdrop-filter:blur(18px) saturate(140%);
     position:relative;
+    overflow:hidden; /* <-- fixes rounded-corner bleed */
   }
   body.dark-mode .repeat-list-card{
     background:var(--glass-dark);
@@ -30,7 +31,9 @@
     background:rgba(13,27,56,.96);color:#fff;font-size:22px;font-weight:900;
     display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 10px 26px rgba(10,20,40,.4);
+    outline:none;
   }
+  .icon-btn:focus-visible{ box-shadow:0 0 0 3px rgba(10,107,255,.5) }
   .icon-btn:hover{filter:brightness(1.1)}
   .list{display:grid;gap:10px;margin-top:8px}
   .item{
@@ -47,8 +50,10 @@
   body.dark-mode .empty{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
   .trash{
     background:#ef4444;color:#fff;border:none;border-radius:10px;padding:8px 12px;
-    font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(239,68,68,.35)
+    font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(239,68,68,.35);
+    outline:none;
   }
+  .trash:focus-visible{ box-shadow:0 0 0 3px rgba(239,68,68,.45) }
   .sub{opacity:.8;font-size:.92rem;margin-top:2px}
 </style>
 </head>
@@ -71,18 +76,16 @@
     document.body.classList.add('light-mode');
   }
 
-  const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
-
   function fmtEntry(e){
     const cur = localStorage.getItem('currency') || '$';
     const sign = (e.type||'add')==='add' ? '+' : '-';
     const parts = [];
     parts.push(`${sign}${cur}${(+e.amount||0).toFixed(2)}`);
     parts.push(e.time ? `@ ${e.time}` : '@ --:--');
-    if (e.days?.length)   parts.push(`days: ${e.days.join(', ')}`);
+    if (e.days?.length) parts.push(`days: ${e.days.join(', ')}`);
     if (e.calendarDays?.length) parts.push(`nums: ${e.calendarDays.join(', ')}`);
     if (e.months?.length) parts.push(`months: ${e.months.map(m=>m.slice(0,3)).join(', ')}`);
-    if (e.date)           parts.push(`date: ${e.date}`);
+    if (e.date) parts.push(`date: ${e.date}`);
     return parts.join('  •  ');
   }
 
@@ -90,10 +93,8 @@
     const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
     const next = all.filter(x => x.id !== id);
     localStorage.setItem('autoRenewals', JSON.stringify(next));
-
     const applied = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
     if (applied[id]) { delete applied[id]; localStorage.setItem('autoRenewalsApplied', JSON.stringify(applied)); }
-
     render();
   }
 
@@ -112,14 +113,11 @@
       const left = document.createElement('div');
       left.innerHTML = `<div>${fmtEntry(e)}</div>`;
       if (!e.days?.length && !e.calendarDays?.length && !e.months?.length && !e.date){
-        const s = document.createElement('div');
-        s.className='sub';
-        s.textContent = 'Runs every day (no filters set)';
+        const s = document.createElement('div'); s.className='sub'; s.textContent = 'Runs every day (no filters set)';
         left.appendChild(s);
       }
       const del = document.createElement('button');
-      del.className='trash'; del.textContent='Delete';
-      del.onclick = ()=>remove(e.id);
+      del.className='trash'; del.textContent='Delete'; del.onclick = ()=>remove(e.id);
       row.appendChild(left); row.appendChild(del); list.appendChild(row);
     });
     root.innerHTML=''; root.appendChild(list);
