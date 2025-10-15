@@ -5,6 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Money Budgeter</title>
 <link rel="stylesheet" href="style.css" />
+<style>
+.close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: #007bff;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.close-btn:hover {
+  background: #339dff;
+  transform: scale(1.1);
+}
+</style>
 </head>
 <body>
   <div class="calculator-box">
@@ -72,199 +93,145 @@
   </div>
 
 <script>
-/* ======= State ======= */
-const modeBtn = document.getElementById('mode-toggle');
-const overlay = document.getElementById('overlay');
-const settingsModal = document.getElementById('settingsModal');
-const historyEl = document.getElementById('history');
-const repeatBtn = document.getElementById('repeatBtn');
-const clearBtn  = document.getElementById('clearBtn');
-const resetBtn  = document.getElementById('resetBtn');
+const modeBtn=document.getElementById('mode-toggle');
+const overlay=document.getElementById('overlay');
+const settingsModal=document.getElementById('settingsModal');
+const historyEl=document.getElementById('history');
+const repeatBtn=document.getElementById('repeatBtn');
+const clearBtn=document.getElementById('clearBtn');
+const resetBtn=document.getElementById('resetBtn');
 
-let categories = JSON.parse(localStorage.getItem('categories')) ||
-  ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
-let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) ||
-  { repeat:true, clear:true, reset:true };
-let lang = localStorage.getItem('lang') || 'en';
-let budget = parseFloat(localStorage.getItem('budget')) || 0;
-let history = JSON.parse(localStorage.getItem('history')) || [];
+let categories=JSON.parse(localStorage.getItem('categories'))||['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+let featureSettings=JSON.parse(localStorage.getItem('featureSettings'))||{repeat:true,clear:true,reset:true};
+let lang=localStorage.getItem('lang')||'en';
+let budget=parseFloat(localStorage.getItem('budget'))||0;
+let history=JSON.parse(localStorage.getItem('history'))||[];
 
-/* ======= Clock ======= */
+/* ===== Clock ===== */
 function tickClock(){
-  const n = new Date();
-  document.getElementById('clock').textContent =
-    '🕒 ' + n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  const n=new Date();
+  document.getElementById('clock').textContent='🕒 '+n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 }
 setInterval(tickClock,1000); tickClock();
 
-/* ======= Calculator ======= */
-const inputEl = document.getElementById('input-display');
-function appendNumber(n){ inputEl.value += n; }
-function backspace(){ inputEl.value = inputEl.value.slice(0,-1); }
-function clearInput(){ inputEl.value = ''; }
+/* ===== Calculator ===== */
+const inputEl=document.getElementById('input-display');
+function appendNumber(n){inputEl.value+=n;}
+function backspace(){inputEl.value=inputEl.value.slice(0,-1);}
+function clearInput(){inputEl.value='';}
 
 function submitAmount(type){
-  const v = parseFloat(inputEl.value);
-  if (isNaN(v)) return;
-  const ts = new Date().toLocaleString();
-  if (type==='add'){
-    budget += v;
-    history.push({type:'Add', value:v, timestamp:ts});
-  }
-  saveBudget(); renderHistory(); clearInput();
+  const v=parseFloat(inputEl.value);
+  if(isNaN(v))return;
+  const ts=new Date().toLocaleString();
+  if(type==='add'){budget+=v;history.push({type:'Add',value:v,timestamp:ts});}
+  saveBudget();renderHistory();clearInput();
 }
 
-/* ======= Overlay helpers ======= */
-function openOverlay(){ overlay.style.display='block'; }
-function closeOverlay(){ overlay.style.display='none'; }
-overlay.addEventListener('click', ()=>{
-  closeSettings(); closeTempModals();
-});
-function showModal(el){ el.style.display='block'; openOverlay(); }
-function closeTempModals(){
-  document.querySelectorAll('.sleek-modal').forEach(el=>el.remove());
-  closeOverlay();
-}
+/* ===== Overlay helpers ===== */
+function openOverlay(){overlay.style.display='block';}
+function closeOverlay(){overlay.style.display='none';}
+overlay.addEventListener('click',()=>{closeSettings();closeTempModals();});
+function showModal(el){el.style.display='block';openOverlay();}
+function closeTempModals(){document.querySelectorAll('.sleek-modal').forEach(el=>el.remove());closeOverlay();}
 
-/* ======= Subtract (stacked + smaller close icon) ======= */
+/* ===== Subtract ===== */
 function openSubtract(){
-  const m = document.createElement('div');
-  m.className = 'modal sleek-modal';
-  m.innerHTML = `
+  const m=document.createElement('div');
+  m.className='modal sleek-modal';
+  m.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
       <h3>${lang==='ar'?'اختر الفئة':'Select Category'}</h3>
-      <button class="btn" 
-        style="width:28px;height:28px;border-radius:50%;padding:0;
-               font-size:0.85rem;font-weight:700;background:#007bff;
-               display:flex;align-items:center;justify-content:center;"
-        onclick="closeTempModals()">✖</button>
+      <button class="close-btn" onclick="closeTempModals()">✖</button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
-      ${categories.map(c =>
-        `<button class="btn" style="width:90%;margin:6px 0;" onclick="doSubtract('${c}')">${c}</button>`
-      ).join('')}
+      ${categories.map(c=>`<button class="btn" style="width:90%;margin:6px 0;" onclick="doSubtract('${c}')">${c}</button>`).join('')}
     </div>`;
   document.body.appendChild(m);
   showModal(m);
 }
 function doSubtract(cat){
-  const v = parseFloat(inputEl.value);
-  if (isNaN(v)) { closeTempModals(); return; }
-  const ts = new Date().toLocaleString();
-  budget -= v;
-  history.push({type:`Subtract (${cat})`, value:v, timestamp:ts});
-  saveBudget(); renderHistory(); clearInput();
-  closeTempModals();
+  const v=parseFloat(inputEl.value);
+  if(isNaN(v)){closeTempModals();return;}
+  const ts=new Date().toLocaleString();
+  budget-=v;history.push({type:`Subtract (${cat})`,value:v,timestamp:ts});
+  saveBudget();renderHistory();clearInput();closeTempModals();
 }
 
-/* ======= History ======= */
+/* ===== History ===== */
 function renderHistory(){
-  historyEl.innerHTML = '';
+  historyEl.innerHTML='';
   history.slice().reverse().forEach(it=>{
     const d=document.createElement('div');
-    d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+    d.textContent=`${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
     historyEl.appendChild(d);
   });
 }
-function clearHistory(){
-  history = [];
-  localStorage.setItem('history','[]');
-  renderHistory();
-}
-function resetBudget(){
-  budget = 0;
-  saveBudget();
-}
-function saveBudget(){
-  localStorage.setItem('budget', budget);
-  localStorage.setItem('history', JSON.stringify(history));
-  updateBudget();
-}
-function updateBudget(){
-  document.getElementById('budget').textContent = `Budget: $${budget.toFixed(2)}`;
-}
+function clearHistory(){history=[];localStorage.setItem('history','[]');renderHistory();}
+function resetBudget(){budget=0;saveBudget();}
+function saveBudget(){localStorage.setItem('budget',budget);localStorage.setItem('history',JSON.stringify(history));updateBudget();}
+function updateBudget(){document.getElementById('budget').textContent=`Budget: $${budget.toFixed(2)}`;}
 
-/* ======= Theme ======= */
+/* ===== Theme ===== */
 function toggleMode(){
-  const dark = document.body.classList.contains('dark-mode');
-  document.body.classList.toggle('dark-mode', !dark);
-  document.body.classList.toggle('light-mode', dark);
-  localStorage.setItem('theme', dark ? 'light' : 'dark');
-  modeBtn.textContent = dark ? '🌙' : '☀️';
+  const dark=document.body.classList.contains('dark-mode');
+  document.body.classList.toggle('dark-mode',!dark);
+  document.body.classList.toggle('light-mode',dark);
+  localStorage.setItem('theme',dark?'light':'dark');
+  modeBtn.textContent=dark?'🌙':'☀️';
 }
 (function initTheme(){
-  if (localStorage.getItem('theme')==='dark'){
-    document.body.classList.add('dark-mode'); modeBtn.textContent='☀️';
-  } else {
-    document.body.classList.add('light-mode');
-  }
+  if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark-mode');modeBtn.textContent='☀️';}
+  else{document.body.classList.add('light-mode');}
 })();
 
-/* ======= Settings ======= */
-function openSettings(){ renderSettings(); showModal(settingsModal); }
-function closeSettings(){ settingsModal.style.display='none'; closeOverlay(); }
-
+/* ===== Settings ===== */
+function openSettings(){renderSettings();showModal(settingsModal);}
+function closeSettings(){settingsModal.style.display='none';closeOverlay();}
 function renderSettings(){
-  const tRepeat = document.getElementById('toggleRepeat');
-  const tClear  = document.getElementById('toggleClear');
-  const tReset  = document.getElementById('toggleReset');
-  tRepeat.checked = !!featureSettings.repeat;
-  tClear.checked  = !!featureSettings.clear;
-  tReset.checked  = !!featureSettings.reset;
-
+  const tRepeat=document.getElementById('toggleRepeat');
+  const tClear=document.getElementById('toggleClear');
+  const tReset=document.getElementById('toggleReset');
+  tRepeat.checked=!!featureSettings.repeat;
+  tClear.checked=!!featureSettings.clear;
+  tReset.checked=!!featureSettings.reset;
   applyFeatureVisibility();
-
-  tRepeat.onchange = ()=>{ featureSettings.repeat=tRepeat.checked; persistFeatures(); applyFeatureVisibility(); };
-  tClear.onchange  = ()=>{ featureSettings.clear=tClear.checked;   persistFeatures(); applyFeatureVisibility(); };
-  tReset.onchange  = ()=>{ featureSettings.reset=tReset.checked;   persistFeatures(); applyFeatureVisibility(); };
-
+  tRepeat.onchange=()=>{featureSettings.repeat=tRepeat.checked;persistFeatures();applyFeatureVisibility();};
+  tClear.onchange=()=>{featureSettings.clear=tClear.checked;persistFeatures();applyFeatureVisibility();};
+  tReset.onchange=()=>{featureSettings.reset=tReset.checked;persistFeatures();applyFeatureVisibility();};
   const list=document.getElementById('categoryList');
   list.innerHTML='';
   categories.forEach((c,i)=>{
     const row=document.createElement('div');
-    row.innerHTML = `${c}
-      <button style="float:right;background:red;color:#fff;border:none;border-radius:6px;padding:2px 6px;"
-        onclick="removeCategory(${i})">X</button>`;
+    row.innerHTML=`${c}<button style="float:right;background:red;color:#fff;border:none;border-radius:6px;padding:2px 6px;"onclick="removeCategory(${i})">X</button>`;
     list.appendChild(row);
   });
 }
-
 function applyFeatureVisibility(){
-  repeatBtn.style.display = featureSettings.repeat ? '' : 'none';
-  clearBtn.style.display  = featureSettings.clear  ? '' : 'none';
-  resetBtn.style.display  = featureSettings.reset  ? '' : 'none';
+  repeatBtn.style.display=featureSettings.repeat?'':'none';
+  clearBtn.style.display=featureSettings.clear?'':'none';
+  resetBtn.style.display=featureSettings.reset?'':'none';
 }
-function persistFeatures(){
-  localStorage.setItem('featureSettings', JSON.stringify(featureSettings));
-}
-
+function persistFeatures(){localStorage.setItem('featureSettings',JSON.stringify(featureSettings));}
 function addCategory(){
   const inp=document.getElementById('newCategoryInput');
   const val=(inp.value||'').trim();
-  if(!val || categories.includes(val)) return;
+  if(!val||categories.includes(val))return;
   categories.push(val);
-  localStorage.setItem('categories', JSON.stringify(categories));
-  inp.value=''; renderSettings();
+  localStorage.setItem('categories',JSON.stringify(categories));
+  inp.value='';renderSettings();
 }
-function removeCategory(i){
-  categories.splice(i,1);
-  localStorage.setItem('categories', JSON.stringify(categories));
-  renderSettings();
-}
+function removeCategory(i){categories.splice(i,1);localStorage.setItem('categories',JSON.stringify(categories));renderSettings();}
 
-/* ======= Language ======= */
-function toggleLanguage(){
-  lang = (lang==='en') ? 'ar' : 'en';
-  localStorage.setItem('lang', lang);
-  applyLanguage();
-}
+/* ===== Language ===== */
+function toggleLanguage(){lang=(lang==='en')?'ar':'en';localStorage.setItem('lang',lang);applyLanguage();}
 function applyLanguage(){
   const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',
-    categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
-    toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
+  categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
+  toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
   const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',
-    categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
-    toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
+  categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
+  toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
   const t=(lang==='ar')?ar:en;
   document.getElementById('title').textContent=t.title;
   document.getElementById('settingsTitle').textContent=t.settingsTitle;
@@ -276,80 +243,64 @@ function applyLanguage(){
   document.getElementById('toggleResetLbl').textContent=t.toggleResetLbl;
   document.getElementById('langBtn').textContent=t.langBtn;
   document.getElementById('historyLabel').textContent=t.historyLabel;
-  document.body.setAttribute('dir', (lang==='ar')?'rtl':'ltr');
+  document.body.setAttribute('dir',(lang==='ar')?'rtl':'ltr');
 }
 applyLanguage();
 
-/* ======= Category totals ======= */
+/* ===== Category totals ===== */
 function viewCategoryTotals(){
-  const totals = Object.fromEntries(categories.map(c=>[c,0]));
+  const totals=Object.fromEntries(categories.map(c=>[c,0]));
   history.forEach(h=>{
-    const m = h.type.match(/^Subtract \((.+)\)$/);
-    if (m && totals[m[1]]!==undefined) totals[m[1]] += h.value;
+    const m=h.type.match(/^Subtract \((.+)\)$/);
+    if(m&&totals[m[1]]!==undefined)totals[m[1]]+=h.value;
   });
   const cur='$';
-  const title = (lang==='ar'?'إجمالي الفئات':'Category Totals');
-
-  const m = document.createElement('div');
-  m.className = 'modal sleek-modal';
-  m.innerHTML = `
+  const title=(lang==='ar'?'إجمالي الفئات':'Category Totals');
+  const m=document.createElement('div');
+  m.className='modal sleek-modal';
+  m.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
       <h3>${title}</h3>
-      <button class="btn" 
-        style="width:28px;height:28px;border-radius:50%;padding:0;
-               font-size:0.85rem;font-weight:700;background:#007bff;
-               display:flex;align-items:center;justify-content:center;"
-        onclick="closeTempModals()">✖</button>
+      <button class="close-btn" onclick="closeTempModals()">✖</button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
-      ${categories.map(c =>
-        `<button class="btn" style="width:90%;margin:6px 0;" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`
-      ).join('')}
+      ${categories.map(c=>`<button class="btn" style="width:90%;margin:6px 0;" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('')}
     </div>`;
   document.body.appendChild(m);
   showModal(m);
 }
 
-/* ======= Fullscreen history ======= */
+/* ===== Fullscreen history ===== */
 function openFullHistory(){
-  const holder = document.createElement('div');
-  holder.className = 'sleek-modal';
+  const holder=document.createElement('div');
+  holder.className='sleek-modal';
   holder.style.position='fixed';
   holder.style.inset='0';
   holder.style.zIndex='10000';
   holder.style.display='flex';
   holder.style.justifyContent='center';
   holder.style.alignItems='center';
-
-  const panel = document.createElement('div');
-  panel.style.width='min(800px, 94vw)';
+  const panel=document.createElement('div');
+  panel.style.width='min(800px,94vw)';
   panel.style.maxHeight='90vh';
   panel.style.overflow='auto';
   panel.style.borderRadius='16px';
   panel.style.padding='16px';
-  panel.style.background = document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff';
-  panel.style.color = document.body.classList.contains('dark-mode') ? '#e5e7eb' : '#111';
+  panel.style.background=document.body.classList.contains('dark-mode')?'#1f2937':'#ffffff';
+  panel.style.color=document.body.classList.contains('dark-mode')?'#e5e7eb':'#111';
   panel.style.boxShadow='0 20px 60px rgba(0,0,0,.35)';
-  panel.innerHTML =
-    `<h3 style="text-align:center;margin-bottom:10px;">${lang==='ar'?'السجل الكامل':'Full History'}</h3>` +
-    history.slice().reverse().map(it =>
-      `<div style="padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.08);">
-        ${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}
-      </div>`
-    ).join('') +
-    `<button class="btn" style="margin-top:10px;width:100%;" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
+  panel.innerHTML=`<h3 style="text-align:center;margin-bottom:10px;">${lang==='ar'?'السجل الكامل':'Full History'}</h3>`+
+  history.slice().reverse().map(it=>`<div style="padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.08);">${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}</div>`).join('')+
+  `<button class="btn" style="margin-top:10px;width:100%;" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
   holder.appendChild(panel);
   document.body.appendChild(holder);
   openOverlay();
 }
-document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
+document.getElementById('toggleHistoryBtn').addEventListener('click',openFullHistory);
 
-/* ======= Init ======= */
 function init(){
-  updateBudget();
-  renderHistory();
-  applyFeatureVisibility();
-  modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+  updateBudget();renderHistory();applyFeatureVisibility();
+  modeBtn.textContent=document.body.classList.contains('dark-mode')?'☀️':'🌙';
 }
 init();
 </script>
