@@ -3,320 +3,128 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Repeat Transactions · Money Budgeter</title>
-
-<!-- Reuse your global theme + liquid glass -->
+<title>Repeating · Money Budgeter</title>
 <link rel="stylesheet" href="style.css" />
-
-<!-- Page-specific minimal styles (inherits colors/variables from style.css) -->
 <style>
-  /* Container uses same liquid-glass card look as .calculator-box */
-  .repeat-box{
-    width:min(820px, 94vw);
-    margin: 0 auto;
-    padding: 20px;
-    border-radius: 22px;
-    background: var(--glass-light);
-    border: 1px solid var(--glass-border-light);
-    box-shadow: 0 12px 32px rgba(0,0,0,.12);
-    backdrop-filter: blur(18px) saturate(140%);
+  .repeat-list-card{
+    width:min(820px,94vw);
+    margin:0 auto;
+    padding:20px;
+    border-radius:22px;
+    background:var(--glass-light);
+    border:1px solid var(--glass-border-light);
+    box-shadow:0 12px 32px rgba(0,0,0,.12);
+    backdrop-filter:blur(18px) saturate(140%);
+    position:relative;
   }
-  body.dark-mode .repeat-box{
-    background: var(--glass-dark);
-    border: 1px solid var(--glass-border-dark);
-    box-shadow: 0 18px 42px rgba(0,0,0,.55);
+  body.dark-mode .repeat-list-card{
+    background:var(--glass-dark);
+    border:1px solid var(--glass-border-dark);
+    box-shadow:0 18px 42px rgba(0,0,0,.55);
   }
-
-  .header-row{
-    display:flex;align-items:center;justify-content:space-between;margin-bottom:8px
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .title{font-weight:900;color:#7fb4ff;letter-spacing:.2px}
+  body.light-mode .title{color:#0a6bff}
+  .icon-btn{
+    width:40px;height:40px;border:none;border-radius:12px;
+    background:rgba(13,27,56,.96);color:#fff;font-size:22px;font-weight:900;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 10px 26px rgba(10,20,40,.4);
   }
-  .page-title{font-weight:900;letter-spacing:.2px;color:#7fb4ff}
-  body.light-mode .page-title{color:#0a6bff}
-
-  /* Inputs */
-  .field{margin:10px 0 14px}
-  .label{font-weight:800;margin:0 0 6px 2px}
-  .input{
-    width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(200,210,230,.7);
-    background: rgba(255,255,255,.7); color: inherit; backdrop-filter: blur(8px);
+  .icon-btn:hover{filter:brightness(1.1)}
+  .list{display:grid;gap:10px;margin-top:8px}
+  .item{
+    display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+    padding:12px 14px;border-radius:14px;
+    background:rgba(245,248,255,.55);border:1px dashed rgba(160,180,220,.55);
+    backdrop-filter:blur(8px)
   }
-  body.dark-mode .input{
-    border-color: rgba(210,225,255,.18);
-    background: rgba(16,28,58,.55); color:#fff;
+  body.dark-mode .item{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
+  .empty{
+    padding:18px;border-radius:16px;text-align:center;font-weight:700;opacity:.9;
+    background:rgba(245,248,255,.55);border:1px solid rgba(160,180,220,.45)
   }
-
-  /* Chips / Bubbles */
-  .chip-row{display:flex;flex-wrap:wrap;gap:10px}
-  .chip{
-    padding:10px 14px;border-radius:999px;
-    background: rgba(13,27,56,.92); color:#fff; font-weight:800; cursor:pointer;
-    user-select:none; box-shadow:0 8px 22px rgba(10,20,40,.35);
-    transition: transform .12s ease, box-shadow .18s ease, background .18s ease;
-  }
-  .chip:hover{ transform: translateY(-1px); box-shadow:0 12px 26px rgba(15,30,70,.45) }
-  .chip.selected{ background: rgba(18,36,78,1) }
-
-  /* Two-state type toggle shares the same chip look but grouped */
-  .type-row{ display:flex; gap:10px }
-
-  /* Collapsible months */
-  .collapse-btn{
-    margin:8px 0 6px; width:100%; text-align:left; padding:12px 14px;
-    border-radius:14px; border:1px solid var(--glass-border-light);
-    background: rgba(210,225,255,.40); color:#0a3a8b; font-weight:800; cursor:pointer;
-    backdrop-filter: blur(10px);
-  }
-  body.dark-mode .collapse-btn{
-    background: rgba(22,36,76,.60); color:#d7e6ff; border-color: var(--glass-border-dark);
-  }
-  .collapse-content{
-    overflow:hidden; max-height:0; transition:max-height .25s ease;
-  }
-  .collapse-content.open{ max-height: 240px; }
-
-  /* Buttons */
-  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
-  .btn{
-    flex:1 1 260px; padding:12px; border:none; border-radius:14px; font-weight:900;
-    background: rgba(13,27,56,.96); color:#fff; cursor:pointer;
-    box-shadow:0 10px 26px rgba(10,20,40,.40); backdrop-filter: blur(10px) saturate(150%);
-    transition: transform .14s ease, box-shadow .2s ease, background .2s ease;
-  }
-  .btn:hover{ transform: translateY(-1px); box-shadow:0 14px 32px rgba(10,20,40,.55); background: rgba(18,36,78,1) }
-  .btn.secondary{ background: rgba(120,130,150,.35); color:#fff }
-  body.dark-mode .btn.secondary{ background: rgba(90,100,120,.35) }
-
-  /* Saved list */
-  .saved-title{ font-weight:900; margin:16px 0 8px }
-  .saved-list{ display:grid; gap:10px; }
-  .saved-item{
-    display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center;
-    padding:12px 14px; border-radius:14px;
-    background: rgba(245,248,255,.55); border:1px dashed rgba(160,180,220,.55);
-    backdrop-filter: blur(8px);
-  }
-  body.dark-mode .saved-item{ background: rgba(16,28,58,.65); border-color: rgba(210,225,255,.16) }
+  body.dark-mode .empty{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
   .trash{
-    background:#ef4444; color:#fff; border:none; border-radius:10px; padding:8px 12px;
-    font-weight:900; cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,.35);
+    background:#ef4444;color:#fff;border:none;border-radius:10px;padding:8px 12px;
+    font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(239,68,68,.35)
   }
-
-  /* Back floating icon like index (optional) */
-  .back-fab{
-    position:fixed; left:16px; bottom:16px; z-index:20;
-    width:44px; height:44px; border-radius:50%; border:none; color:#fff; font-weight:900;
-    background:#0a6bff; display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 10px 26px rgba(10,20,40,.45);
-  }
+  .sub{opacity:.8;font-size:.92rem;margin-top:2px}
 </style>
 </head>
 <body>
-  <div class="repeat-box">
-    <div class="header-row">
-      <h2 class="page-title">Repeat Transactions</h2>
-      <button class="back-fab" onclick="location.href='index.html'">←</button>
+  <div class="repeat-list-card">
+    <div class="header">
+      <button class="icon-btn" onclick="location.href='index.html'">←</button>
+      <h2 class="title">Repeat</h2>
+      <button class="icon-btn" title="Add" onclick="location.href='repeat_add.html'">＋</button>
     </div>
 
-    <div class="field">
-      <div class="label">Amount</div>
-      <input type="number" id="amount" class="input" placeholder="Enter amount" />
-    </div>
-
-    <div class="field">
-      <div class="label">Time</div>
-      <input type="time" id="time" class="input" />
-    </div>
-
-    <div class="field">
-      <div class="label">Transaction Type</div>
-      <div class="type-row" id="typeGroup">
-        <div class="chip" data-type="add">Add</div>
-        <div class="chip" data-type="subtract">Subtract</div>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="label">Days of the Week</div>
-      <div class="chip-row" id="dayButtons">
-        <div class="chip" data-value="Sunday">Sun</div><div class="chip" data-value="Monday">Mon</div>
-        <div class="chip" data-value="Tuesday">Tue</div><div class="chip" data-value="Wednesday">Wed</div>
-        <div class="chip" data-value="Thursday">Thu</div><div class="chip" data-value="Friday">Fri</div>
-        <div class="chip" data-value="Saturday">Sat</div>
-      </div>
-    </div>
-
-    <button class="collapse-btn" id="monthsToggle">Select Months</button>
-    <div class="collapse-content" id="monthsContent">
-      <div class="field" style="margin-top:10px">
-        <div class="chip-row" id="monthButtons">
-          <div class="chip" data-value="January">Jan</div><div class="chip" data-value="February">Feb</div>
-          <div class="chip" data-value="March">Mar</div><div class="chip" data-value="April">Apr</div>
-          <div class="chip" data-value="May">May</div><div class="chip" data-value="June">Jun</div>
-          <div class="chip" data-value="July">Jul</div><div class="chip" data-value="August">Aug</div>
-          <div class="chip" data-value="September">Sep</div><div class="chip" data-value="October">Oct</div>
-          <div class="chip" data-value="November">Nov</div><div class="chip" data-value="December">Dec</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="label">Specific Calendar Days (tap numbers)</div>
-      <div class="chip-row" id="dateButtons"></div>
-    </div>
-
-    <div class="field">
-      <div class="label">Specific Date (optional)</div>
-      <input type="date" id="date" class="input" />
-    </div>
-
-    <div class="btn-row">
-      <button class="btn" id="saveAddAnother">Save & Add Another</button>
-      <button class="btn" id="saveAndBack">Save & Back</button>
-    </div>
-
-    <div id="savedList"></div>
+    <div id="container"></div>
   </div>
 
 <script>
-/* ===== Theme sync ===== */
-if(localStorage.getItem('theme')==='dark'){
-  document.body.classList.add('dark-mode');
-}else{
-  document.body.classList.add('light-mode');
-}
-
-/* ===== Build day numbers 1..31 ===== */
-const dateButtons=document.getElementById('dateButtons');
-for(let i=1;i<=31;i++){
-  const b=document.createElement('div');
-  b.className='chip'; b.dataset.value=String(i); b.textContent=i;
-  dateButtons.appendChild(b);
-}
-
-/* ===== Chip selection handlers ===== */
-function toggleChipSel(e){
-  if(e.target.classList.contains('chip')){
-    e.target.classList.toggle('selected');
-    saveDraft();
+  // Theme sync
+  if (localStorage.getItem('theme')==='dark') {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.add('light-mode');
   }
-}
-document.getElementById('dayButtons').addEventListener('click',toggleChipSel);
-document.getElementById('monthButtons').addEventListener('click',toggleChipSel);
-document.getElementById('dateButtons').addEventListener('click',toggleChipSel);
 
-document.querySelectorAll('#typeGroup .chip').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('#typeGroup .chip').forEach(x=>x.classList.remove('selected'));
-    b.classList.add('selected'); saveDraft();
-  });
-});
+  const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-/* ===== Collapsible months ===== */
-const monthsToggle=document.getElementById('monthsToggle');
-const monthsContent=document.getElementById('monthsContent');
-monthsToggle.addEventListener('click',()=>{
-  monthsContent.classList.toggle('open');
-});
-
-/* ===== Draft save/restore ===== */
-const DRAFT_KEY='repeatDraft';
-const amountEl=document.getElementById('amount');
-const timeEl=document.getElementById('time');
-const dateEl=document.getElementById('date');
-
-function draftFromUI(){
-  return {
-    amount: amountEl.value,
-    time: timeEl.value,
-    type: document.querySelector('#typeGroup .chip.selected')?.dataset.type || '',
-    days: [...document.querySelectorAll('#dayButtons .chip.selected')].map(b=>b.dataset.value),
-    months: [...document.querySelectorAll('#monthButtons .chip.selected')].map(b=>b.dataset.value),
-    calendarDays: [...document.querySelectorAll('#dateButtons .chip.selected')].map(b=>b.dataset.value),
-    date: dateEl.value
-  };
-}
-function saveDraft(){ localStorage.setItem(DRAFT_KEY, JSON.stringify(draftFromUI())); }
-function restoreDraft(){
-  const raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
-  try{
-    const d=JSON.parse(raw);
-    amountEl.value=d.amount||'';
-    timeEl.value=d.time||'';
-    if(d.type){ document.querySelector(`#typeGroup .chip[data-type="${d.type}"]`)?.classList.add('selected'); }
-    (d.days||[]).forEach(v=>document.querySelector(`#dayButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
-    (d.months||[]).forEach(v=>document.querySelector(`#monthButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
-    (d.calendarDays||[]).forEach(v=>document.querySelector(`#dateButtons .chip[data-value="${v}"]`)?.classList.add('selected'));
-    dateEl.value=d.date||'';
-  }catch{}
-}
-['input','change'].forEach(evt=>{
-  amountEl.addEventListener(evt,saveDraft);
-  timeEl.addEventListener(evt,saveDraft);
-  dateEl.addEventListener(evt,saveDraft);
-});
-restoreDraft();
-
-/* ===== Build + save entry ===== */
-function buildEntry(){
-  const d=draftFromUI();
-  return {
-    id:'r'+Date.now()+Math.random().toString(36).slice(2),
-    amount:+d.amount||0,
-    time:d.time||'',
-    type:d.type||'add',
-    days:d.days||[],
-    months:d.months||[],
-    calendarDays:d.calendarDays||[],
-    date:d.date||null
-  };
-}
-function saveEntry(e){
-  const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
-  all.push(e); localStorage.setItem('autoRenewals',JSON.stringify(all));
-}
-function clearInputsKeepChips(){
-  amountEl.value=''; timeEl.value=''; dateEl.value='';
-  saveDraft();
-}
-
-/* ===== Buttons ===== */
-document.getElementById('saveAddAnother').addEventListener('click',()=>{
-  saveEntry(buildEntry()); clearInputsKeepChips(); renderSaved();
-});
-document.getElementById('saveAndBack').addEventListener('click',()=>{
-  saveEntry(buildEntry()); localStorage.removeItem(DRAFT_KEY); location.href='index.html';
-});
-
-/* ===== Manage saved items ===== */
-function deleteRepeat(id){
-  const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
-  const next=all.filter(x=>x.id!==id);
-  localStorage.setItem('autoRenewals',JSON.stringify(next));
-  const applied=JSON.parse(localStorage.getItem('autoRenewalsApplied'))||{};
-  if(applied[id]){ delete applied[id]; localStorage.setItem('autoRenewalsApplied',JSON.stringify(applied)); }
-  renderSaved();
-}
-function renderSaved(){
-  const list=document.getElementById('savedList');
-  const all=JSON.parse(localStorage.getItem('autoRenewals'))||[];
-  const cur=localStorage.getItem('currency')||'$';
-  if(!all.length){
-    list.innerHTML='<div class="saved-title"><em>No saved renewals yet.</em></div>';
-    return;
+  function fmtEntry(e){
+    const cur = localStorage.getItem('currency') || '$';
+    const sign = (e.type||'add')==='add' ? '+' : '-';
+    const parts = [];
+    parts.push(`${sign}${cur}${(+e.amount||0).toFixed(2)}`);
+    parts.push(e.time ? `@ ${e.time}` : '@ --:--');
+    if (e.days?.length)   parts.push(`days: ${e.days.join(', ')}`);
+    if (e.calendarDays?.length) parts.push(`nums: ${e.calendarDays.join(', ')}`);
+    if (e.months?.length) parts.push(`months: ${e.months.map(m=>m.slice(0,3)).join(', ')}`);
+    if (e.date)           parts.push(`date: ${e.date}`);
+    return parts.join('  •  ');
   }
-  list.innerHTML='<div class="saved-title">Saved Renewals (all time)</div><div class="saved-list" id="sv"></div>';
-  const sv=document.getElementById('sv');
-  all.slice().reverse().forEach(e=>{
-    const row=document.createElement('div'); row.className='saved-item';
-    const left=document.createElement('div');
-    const sign=(e.type||'add')==='add'?'+':'-';
-    left.textContent = `${sign}${cur}${(+e.amount||0).toFixed(2)} @ ${e.time||'--:--'} | days:[${(e.days||[]).join(', ')||'—'}] nums:[${(e.calendarDays||[]).join(', ')||'—'}] months:[${(e.months||[]).join(', ')||'—'}] date:${e.date||'—'}`;
-    const del=document.createElement('button'); del.className='trash'; del.textContent='Delete';
-    del.onclick=()=>deleteRepeat(e.id);
-    row.appendChild(left); row.appendChild(del); sv.appendChild(row);
-  });
-}
-renderSaved();
+
+  function remove(id){
+    const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+    const next = all.filter(x => x.id !== id);
+    localStorage.setItem('autoRenewals', JSON.stringify(next));
+
+    const applied = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
+    if (applied[id]) { delete applied[id]; localStorage.setItem('autoRenewalsApplied', JSON.stringify(applied)); }
+
+    render();
+  }
+
+  function render(){
+    const root = document.getElementById('container');
+    const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
+    if (!all.length){
+      root.innerHTML = `<div class="empty">No repeating transactions yet.</div>`;
+      return;
+    }
+    const list = document.createElement('div');
+    list.className = 'list';
+    all.slice().reverse().forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'item';
+      const left = document.createElement('div');
+      left.innerHTML = `<div>${fmtEntry(e)}</div>`;
+      if (!e.days?.length && !e.calendarDays?.length && !e.months?.length && !e.date){
+        const s = document.createElement('div');
+        s.className='sub';
+        s.textContent = 'Runs every day (no filters set)';
+        left.appendChild(s);
+      }
+      const del = document.createElement('button');
+      del.className='trash'; del.textContent='Delete';
+      del.onclick = ()=>remove(e.id);
+      row.appendChild(left); row.appendChild(del); list.appendChild(row);
+    });
+    root.innerHTML=''; root.appendChild(list);
+  }
+  render();
 </script>
 </body>
 </html>
