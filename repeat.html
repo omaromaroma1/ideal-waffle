@@ -17,15 +17,18 @@
     .title{font-weight:700}
     .navlink{color:#cfd6e6;text-decoration:none}
     .iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#10254a;color:#fff;border:1px solid var(--border);cursor:pointer}
-    .container{padding:18px;max-width:760px;margin:0 auto}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+    .container{padding:18px;max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+    .section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+    .section h3{margin:0 0 10px 0;font-size:16px}
     .empty{color:var(--muted);font-size:14px}
     .list{display:flex;flex-direction:column;gap:10px}
     .row{display:flex;align-items:center;justify-content:space-between;background:#0e1c36;border:1px solid var(--border);border-radius:12px;padding:12px}
     .badges{display:flex;gap:8px;flex-wrap:wrap}
     .badge{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px;color:#cfd6e6}
     .amt{font-weight:800}
-    /* inline menu */
+    .actions{display:flex;gap:8px}
+    .btn-sm{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#10254a;color:#eaf0ff;cursor:pointer;font-size:12px}
+    /* menu */
     #mbMenu{position:absolute;display:none;z-index:99999;min-width:180px}
     #mbMenu .sheet{background:#0e1c36;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.35);overflow:hidden}
     #mbMenu .item{display:block;width:100%;text-align:left;padding:12px 14px;background:transparent;color:var(--text);border:0;font-size:14px;cursor:pointer}
@@ -36,14 +39,21 @@
 <body>
   <div class="topbar">
     <a class="navlink" href="index.html">Back</a>
-    <div class="title">Repeats</div>
+    <div class="title">Money Budgeter</div>
     <button class="iconbtn" id="plusBtn" aria-label="Add">+</button>
   </div>
 
   <div class="container">
-    <div class="card">
-      <div id="list" class="list"></div>
-      <div id="empty" class="empty" style="display:none">No repeat entries yet.</div>
+    <div class="section">
+      <h3>Repeat entries</h3>
+      <div id="repeatList" class="list"></div>
+      <div id="repeatEmpty" class="empty" style="display:none">No repeat entries yet.</div>
+    </div>
+
+    <div class="section">
+      <h3>One-time entries</h3>
+      <div id="oneList" class="list"></div>
+      <div id="oneEmpty" class="empty" style="display:none">No one-time entries yet.</div>
     </div>
   </div>
 
@@ -60,53 +70,93 @@
     // Helpers
     const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
     const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+    const fmt = n => (n ?? 0).toFixed(2);
 
-    // Render existing repeats
-    function render() {
+    // Renderers
+    function renderRepeats(){
       const data = get('mb:repeatEntries', []);
-      const list = document.getElementById('list');
-      const empty = document.getElementById('empty');
+      const list = document.getElementById('repeatList');
+      const empty = document.getElementById('repeatEmpty');
       list.innerHTML = '';
-      if (!data.length) { empty.style.display='block'; return; }
+      if (!data.length){ empty.style.display='block'; return; }
       empty.style.display='none';
       data.forEach(item => {
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `
           <div>
-            <div class="amt">${item.type === 'subtract' ? '−' : '+'}$${(item.amount||0).toFixed(2)}</div>
-            <div style="font-size:12px;color:#a8b3cf">at ${item.time || '—'}</div>
+            <div class="amt">${item.type === 'subtract' ? '−' : '+'}$${fmt(item.amount)}</div>
+            <div style="font-size:12px;color:#a8b3cf">${item.time ? ('at ' + item.time) : ''}</div>
           </div>
-          <div class="badges">
-            ${ (item.days||[]).map(d=>`<span class="badge">${d}</span>`).join('') }
+          <div class="badges">${(item.days||[]).map(d=>`<span class="badge">${d}</span>`).join('')}</div>
+          <div class="actions">
+            <button class="btn-sm" data-edit="repeat" data-id="${item.id}">Edit</button>
+            <button class="btn-sm" data-del="repeat" data-id="${item.id}">Delete</button>
+          </div>`;
+        list.appendChild(row);
+      });
+    }
+    function renderOneTimes(){
+      const data = get('mb:oneTimeEntries', []);
+      const list = document.getElementById('oneList');
+      const empty = document.getElementById('oneEmpty');
+      list.innerHTML = '';
+      if (!data.length){ empty.style.display='block'; return; }
+      empty.style.display='none';
+      data.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const months = (item.months||[]).join(' ');
+        const dom = (item.daysOfMonth||[]).join(', ');
+        row.innerHTML = `
+          <div>
+            <div class="amt">${item.type === 'subtract' ? '−' : '+'}$${fmt(item.amount)}</div>
+            <div style="font-size:12px;color:#a8b3cf">${months || 'Any month'}${dom ? (' • day ' + dom) : ''}${item.time ? (' • ' + item.time) : ''}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-sm" data-edit="one" data-id="${item.id}">Edit</button>
+            <button class="btn-sm" data-del="one" data-id="${item.id}">Delete</button>
           </div>`;
         list.appendChild(row);
       });
     }
 
-    // Menu logic
+    // Edit/Delete handlers
+    document.addEventListener('click', (e)=>{
+      const delBtn = e.target.closest('[data-del]');
+      const editBtn = e.target.closest('[data-edit]');
+      if (delBtn){
+        const kind = delBtn.getAttribute('data-del');
+        const id = delBtn.getAttribute('data-id');
+        const key = kind === 'repeat' ? 'mb:repeatEntries' : 'mb:oneTimeEntries';
+        const arr = get(key, []).filter(x => x.id !== id);
+        set(key, arr);
+        renderRepeats(); renderOneTimes();
+      }
+      if (editBtn){
+        const kind = editBtn.getAttribute('data-edit');
+        const id = editBtn.getAttribute('data-id');
+        if (kind === 'repeat') window.location.href = `repeat_add.html?edit=${encodeURIComponent(id)}`;
+        else window.location.href = `one_time_add.html?edit=${encodeURIComponent(id)}`;
+      }
+    });
+
+    // Menu
     (function(){
       const plus = document.getElementById('plusBtn');
       const menu = document.getElementById('mbMenu');
-
-      function pos() {
-        const r = plus.getBoundingClientRect();
-        menu.style.top = (r.bottom + 6 + window.scrollY) + 'px';
-        menu.style.left = (r.right - 180 + window.scrollX) + 'px';
-      }
-      plus.addEventListener('click', (e)=>{
-        e.preventDefault(); e.stopPropagation();
-        pos(); menu.style.display='block';
-        const close = (ev)=>{ if(!menu.contains(ev.target) && ev.target !== plus){ menu.style.display='none'; document.removeEventListener('click', close, true); } };
-        setTimeout(()=>document.addEventListener('click', close, true),0);
-      });
-      menu.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.item'); if(!btn) return;
+      function pos(){ const r = plus.getBoundingClientRect(); menu.style.top=(r.bottom+6+window.scrollY)+'px'; menu.style.left=(r.right-180+window.scrollX)+'px'; }
+      plus.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); pos(); menu.style.display='block';
+        const close=(ev)=>{ if(!menu.contains(ev.target) && ev.target!==plus){ menu.style.display='none'; document.removeEventListener('click', close, true);} };
+        setTimeout(()=>document.addEventListener('click', close, true),0); });
+      menu.addEventListener('click', (e)=>{ const btn=e.target.closest('.item'); if(!btn) return;
         window.location.href = btn.dataset.go === 'repeat' ? 'repeat_add.html' : 'one_time_add.html';
       });
     })();
 
-    render();
+    // Initial render
+    renderRepeats();
+    renderOneTimes();
   </script>
 </body>
 </html>
