@@ -1,0 +1,204 @@
+/* ========= RESET ========= */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,Arial,sans-serif;padding:20px;transition:background .35s,color .35s}
+
+/* ========= THEME ========= */
+:root{
+  --primary:#0a1430;
+  --primary-600:#0f1d44;
+  --primary-700:#0c1839;
+  --primary-800:#0a122d;
+  --primary-900:#070f25;
+  --brand:#0a6bff;
+  --glass-light:rgba(255,255,255,.22);
+  --glass-dark:rgba(14,24,48,.34);
+  --glass-border-light:rgba(255,255,255,.45);
+  --glass-border-dark:rgba(210,225,255,.12);
+  --txt:#0b1220;
+  --txt-inv:#ffffff;
+}
+
+body.light-mode{
+  background:linear-gradient(150deg,#f6f9ff 0%,#ecf2ff 60%,#e8f0ff 100%);
+  color:var(--txt);
+}
+
+/* Dark mode: seamless nearly-black navy (no banding) */
+body.dark-mode{
+  background-color:#060e24;
+  background-image:
+    radial-gradient(1600px 1100px at 30% 20%, rgba(18, 34, 74, .55), rgba(6, 14, 36, 0) 70%),
+    radial-gradient(1400px 1000px at 80% 85%, rgba(8, 19, 46, .50), rgba(6, 14, 36, 0) 65%),
+    linear-gradient(165deg, #08122a 0%, #061026 52%, #050a18 100%);
+  background-repeat:no-repeat;
+  background-size:100% 100%, 100% 100%, cover;
+  background-attachment:fixed;
+  color:#ffffff;
+}
+
+/* ========= GLASS SURFACES ========= */
+.calculator-box{
+  width:360px;margin:0 auto;padding:22px;border-radius:22px;position:relative;
+  background:var(--glass-light);border:1px solid var(--glass-border-light);
+  backdrop-filter:blur(18px) saturate(140%);box-shadow:0 12px 32px rgba(0,0,0,.12)
+}
+body.dark-mode .calculator-box{
+  background:var(--glass-dark);border:1px solid var(--glass-border-dark);
+  box-shadow:0 18px 42px rgba(0,0,0,.55)
+}
+
+h1{text-align:center;margin-bottom:14px;color:#7fb4ff;font-weight:800;letter-spacing:.2px}
+body.light-mode h1{color:#0a6bff}
+
+/* Clock & Budget */
+#clock,#budget{text-align:center;margin:6px 0;font-size:1.1rem;font-weight:600}
+#budget{font-size:3rem;font-weight:800;color:inherit}
+
+/* Input */
+#input-display{width:100%;text-align:right;font-size:24px;padding:10px 12px;border:none;background:transparent;color:inherit}
+
+/* ========= Numpad ========= */
+.numpad{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.numpad button{
+  flex:1 1 28%;padding:12px;border:none;border-radius:14px;
+  background:rgba(13,27,56,.92);color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;
+  box-shadow:0 8px 22px rgba(10,20,40,.35);
+  transition:transform .16s ease,box-shadow .22s ease,background .2s ease;
+  backdrop-filter:blur(10px) saturate(150%);
+}
+.numpad button:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(15,30,70,.45);background:rgba(16,33,70,1)}
+
+/* ========= Action Buttons ========= */
+.buttons{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0}
+.buttons button{
+  flex:1 1 45%;padding:12px;border:none;border-radius:14px;font-weight:800;
+  background:rgba(13,27,56,.96);color:#fff;cursor:pointer;
+  box-shadow:0 10px 26px rgba(10,20,40,.40);
+  transition:transform .16s ease,box-shadow .22s ease,background .2s ease;
+  backdrop-filter:blur(10px) saturate(150%);
+}
+.buttons button:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(10,20,40,.55);background:rgba(18,36,78,1)}
+
+/* ========= History ========= */
+.history-header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 10px;font-weight:800}
+.history-toggle{
+  padding:6px 10px;border-radius:10px;font-size:12px;border:1px solid var(--glass-border-light);
+  background:rgba(210,225,255,.4);color:#0a3a8b;cursor:pointer;backdrop-filter:blur(10px);
+}
+body.dark-mode .history-toggle{background:rgba(22,36,76,.6);color:#d7e6ff;border-color:var(--glass-border-dark)}
+#history{
+  max-height:220px;overflow:auto;background:var(--glass-light);border:1px solid var(--glass-border-light);
+  border-radius:14px;padding:10px;backdrop-filter:blur(14px) saturate(140%);box-shadow:0 10px 28px rgba(0,0,0,.12)
+}
+body.dark-mode #history{background:var(--glass-dark);border-color:var(--glass-border-dark);box-shadow:0 16px 36px rgba(0,0,0,.55)}
+#history::-webkit-scrollbar{width:6px}#history::-webkit-scrollbar-thumb{background:#5aa3ff;border-radius:8px}
+
+/* ========= Theme & Settings Icons ========= */
+#mode-toggle{position:fixed;right:16px;bottom:16px;font-size:30px;cursor:pointer;transition:transform .3s}
+#mode-toggle:hover{transform:rotate(20deg) scale(1.06)}
+#settings-icon{position:absolute;top:12px;right:14px;font-size:24px;cursor:pointer;transition:transform .3s,filter .3s}
+#settings-icon:hover{transform:rotate(45deg);filter:drop-shadow(0 0 8px rgba(90,160,255,.55))}
+
+/* ========= Overlay ========= */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9998;backdrop-filter:blur(10px)}
+
+/* ========= Generic Modals (glass) ========= */
+.modal{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(440px,94vw);max-height:80vh;overflow:auto;
+  background:var(--glass-light);color:#111;border-radius:16px;padding:18px;
+  border:1px solid var(--glass-border-light);backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:0 22px 60px rgba(0,0,0,.35);display:none;z-index:9999;
+}
+body.dark-mode .modal{background:var(--glass-dark);color:#fff;border:1px solid var(--glass-border-dark);box-shadow:0 26px 70px rgba(0,0,0,.60)}
+.modal h3{text-align:center;margin-bottom:10px}
+.modal .btn{
+  display:block;width:100%;margin:8px 0;padding:10px;border:none;border-radius:12px;
+  background:rgba(12,26,54,.96);color:#fff;font-weight:800;cursor:pointer;
+  box-shadow:0 12px 28px rgba(10,20,40,.45);
+  transition:transform .16s,box-shadow .22s,background .2s;backdrop-filter:blur(8px) saturate(150%);
+}
+.modal .btn:hover{transform:translateY(-1px);box-shadow:0 16px 34px rgba(10,20,40,.62);background:rgba(16,34,70,1)}
+
+/* round close */
+.close-btn{
+  width:32px;height:32px;aspect-ratio:1/1;border-radius:50%;border:none;background:#0a6bff;color:#fff;
+  font-size:.9rem;font-weight:800;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .18s, background .2s, box-shadow .25s;
+}
+.close-btn:hover{background:#2a8bff;transform:scale(1.08);box-shadow:0 0 8px rgba(42,139,255,.65)}
+
+/* ========= Settings Modal (glass, with improved list & toggles) ========= */
+#settingsModal{
+  background:var(--glass-light)!important;color:var(--txt)!important;border:1px solid var(--glass-border-light)!important;
+  backdrop-filter:blur(22px) saturate(180%)!important;box-shadow:0 26px 70px rgba(0,0,0,.25)!important;
+}
+body.dark-mode #settingsModal{
+  background:var(--glass-dark)!important;color:#fff!important;border:1px solid var(--glass-border-dark)!important;
+  box-shadow:0 32px 80px rgba(0,0,0,.65)!important;
+}
+#settingsModal h3{font-weight:900;letter-spacing:.2px}
+#settingsModal hr{border:none;height:1px;background:rgba(255,255,255,.35);margin:8px 0 10px}
+body.dark-mode #settingsModal hr{background:rgba(255,255,255,.12)}
+
+/* feature toggles */
+#settingsModal label{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px;margin:8px 0;border-radius:14px;
+  background:rgba(240,245,255,.35);border:1px solid rgba(255,255,255,.45);
+  backdrop-filter:blur(10px);font-weight:700;
+}
+body.dark-mode #settingsModal label{background:rgba(18,30,64,.55);border:1px solid rgba(210,225,255,.14)}
+#settingsModal label input[type="checkbox"]{
+  appearance:none;width:48px;height:28px;border-radius:999px;cursor:pointer;background:rgba(140,160,195,.55);position:relative;transition:background .2s
+}
+#settingsModal label input[type="checkbox"]::after{
+  content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .2s
+}
+#settingsModal label input[type="checkbox"]:checked{background:linear-gradient(180deg,#0a6bff,#094bd4)}
+#settingsModal label input[type="checkbox"]:checked::after{left:23px}
+
+/* categories list */
+#categoryList{margin-top:6px}
+#categoryList > div{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;margin:10px 0;border-radius:12px;
+  background:rgba(245,248,255,.55);border:1px dashed rgba(160,180,220,.55);
+  backdrop-filter:blur(8px)
+}
+body.dark-mode #categoryList > div{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
+#categoryList > div button{
+  min-width:28px;min-height:28px;border-radius:8px;border:none;background:#ef4444!important;color:#fff;
+  padding:0 8px;font-weight:800;box-shadow:0 4px 10px rgba(239,68,68,.35);cursor:pointer
+}
+
+/* inputs in settings */
+#newCategoryInput{
+  width:100%;padding:10px 12px;margin-top:6px;border-radius:10px;border:1px solid rgba(200,210,230,.8);
+  background:rgba(255,255,255,.65);color:inherit;backdrop-filter:blur(8px)
+}
+body.dark-mode #newCategoryInput{border-color:rgba(210,225,255,.18);background:rgba(16,28,58,.55);color:#fff}
+
+/* fullscreen history glass wrapper */
+.sleek-modal{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10000;
+  width:94vw;max-width:800px;max-height:90vh;overflow:auto;border-radius:16px;padding:16px;
+  background:var(--glass-light);border:1px solid var(--glass-border-light);
+  color:var(--txt);box-shadow:0 24px 64px rgba(0,0,0,.28);backdrop-filter:blur(18px) saturate(150%)
+}
+body.dark-mode .sleek-modal{
+  background:var(--glass-dark);border:1px solid var(--glass-border-dark);
+  color:#fff;box-shadow:0 30px 78px rgba(0,0,0,.65)
+}
+
+/* RTL */
+body[dir="rtl"]{direction:rtl;text-align:right}
+body[dir="rtl"] .calculator-box h1{text-align:center}
+
+/* PWA safe-area for iOS notch */
+body{ padding-top: env(safe-area-inset-top); }
+
+/* Prevent iOS zoom on input focus & improve keypad */
+html{ -webkit-text-size-adjust: 100%; }
+input, select, textarea { font-size: 16px; }
