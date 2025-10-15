@@ -126,14 +126,18 @@ function closeTempModals(){
   closeOverlay();
 }
 
-/* ======= Subtract (stacked + close top-right) ======= */
+/* ======= Subtract (stacked + smaller close icon) ======= */
 function openSubtract(){
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
   m.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
       <h3>${lang==='ar'?'اختر الفئة':'Select Category'}</h3>
-      <button class="btn" style="width:auto;padding:6px 10px;font-size:0.9rem;background:red;" onclick="closeTempModals()">✖</button>
+      <button class="btn" 
+        style="width:28px;height:28px;border-radius:50%;padding:0;
+               font-size:0.85rem;font-weight:700;background:#007bff;
+               display:flex;align-items:center;justify-content:center;"
+        onclick="closeTempModals()">✖</button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
       ${categories.map(c =>
@@ -285,14 +289,17 @@ function viewCategoryTotals(){
   });
   const cur='$';
   const title = (lang==='ar'?'إجمالي الفئات':'Category Totals');
-  const closeTxt = (lang==='ar'?'إغلاق':'Close');
 
   const m = document.createElement('div');
   m.className = 'modal sleek-modal';
-  m.innerHTML =
-    `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+  m.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
       <h3>${title}</h3>
-      <button class="btn" style="width:auto;padding:6px 10px;font-size:0.9rem;background:red;" onclick="closeTempModals()">✖</button>
+      <button class="btn" 
+        style="width:28px;height:28px;border-radius:50%;padding:0;
+               font-size:0.85rem;font-weight:700;background:#007bff;
+               display:flex;align-items:center;justify-content:center;"
+        onclick="closeTempModals()">✖</button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
       ${categories.map(c =>
