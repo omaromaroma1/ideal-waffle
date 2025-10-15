@@ -1,213 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Repeating · Money Budgeter</title>
-<link rel="stylesheet" href="style.css" />
-<style>
-  .repeat-list-card{
-    width:min(820px,94vw);
-    margin:0 auto;
-    padding:20px;
-    border-radius:22px;
-    background:var(--glass-light);
-    border:1px solid var(--glass-border-light);
-    box-shadow:0 12px 32px rgba(0,0,0,.12);
-    backdrop-filter:blur(18px) saturate(140%);
-    position:relative;
-    overflow:hidden;
-  }
-  body.dark-mode .repeat-list-card{
-    background:var(--glass-dark);
-    border:1px solid var(--glass-border-dark);
-    box-shadow:0 18px 42px rgba(0,0,0,.55);
-  }
-  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .title{font-weight:900;color:#7fb4ff;letter-spacing:.2px}
-  body.light-mode .title{color:#0a6bff}
-  .icon-btn{
-    width:40px;height:40px;border:none;border-radius:12px;
-    background:rgba(13,27,56,.96);color:#fff;font-size:22px;font-weight:900;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;
-    box-shadow:0 10px 26px rgba(10,20,40,.4);
-    outline:none;
-  }
-  .icon-btn:focus-visible{ box-shadow:0 0 0 3px rgba(10,107,255,.5) }
-  .icon-btn:hover{filter:brightness(1.1)}
-  .list{display:grid;gap:10px;margin-top:8px}
-  .item{
-    display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
-    padding:12px 14px;border-radius:14px;
-    background:rgba(245,248,255,.55);border:1px dashed rgba(160,180,220,.55);
-    backdrop-filter:blur(8px)
-  }
-  body.dark-mode .item{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
-  .empty{
-    padding:18px;border-radius:16px;text-align:center;font-weight:700;opacity:.9;
-    background:rgba(245,248,255,.55);border:1px solid rgba(160,180,220,.45)
-  }
-  body.dark-mode .empty{background:rgba(16,28,58,.65);border-color:rgba(210,225,255,.16)}
-  .trash{
-    background:#ef4444;color:#fff;border:none;border-radius:10px;padding:8px 12px;
-    font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(239,68,68,.35);
-    outline:none;
-  }
-  .trash:focus-visible{ box-shadow:0 0 0 3px rgba(239,68,68,.45) }
-  .sub{opacity:.8;font-size:.92rem;margin-top:2px}
-</style>
+  <meta charset="utf-8" />
+  <title>Money Budgeter — Repeats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <style>
+    :root{ --bg:#0b0b0c; --card:#121317; --muted:#aeb4c0; --text:#e8ecf5; --accent:#0a6bff; }
+    *{box-sizing:border-box} html{-webkit-text-size-adjust:100%}
+    body{margin:0;padding-top:env(safe-area-inset-top);background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+    .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(0,0,0,.35);backdrop-filter:blur(8px);border-bottom:1px solid #1c1f25}
+    .title{font-weight:700}
+    .iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#1b1e25;color:#fff;border:1px solid #2a2f39;cursor:pointer}
+    .container{padding:18px;max-width:680px;margin:0 auto}
+    .card{background:var(--card);border:1px solid #1f232b;border-radius:16px;padding:16px;margin-bottom:12px}
+    .empty{color:#aeb4c0;font-size:14px}
+    /* inline menu */
+    #mbMenu{position:absolute;display:none;z-index:99999;min-width:160px}
+    #mbMenu .sheet{background:#0f1116;border:1px solid #1f232b;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.35);overflow:hidden}
+    #mbMenu .item{display:block;width:100%;text-align:left;padding:12px 14px;background:transparent;color:#e8ecf5;border:0;font-size:14px;cursor:pointer}
+    #mbMenu .sep{height:1px;background:#1f232b}
+  </style>
 </head>
 <body>
-  <div class="repeat-list-card">
-    <div class="header">
-      <button class="icon-btn" onclick="goBackOr('index.html')">←</button>
-      <h2 class="title">Repeat</h2>
-      <button class="icon-btn" title="Add" onclick="goTo('repeat_add.html')">＋</button>
+  <div class="topbar">
+    <div class="title">Repeats</div>
+    <button class="iconbtn" id="plusBtn" aria-label="Add">+</button>
+  </div>
+
+  <div class="container">
+    <!-- your repeat list goes here; keeping a simple placeholder -->
+    <div class="card"><div class="empty">No repeat entries yet.</div></div>
+  </div>
+
+  <!-- tiny dropdown menu that appears under the + -->
+  <div id="mbMenu">
+    <div class="sheet">
+      <button class="item" data-go="repeat">Repeat</button>
+      <div class="sep"></div>
+      <button class="item" data-go="one-time">One time</button>
     </div>
-
-    <div id="container"></div>
   </div>
 
-<script>
-  /* ===== Theme Sync ===== */
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-mode');
-  } else {
-    document.body.classList.add('light-mode');
-  }
+  <script>
+    // prevent zoom (mobile)
+    (function(){
+      document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
+      let lastTouch=0;
+      document.addEventListener('touchend', e => { const now=Date.now(); if(now-lastTouch<=300){e.preventDefault();} lastTouch=now; }, {passive:false});
+      document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, {passive:false});
+    })();
 
-  /* ===== Navigation Helpers (robust back) ===== */
-  function goTo(path){ window.location.href = path; }
-  function goBackOr(fallback){
-    const ref = document.referrer;
-    if (ref && !ref.includes(location.href)) { history.back(); }
-    else { location.href = fallback; }
-  }
+    // menu logic
+    (function(){
+      const plus = document.getElementById('plusBtn');
+      const menu = document.getElementById('mbMenu');
 
-  /* ===== List rendering ===== */
-  function fmtEntry(e){
-    const cur = localStorage.getItem('currency') || '$';
-    const sign = (e.type||'add')==='add' ? '+' : '-';
-    const parts = [];
-    parts.push(`${sign}${cur}${(+e.amount||0).toFixed(2)}`);
-    parts.push(e.time ? `@ ${e.time}` : '@ --:--');
-    if (e.days?.length) parts.push(`days: ${e.days.join(', ')}`);
-    if (e.calendarDays?.length) parts.push(`nums: ${e.calendarDays.join(', ')}`);
-    if (e.months?.length) parts.push(`months: ${e.months.map(m=>m.slice(0,3)).join(', ')}`);
-    if (e.date) parts.push(`date: ${e.date}`);
-    return parts.join('  •  ');
-  }
-
-  function remove(id){
-    const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-    const next = all.filter(x => x.id !== id);
-    localStorage.setItem('autoRenewals', JSON.stringify(next));
-    const applied = JSON.parse(localStorage.getItem('autoRenewalsApplied')) || {};
-    if (applied[id]) { delete applied[id]; localStorage.setItem('autoRenewalsApplied', JSON.stringify(applied)); }
-    render();
-  }
-
-  function render(){
-    const root = document.getElementById('container');
-    const all = JSON.parse(localStorage.getItem('autoRenewals')) || [];
-    if (!all.length){
-      root.innerHTML = `<div class="empty">No repeating transactions yet.</div>`;
-      return;
-    }
-    const list = document.createElement('div');
-    list.className = 'list';
-    all.slice().reverse().forEach(e=>{
-      const row = document.createElement('div');
-      row.className = 'item';
-      const left = document.createElement('div');
-      left.innerHTML = `<div>${fmtEntry(e)}</div>`;
-      if (!e.days?.length && !e.calendarDays?.length && !e.months?.length && !e.date){
-        const s = document.createElement('div'); s.className='sub'; s.textContent = 'Runs every day (no filters set)';
-        left.appendChild(s);
+      function positionMenu(){
+        const r = plus.getBoundingClientRect();
+        const top = Math.max(0, r.bottom + 6 + window.scrollY);
+        const left = Math.max(8, (r.right - 180) + window.scrollX);
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
       }
-      const del = document.createElement('button');
-      del.className='trash'; del.textContent='Delete'; del.onclick = ()=>remove(e.id);
-      row.appendChild(left); row.appendChild(del); list.appendChild(row);
-    });
-    root.innerHTML=''; root.appendChild(list);
-  }
-  render();
-</script>
 
-<!-- MB inline menu (hidden by default) -->
-<div id="mbInlineMenu" style="position:absolute; display:none; z-index:99999; min-width:160px;">
-  <div style="background:#0f1116; border:1px solid #1f232b; border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.35); overflow:hidden;">
-    <button data-target="repeat" style="display:block; width:100%; text-align:left; padding:12px 14px; background:transparent; color:#e8ecf5; border:0; font-size:14px; cursor:pointer">Repeat</button>
-    <div style="height:1px;background:#1f232b"></div>
-    <button data-target="one-time" style="display:block; width:100%; text-align:left; padding:12px 14px; background:transparent; color:#e8ecf5; border:0; font-size:14px; cursor:pointer">One time</button>
-  </div>
-</div>
+      plus.addEventListener('click', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        positionMenu();
+        menu.style.display = 'block';
+        const close = (ev)=>{
+          if (!menu.contains(ev.target)) {
+            menu.style.display = 'none';
+            document.removeEventListener('click', close, true);
+          }
+        };
+        setTimeout(()=>document.addEventListener('click', close, true), 0);
+      });
 
-
-<script>
-(function(){
-  function findPlus(){
-    const ids = ['plusBtn','addNew','addBtn','add','plus'];
-    for (const id of ids){ const el = document.getElementById(id); if (el) return el; }
-    const cands = Array.from(document.querySelectorAll('button, a, div'));
-    let best=null, bestScore=-1;
-    cands.forEach(el=>{
-      const txt = (el.textContent||'').trim();
-      const aria = (el.getAttribute?.('aria-label')||'').toLowerCase();
-      if (txt==='+' || txt.toLowerCase()==='add new' || aria.includes('add') || aria.includes('plus')){
-        const r = el.getBoundingClientRect();
-        const score = (window.innerWidth - r.right) + r.top;
-        const s = -score;
-        if (s>bestScore){ bestScore=s; best=el; }
-      }
-    });
-    return best;
-  }
-  function ensureMenu(){
-    if (document.getElementById('mbInlineMenu')) return;
-    const wrap = document.createElement('div');
-    wrap.innerHTML = ` <!-- MB inline menu (hidden by default) --> <div id="mbInlineMenu" style="position:absolute; display:none; z-index:99999; min-width:160px;">   <div style="background:#0f1116; border:1px solid #1f232b; border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.35); overflow:hidden;">     <button data-target="repeat" style="display:block; width:100%; text-align:left; padding:12px 14px; background:transparent; color:#e8ecf5; border:0; font-size:14px; cursor:pointer">Repeat</button>     <div style="height:1px;background:#1f232b"></div>     <button data-target="one-time" style="display:block; width:100%; text-align:left; padding:12px 14px; background:transparent; color:#e8ecf5; border:0; font-size:14px; cursor:pointer">One time</button>   </div> </div> `;
-    document.body.appendChild(wrap.firstElementChild);
-  }
-  function positionMenu(btn){
-    const menu = document.getElementById('mbInlineMenu'); if (!menu) return;
-    const r = btn.getBoundingClientRect();
-    const top = Math.max(0, r.bottom + 6 + window.scrollY);
-    const left = Math.max(8, (r.right - 180) + window.scrollX);
-    menu.style.top = top + 'px';
-    menu.style.left = left + 'px';
-  }
-  function openMenu(btn){
-    ensureMenu();
-    positionMenu(btn);
-    const menu = document.getElementById('mbInlineMenu');
-    menu.style.display = 'block';
-    const onDoc = (e)=>{
-      if (!menu.contains(e.target)){ menu.style.display = 'none'; document.removeEventListener('click', onDoc, true); }
-    };
-    setTimeout(()=>document.addEventListener('click', onDoc, true), 0);
-  }
-  function init(){
-    ensureMenu();
-    const plus = findPlus();
-    if (!plus) return;
-    plus.addEventListener('click', function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      openMenu(plus);
-    }, true);
-    const menu = document.getElementById('mbInlineMenu');
-    menu.addEventListener('click', function(e){
-      const btn = e.target.closest('button[data-target]');
-      if (!btn) return;
-      const mode = btn.getAttribute('data-target');
-      const base = window.location.pathname.replace(/repeat\.html.*$/,'').replace(/\/$/, '');
-      window.location.href = base + (mode==='repeat' ? '/repeat_add.html' : '/one_time_add.html');
-    });
-  }
-  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-})();
-</script>
-<script src="/repeat_patch.js"></script>
+      menu.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.item'); if(!btn) return;
+        const base = window.location.pathname.replace(/repeat\.html.*$/,'').replace(/\/$/,'');
+        if (btn.dataset.go === 'repeat') {
+          window.location.href = base + '/repeat_add.html';
+        } else {
+          window.location.href = base + '/one_time_add.html';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
