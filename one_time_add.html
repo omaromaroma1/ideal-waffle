@@ -10,11 +10,7 @@
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
   <style>
-    :root{
-      --bg:#0b1426; --card:#0f1f3a; --border:#1e335a;
-      --text:#eaf0ff; --muted:#a8b3cf; --accent:#0a6bff;
-      --chip:#142646; --chip-on:#0a6bff;
-    }
+    :root{ --bg:#0b1426; --card:#0f1f3a; --border:#1e335a; --text:#eaf0ff; --muted:#a8b3cf; --accent:#0a6bff; --chip:#142646; --chip-on:#0a6bff; }
     *{box-sizing:border-box} html{-webkit-text-size-adjust:100%}
     body{margin:0;padding-top:env(safe-area-inset-top);background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
     .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(8,16,32,.6);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
@@ -49,7 +45,7 @@
         </div>
         <div>
           <label>Type</label>
-          <div class="chips" role="group" aria-label="Add/Subtract">
+          <div class="chips" id="typeChips" role="group" aria-label="Add/Subtract">
             <div class="chip active" data-type="add">Add</div>
             <div class="chip" data-type="subtract">Subtract</div>
           </div>
@@ -89,28 +85,34 @@
   </div>
 
   <script>
-    // chips: single-select for type, multi-select for months/days
-    document.addEventListener('click', function(e){
+    const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+    const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+    document.getElementById('typeChips').addEventListener('click', (e)=>{
       const chip = e.target.closest('.chip'); if(!chip) return;
-      const group = chip.parentElement;
-      if (group && group.getAttribute('role') === 'group'){
-        group.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
-        chip.classList.add('active');
-      } else {
-        chip.classList.toggle('active');
-      }
+      document.querySelectorAll('#typeChips .chip').forEach(x=>x.classList.remove('active'));
+      chip.classList.add('active');
+    });
+    document.addEventListener('click', function(e){
+      const chip = e.target.closest('#months .chip, #dom .chip'); if(!chip) return;
+      chip.classList.toggle('active');
     });
 
     document.getElementById('saveBtn').addEventListener('click', ()=>{
-      const type = document.querySelector('.chips[role="group"] .chip.active')?.dataset.type || 'add';
-      const amount = (document.getElementById('amount').value||'').replace(',','.');
+      const type = document.querySelector('#typeChips .chip.active')?.dataset.type || 'add';
+      const amount = parseFloat((document.getElementById('amount').value||'').replace(',','.')) || 0;
       const months = Array.from(document.querySelectorAll('#months .chip.active')).map(x=>x.dataset.month);
       const dom = Array.from(document.querySelectorAll('#dom .chip.active')).map(x=>x.dataset.dom);
       const time = document.getElementById('time').value || null;
-      const payload = { mode:'one-time', type, amount: parseFloat(amount)||0, months, daysOfMonth: dom, time };
-      try { localStorage.setItem('mb:lastAddDraft', JSON.stringify(payload)); } catch(e){}
-      alert('Saved draft: ' + JSON.stringify(payload));
+
+      const items = get('mb:oneTimeEntries', []);
+      items.push({ id: crypto.randomUUID?.() || String(Date.now()), type, amount, months, daysOfMonth: dom, time, createdAt: new Date().toISOString() });
+      set('mb:oneTimeEntries', items);
+
+      window.location.href = 'repeat.html';
     });
+
+    document.querySelectorAll('input').forEach(el=>{ el.style.fontSize='16px'; });
   </script>
 </body>
 </html>
