@@ -1,4 +1,4 @@
-/* ===== General Reset ===== */
+/* ===== Reset ===== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,41 +8,51 @@
 body {
   font-family: "Segoe UI", system-ui, Arial, sans-serif;
   padding: 20px;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background 0.4s ease, color 0.4s ease;
+  background: linear-gradient(145deg, #cfe3ff, #eaf1ff);
+  color: #000;
+  backdrop-filter: blur(10px);
 }
 
-/* ===== Light & Dark Modes ===== */
+/* ===== Light Mode ===== */
 body.light-mode {
-  background: #ffffff;
-  color: #000000;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(240, 245, 255, 0.95));
+  color: #000;
 }
 
+/* ===== Dark Mode - Navy Tint ===== */
 body.dark-mode {
-  background: #121212;
-  color: #e0e0e0;
+  background: radial-gradient(circle at 25% 25%, rgba(10, 25, 60, 0.95), rgba(5, 10, 30, 0.98));
+  color: #e0e6ff;
+  backdrop-filter: blur(20px);
 }
 
-/* ===== Calculator Box ===== */
+/* ===== Calculator Box (Liquid Glass) ===== */
 .calculator-box {
   width: 360px;
   margin: 0 auto;
-  background: #f8f9fc;
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 22px;
   padding: 22px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
 }
 
 body.dark-mode .calculator-box {
-  background: #1e1e1e;
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.05);
+  background: rgba(15, 25, 60, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
+/* ===== Titles ===== */
 h1 {
   text-align: center;
   margin-bottom: 14px;
   color: #007bff;
   font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
 }
 
 /* ===== Clock & Budget ===== */
@@ -57,6 +67,8 @@ h1 {
 #budget {
   font-size: 3rem;
   font-weight: 700;
+  color: #007bff;
+  text-shadow: 0 0 12px rgba(0, 123, 255, 0.3);
 }
 
 /* ===== Input Display ===== */
@@ -83,17 +95,19 @@ h1 {
   flex: 1 1 28%;
   padding: 12px;
   border: none;
-  border-radius: 12px;
-  background: #007bff;
+  border-radius: 14px;
+  background: rgba(0, 123, 255, 0.85);
   color: #fff;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .numpad button:hover {
-  background: #005ed6;
+  background: rgba(0, 123, 255, 1);
+  box-shadow: 0 0 12px rgba(0, 123, 255, 0.5);
   transform: scale(1.05);
 }
 
@@ -110,17 +124,19 @@ h1 {
   flex: 1 1 45%;
   padding: 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-weight: 600;
-  background: #007bff;
+  background: rgba(0, 123, 255, 0.85);
   color: #fff;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .buttons button:hover {
-  background: #005ed6;
+  background: rgba(0, 123, 255, 1);
   transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(0, 123, 255, 0.5);
 }
 
 /* ===== History Section ===== */
@@ -135,34 +151,38 @@ h1 {
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 12px;
-  background: #e5f0ff;
+  background: rgba(229, 240, 255, 0.4);
   color: #0a3a8b;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 body.dark-mode .history-toggle {
-  background: #243146;
+  background: rgba(20, 30, 60, 0.6);
   color: #d7e6ff;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .history-toggle:hover {
-  background: #cfe3ff;
+  background: rgba(0, 123, 255, 0.4);
 }
 
+/* ===== History Panel ===== */
 #history {
   max-height: 220px;
   overflow: auto;
-  background: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
   padding: 10px;
+  backdrop-filter: blur(12px);
 }
 
 body.dark-mode #history {
-  background: #2c2c2c;
-  border-color: #555;
+  background: rgba(20, 30, 60, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* ===== Mode Toggle ===== */
@@ -170,13 +190,13 @@ body.dark-mode #history {
   position: fixed;
   right: 16px;
   bottom: 16px;
-  font-size: 28px;
+  font-size: 30px;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
 
 #mode-toggle:hover {
-  transform: rotate(15deg);
+  transform: rotate(25deg);
 }
 
 /* ===== Overlay ===== */
@@ -186,9 +206,10 @@ body.dark-mode #history {
   background: rgba(0, 0, 0, 0.45);
   display: none;
   z-index: 9998;
+  backdrop-filter: blur(10px);
 }
 
-/* ===== Modals ===== */
+/* ===== Modals (Liquid Glass) ===== */
 .modal {
   position: fixed;
   left: 50%;
@@ -197,23 +218,19 @@ body.dark-mode #history {
   width: min(420px, 92vw);
   max-height: 80vh;
   overflow: auto;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.25);
   color: #111;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 18px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   display: none;
   z-index: 9999;
+  backdrop-filter: blur(20px);
 }
 
 body.dark-mode .modal {
-  background: #1f2937;
+  background: rgba(20, 30, 60, 0.35);
   color: #e5e7eb;
-}
-
-.modal h3 {
-  text-align: center;
-  margin-bottom: 10px;
 }
 
 /* ===== Modal Buttons ===== */
@@ -223,28 +240,30 @@ body.dark-mode .modal {
   margin: 8px 0;
   padding: 10px;
   border: none;
-  border-radius: 10px;
-  background: #007bff;
+  border-radius: 12px;
+  background: rgba(0, 123, 255, 0.85);
   color: #fff;
   font-weight: 600;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
   cursor: pointer;
+  backdrop-filter: blur(10px);
 }
 
 .modal .btn:hover {
-  background: #005ed6;
+  background: rgba(0, 123, 255, 1);
   transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(0, 123, 255, 0.6);
 }
 
-/* ===== Perfect Round Close Button ===== */
+/* ===== Close Button (Perfect Circle) ===== */
 .close-btn {
   width: 32px;
   height: 32px;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   border: none;
-  background: #007bff;
-  color: #ffffff;
+  background: rgba(0, 123, 255, 0.9);
+  color: #fff;
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
@@ -252,13 +271,13 @@ body.dark-mode .modal {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.3s ease;
 }
 
 .close-btn:hover {
-  background: #339dff;
+  background: rgba(0, 123, 255, 1);
   transform: scale(1.1);
-  box-shadow: 0 0 6px rgba(51, 157, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.7);
 }
 
 /* ===== Settings Icon ===== */
@@ -268,48 +287,12 @@ body.dark-mode .modal {
   right: 14px;
   font-size: 24px;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 #settings-icon:hover {
   transform: rotate(45deg);
-}
-
-/* ===== Scrollbar Styling ===== */
-#history::-webkit-scrollbar {
-  width: 6px;
-}
-
-#history::-webkit-scrollbar-thumb {
-  background-color: #007bff;
-  border-radius: 8px;
-}
-
-#history::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* ===== Fullscreen History Overlay ===== */
-.sleek-modal {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10000;
-  background: #fff;
-  color: #111;
-  border-radius: 16px;
-  padding: 16px;
-  max-width: 800px;
-  width: 94vw;
-  max-height: 90vh;
-  overflow: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-}
-
-body.dark-mode .sleek-modal {
-  background: #1f2937;
-  color: #e5e7eb;
+  filter: drop-shadow(0 0 6px rgba(0, 123, 255, 0.6));
 }
 
 /* ===== Inputs ===== */
@@ -317,12 +300,27 @@ body.dark-mode .sleek-modal {
   width: 100%;
   padding: 8px 10px;
   margin-top: 6px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #111;
+  backdrop-filter: blur(10px);
 }
 
 body.dark-mode #newCategoryInput {
-  border-color: #555;
-  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(15, 25, 60, 0.4);
   color: #fff;
+}
+
+/* ===== Scrollbars ===== */
+#history::-webkit-scrollbar {
+  width: 6px;
+}
+#history::-webkit-scrollbar-thumb {
+  background-color: #007bff;
+  border-radius: 8px;
+}
+#history::-webkit-scrollbar-track {
+  background: transparent;
 }
