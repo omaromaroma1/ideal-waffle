@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>Money Budgeter — One time</title>
+  <link rel="stylesheet" href="/modern.css" />
+</head>
+<body>
+  <div class="topbar">
+    <a href="repeat.html" style="color:#cfd6e6;text-decoration:none">Back</a>
+    <div style="font-weight:700">One-time Entry</div>
+    <div style="width:40px"></div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Amount</label>
+          <input id="amount" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="0.00" autocomplete="off" />
+        </div>
+        <div>
+          <label>Type</label>
+          <div class="chips" role="group" aria-label="Add/Subtract">
+            <div class="chip active" data-type="add">Add</div>
+            <div class="chip" data-type="subtract">Subtract</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <details>
+        <summary>Month (optional) <span>▾</span></summary>
+        <div class="chips" id="months">
+          <div class="chip" data-month="Jan">Jan</div>
+          <div class="chip" data-month="Feb">Feb</div>
+          <div class="chip" data-month="Mar">Mar</div>
+          <div class="chip" data-month="Apr">Apr</div>
+          <div class="chip" data-month="May">May</div>
+          <div class="chip" data-month="Jun">Jun</div>
+          <div class="chip" data-month="Jul">Jul</div>
+          <div class="chip" data-month="Aug">Aug</div>
+          <div class="chip" data-month="Sep">Sep</div>
+          <div class="chip" data-month="Oct">Oct</div>
+          <div class="chip" data-month="Nov">Nov</div>
+          <div class="chip" data-month="Dec">Dec</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <label>Day of Month (optional)</label>
+      <div id="dom" class="chips">
+        <div class="chip" data-dom="1">1</div>
+        <div class="chip" data-dom="5">5</div>
+        <div class="chip" data-dom="10">10</div>
+        <div class="chip" data-dom="15">15</div>
+        <div class="chip" data-dom="20">20</div>
+        <div class="chip" data-dom="25">25</div>
+        <div class="chip" data-dom="30">30</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Time (optional)</label>
+      <input id="time" type="time" />
+    </div>
+
+    <div class="card">
+      <button class="btn" id="saveBtn">Save</button>
+    </div>
+  </div>
+
+  <script src="/pwa-bridge.js"></script>
+  <script>
+  (function(){
+    document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
+    let lastTouch=0;
+    document.addEventListener('touchend', e => { const now=Date.now(); if(now-lastTouch<=300){e.preventDefault();} lastTouch=now; }, {passive:false});
+    document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, {passive:false});
+  })();
+  document.addEventListener('click', function(e){
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const group = chip.parentElement;
+    if (group && group.getAttribute('role') === 'group'){
+      group.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      chip.classList.add('active');
+    } else {
+      chip.classList.toggle('active');
+    }
+  });
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    const type = document.querySelector('.chips[role=\"group\"] .chip.active')?.getAttribute('data-type') || 'add';
+    const amount = (document.getElementById('amount').value||'').replace(',','.');
+    const months = Array.from(document.querySelectorAll('#months .chip.active')).map(x=>x.getAttribute('data-month'));
+    const dom = Array.from(document.querySelectorAll('#dom .chip.active')).map(x=>x.getAttribute('data-dom'));
+    const time = document.getElementById('time').value||null;
+    const payload = { mode:'one-time', type, amount: parseFloat(amount)||0, months, daysOfMonth: dom, time };
+    try { localStorage.setItem('mb:lastAddDraft', JSON.stringify(payload)); } catch(e){}
+    alert('Saved draft: ' + JSON.stringify(payload));
+  });
+  document.querySelectorAll('input').forEach(el=>{ el.style.fontSize='16px'; });
+  </script>
+</body>
+</html>
