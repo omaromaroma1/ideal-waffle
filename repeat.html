@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Money Budgeter — Repeats</title>
+  <title>Money Budgeter — One time</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -10,88 +10,101 @@
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
   <style>
-    :root{ --bg:#0b0b0c; --card:#121317; --muted:#aeb4c0; --text:#e8ecf5; --accent:#0a6bff; }
+    :root{ --bg:#0b0b0c; --card:#121317; --muted:#aeb4c0; --text:#e8ecf5; --accent:#0a6bff; --chip:#1a1c22; --chip-on:#0a6bff; }
     *{box-sizing:border-box} html{-webkit-text-size-adjust:100%}
     body{margin:0;padding-top:env(safe-area-inset-top);background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
     .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(0,0,0,.35);backdrop-filter:blur(8px);border-bottom:1px solid #1c1f25}
-    .title{font-weight:700}
-    .iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#1b1e25;color:#fff;border:1px solid #2a2f39;cursor:pointer}
     .container{padding:18px;max-width:680px;margin:0 auto}
-    .card{background:var(--card);border:1px solid #1f232b;border-radius:16px;padding:16px;margin-bottom:12px}
-    .empty{color:#aeb4c0;font-size:14px}
-    /* inline menu */
-    #mbMenu{position:absolute;display:none;z-index:99999;min-width:160px}
-    #mbMenu .sheet{background:#0f1116;border:1px solid #1f232b;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.35);overflow:hidden}
-    #mbMenu .item{display:block;width:100%;text-align:left;padding:12px 14px;background:transparent;color:#e8ecf5;border:0;font-size:14px;cursor:pointer}
-    #mbMenu .sep{height:1px;background:#1f232b}
+    .card{background:var(--card);border:1px solid #1f232b;border-radius:16px;padding:16px;margin-bottom:16px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="text"], input[type="time"]{width:100%;padding:14px 12px;border-radius:12px;border:1px solid #2a2f39;background:#0f1116;color:#fff;outline:none;font-size:16px}
+    details{background:#101218;border:1px solid #1f232b;border-radius:14px;padding:10px 12px;color:#cfd6e6}
+    details[open]{background:#11141b}
+    summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:600}
+    summary::-webkit-details-marker{display:none}
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .chip{padding:10px 12px;border-radius:999px;background:var(--chip);border:1px solid #2a2f39;cursor:pointer;user-select:none;font-size:14px;color:#cfd6e6}
+    .chip.active{background:var(--chip-on);border-color:var(--chip-on);color:#fff}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn{width:100%;padding:14px;border-radius:12px;background:var(--accent);border:none;color:#fff;font-weight:700;font-size:16px;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="title">Repeats</div>
-    <button class="iconbtn" id="plusBtn" aria-label="Add">+</button>
+    <a href="repeat.html" style="color:#cfd6e6;text-decoration:none">Back</a>
+    <div style="font-weight:700">One-time Entry</div>
+    <div style="width:40px"></div>
   </div>
 
   <div class="container">
-    <!-- your repeat list goes here; keeping a simple placeholder -->
-    <div class="card"><div class="empty">No repeat entries yet.</div></div>
-  </div>
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Amount</label>
+          <input id="amount" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="0.00" autocomplete="off" />
+        </div>
+        <div>
+          <label>Type</label>
+          <div class="chips" role="group" aria-label="Add/Subtract">
+            <div class="chip active" data-type="add">Add</div>
+            <div class="chip" data-type="subtract">Subtract</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- tiny dropdown menu that appears under the + -->
-  <div id="mbMenu">
-    <div class="sheet">
-      <button class="item" data-go="repeat">Repeat</button>
-      <div class="sep"></div>
-      <button class="item" data-go="one-time">One time</button>
+    <div class="card">
+      <details>
+        <summary>Month (optional) <span>▾</span></summary>
+        <div class="chips" id="months">
+          <div class="chip" data-month="Jan">Jan</div><div class="chip" data-month="Feb">Feb</div><div class="chip" data-month="Mar">Mar</div>
+          <div class="chip" data-month="Apr">Apr</div><div class="chip" data-month="May">May</div><div class="chip" data-month="Jun">Jun</div>
+          <div class="chip" data-month="Jul">Jul</div><div class="chip" data-month="Aug">Aug</div><div class="chip" data-month="Sep">Sep</div>
+          <div class="chip" data-month="Oct">Oct</div><div class="chip" data-month="Nov">Nov</div><div class="chip" data-month="Dec">Dec</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <label>Day of Month (optional)</label>
+      <div id="dom" class="chips">
+        <div class="chip" data-dom="1">1</div><div class="chip" data-dom="5">5</div><div class="chip" data-dom="10">10</div>
+        <div class="chip" data-dom="15">15</div><div class="chip" data-dom="20">20</div><div class="chip" data-dom="25">25</div>
+        <div class="chip" data-dom="30">30</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Time (optional)</label>
+      <input id="time" type="time" />
+    </div>
+
+    <div class="card">
+      <button class="btn" id="saveBtn">Save</button>
     </div>
   </div>
 
   <script>
-    // prevent zoom (mobile)
-    (function(){
-      document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
-      let lastTouch=0;
-      document.addEventListener('touchend', e => { const now=Date.now(); if(now-lastTouch<=300){e.preventDefault();} lastTouch=now; }, {passive:false});
-      document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, {passive:false});
-    })();
-
-    // menu logic
-    (function(){
-      const plus = document.getElementById('plusBtn');
-      const menu = document.getElementById('mbMenu');
-
-      function positionMenu(){
-        const r = plus.getBoundingClientRect();
-        const top = Math.max(0, r.bottom + 6 + window.scrollY);
-        const left = Math.max(8, (r.right - 180) + window.scrollX);
-        menu.style.top = top + 'px';
-        menu.style.left = left + 'px';
+    document.addEventListener('click', function(e){
+      const chip = e.target.closest('.chip'); if(!chip) return;
+      const group = chip.parentElement;
+      if (group && group.getAttribute('role') === 'group'){
+        group.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        chip.classList.add('active');
+      } else {
+        chip.classList.toggle('active');
       }
-
-      plus.addEventListener('click', (e)=>{
-        e.preventDefault();
-        e.stopPropagation();
-        positionMenu();
-        menu.style.display = 'block';
-        const close = (ev)=>{
-          if (!menu.contains(ev.target)) {
-            menu.style.display = 'none';
-            document.removeEventListener('click', close, true);
-          }
-        };
-        setTimeout(()=>document.addEventListener('click', close, true), 0);
-      });
-
-      menu.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.item'); if(!btn) return;
-        const base = window.location.pathname.replace(/repeat\.html.*$/,'').replace(/\/$/,'');
-        if (btn.dataset.go === 'repeat') {
-          window.location.href = base + '/repeat_add.html';
-        } else {
-          window.location.href = base + '/one_time_add.html';
-        }
-      });
-    })();
+    });
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      const type = document.querySelector('.chips[role="group"] .chip.active')?.dataset.type || 'add';
+      const amount = (document.getElementById('amount').value||'').replace(',','.');
+      const months = Array.from(document.querySelectorAll('#months .chip.active')).map(x=>x.dataset.month);
+      const dom = Array.from(document.querySelectorAll('#dom .chip.active')).map(x=>x.dataset.dom);
+      const time = document.getElementById('time').value || null;
+      const payload = { mode:'one-time', type, amount: parseFloat(amount)||0, months, daysOfMonth: dom, time };
+      try { localStorage.setItem('mb:lastAddDraft', JSON.stringify(payload)); } catch(e){}
+      alert('Saved draft: ' + JSON.stringify(payload));
+    });
   </script>
 </body>
 </html>
