@@ -1,63 +1,83 @@
-/* ===== Reset ===== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* =========================
+   RESET / BASE
+========================= */
+* { box-sizing: border-box; margin:0; padding:0; }
 
 body {
   font-family: "Segoe UI", system-ui, Arial, sans-serif;
   padding: 20px;
-  transition: background 0.4s ease, color 0.4s ease;
-  background: linear-gradient(145deg, #cfe3ff, #eaf1ff);
-  color: #000;
-  backdrop-filter: blur(10px);
+  transition: background .35s ease, color .35s ease;
 }
 
-/* ===== Light Mode ===== */
+/* =========================
+   LIGHT & DARK (NAVY) THEMES
+========================= */
 body.light-mode {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(240, 245, 255, 0.95));
-  color: #000;
+  /* soft sky gradient behind glass */
+  background: linear-gradient(150deg, #f7fbff 0%, #eef5ff 60%, #e9f1ff 100%);
+  color: #0b1220;
 }
 
-/* ===== Dark Mode - Navy Tint ===== */
 body.dark-mode {
-  background: radial-gradient(circle at 25% 25%, rgba(10, 25, 60, 0.95), rgba(5, 10, 30, 0.98));
-  color: #e0e6ff;
-  backdrop-filter: blur(20px);
+  /* darker NAVY with depth & vignette */
+  background:
+    radial-gradient(1200px 800px at 20% 10%, rgba(18,34,74,.55), transparent 60%),
+    radial-gradient(1400px 1000px at 80% 90%, rgba(8,19,46,.55), transparent 55%),
+    linear-gradient(160deg, #0a1736 0%, #08122a 45%, #060e24 100%);
+  color: #ffffff; /* text white in dark mode */
 }
 
-/* ===== Calculator Box (Liquid Glass) ===== */
+/* =========================
+   LIQUID GLASS PRIMITIVES
+========================= */
+:root {
+  --glass-bg-light: rgba(255, 255, 255, .25);
+  --glass-bg-dark:  rgba(20, 32, 70, .30);
+  --glass-border-light: rgba(255, 255, 255, .45);
+  --glass-border-dark:  rgba(210, 225, 255, .12);
+  --primary: #007bff;
+  --primary-strong: #0a74ff;
+  --shadow-light: 0 10px 30px rgba(0,0,0,.10);
+  --shadow-dark:  0 16px 40px rgba(0,0,0,.55);
+}
+
+/* =========================
+   MAIN CARD (GLASS)
+========================= */
 .calculator-box {
   width: 360px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 22px;
   padding: 22px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 22px;
   position: relative;
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border-light);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--shadow-light);
 }
-
 body.dark-mode .calculator-box {
-  background: rgba(15, 25, 60, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+  box-shadow: var(--shadow-dark);
 }
 
-/* ===== Titles ===== */
+/* =========================
+   TITLE / CLOCK / BUDGET
+========================= */
 h1 {
   text-align: center;
   margin-bottom: 14px;
-  color: #007bff;
+  color: var(--primary);
   font-weight: 700;
-  text-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+  text-shadow: 0 0 6px rgba(10, 116, 255, .25);
+}
+body.dark-mode h1 {
+  /* keep it readable, still brand but softer */
+  color: #7fb4ff;
+  text-shadow: 0 0 8px rgba(64, 140, 255, .25);
 }
 
-/* ===== Clock & Budget ===== */
-#clock,
-#budget {
+#clock, #budget {
   text-align: center;
   margin: 6px 0;
   font-size: 1.1rem;
@@ -65,262 +85,270 @@ h1 {
 }
 
 #budget {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #007bff;
-  text-shadow: 0 0 12px rgba(0, 123, 255, 0.3);
+  font-size: 3.0rem; /* your requested size */
+  font-weight: 800;
+  color: inherit;      /* use body text color */
+  text-shadow: none;   /* white text in dark mode stays crisp */
 }
 
-/* ===== Input Display ===== */
+/* =========================
+   INPUT
+========================= */
 #input-display {
   width: 100%;
   text-align: right;
   font-size: 24px;
-  padding: 10px;
+  padding: 10px 12px;
   border: none;
   background: transparent;
   color: inherit;
 }
 
-/* ===== Number Pad ===== */
+/* =========================
+   NUMPAD
+========================= */
 .numpad {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin: 12px 0;
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0;
 }
-
 .numpad button {
   flex: 1 1 28%;
-  padding: 12px;
-  border: none;
-  border-radius: 14px;
-  background: rgba(0, 123, 255, 0.85);
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 600;
+  padding: 12px;                 /* smaller per your earlier request */
+  border: none; border-radius: 14px;
+  background: rgba(0, 123, 255, .88);
+  color: #fff; font-size: 1.1rem; font-weight: 700;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 18px rgba(0, 123, 255, .20);
+  transition: transform .18s ease, background .2s ease, box-shadow .25s ease;
+  backdrop-filter: blur(10px) saturate(130%);
 }
-
 .numpad button:hover {
-  background: rgba(0, 123, 255, 1);
-  box-shadow: 0 0 12px rgba(0, 123, 255, 0.5);
-  transform: scale(1.05);
+  background: rgba(10, 116, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 123, 255, .28);
 }
 
-/* ===== Buttons Row ===== */
+/* =========================
+   ACTION BUTTONS
+========================= */
 .buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin: 14px 0;
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0;
 }
-
 .buttons button {
   flex: 1 1 45%;
   padding: 12px;
-  border: none;
-  border-radius: 14px;
-  font-weight: 600;
-  background: rgba(0, 123, 255, 0.85);
+  border: none; border-radius: 14px;
+  font-weight: 700;
+  background: rgba(0, 123, 255, .90);
   color: #fff;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: transform .18s ease, background .2s ease, box-shadow .25s ease;
+  box-shadow: 0 10px 24px rgba(0, 123, 255, .20);
+  backdrop-filter: blur(10px) saturate(130%);
 }
-
 .buttons button:hover {
   background: rgba(0, 123, 255, 1);
-  transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(0, 123, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0, 123, 255, .28);
 }
 
-/* ===== History Section ===== */
+/* =========================
+   HISTORY
+========================= */
 .history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   margin: 8px 0 10px;
-}
-
-.history-toggle {
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 12px;
-  background: rgba(229, 240, 255, 0.4);
-  color: #0a3a8b;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-body.dark-mode .history-toggle {
-  background: rgba(20, 30, 60, 0.6);
-  color: #d7e6ff;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.history-toggle:hover {
-  background: rgba(0, 123, 255, 0.4);
-}
-
-/* ===== History Panel ===== */
-#history {
-  max-height: 220px;
-  overflow: auto;
-  background: rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 14px;
-  padding: 10px;
-  backdrop-filter: blur(12px);
-}
-
-body.dark-mode #history {
-  background: rgba(20, 30, 60, 0.3);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== Mode Toggle ===== */
-#mode-toggle {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  font-size: 30px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-#mode-toggle:hover {
-  transform: rotate(25deg);
-}
-
-/* ===== Overlay ===== */
-#overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: none;
-  z-index: 9998;
-  backdrop-filter: blur(10px);
-}
-
-/* ===== Modals (Liquid Glass) ===== */
-.modal {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(420px, 92vw);
-  max-height: 80vh;
-  overflow: auto;
-  background: rgba(255, 255, 255, 0.25);
-  color: #111;
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  display: none;
-  z-index: 9999;
-  backdrop-filter: blur(20px);
-}
-
-body.dark-mode .modal {
-  background: rgba(20, 30, 60, 0.35);
-  color: #e5e7eb;
-}
-
-/* ===== Modal Buttons ===== */
-.modal .btn {
-  display: block;
-  width: 100%;
-  margin: 8px 0;
-  padding: 10px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(0, 123, 255, 0.85);
-  color: #fff;
-  font-weight: 600;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-}
-
-.modal .btn:hover {
-  background: rgba(0, 123, 255, 1);
-  transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(0, 123, 255, 0.6);
-}
-
-/* ===== Close Button (Perfect Circle) ===== */
-.close-btn {
-  width: 32px;
-  height: 32px;
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 123, 255, 0.9);
-  color: #fff;
-  font-size: 0.9rem;
   font-weight: 700;
-  line-height: 1;
+}
+.history-toggle {
+  padding: 6px 10px; border-radius: 10px; font-size: 12px;
+  background: rgba(229, 240, 255, .45);
+  color: #0a3a8b; border: 1px solid rgba(255,255,255,.45);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+  transition: background .2s ease, transform .18s ease, box-shadow .25s ease;
+}
+.history-toggle:hover {
+  background: rgba(0,123,255,.35);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0,123,255,.25);
+}
+body.dark-mode .history-toggle {
+  background: rgba(24, 40, 84, .55);
+  color: #d7e6ff;
+  border-color: rgba(210, 225, 255, .16);
 }
 
-.close-btn:hover {
-  background: rgba(0, 123, 255, 1);
-  transform: scale(1.1);
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.7);
+#history {
+  max-height: 220px; overflow: auto;
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 14px; padding: 10px;
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow-light);
+}
+body.dark-mode #history {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+  box-shadow: var(--shadow-dark);
 }
 
-/* ===== Settings Icon ===== */
+/* fancy scrollbar */
+#history::-webkit-scrollbar { width: 6px; }
+#history::-webkit-scrollbar-thumb { background-color: #5aa3ff; border-radius: 8px; }
+#history::-webkit-scrollbar-track { background: transparent; }
+
+/* =========================
+   MODE TOGGLE + SETTINGS ICON
+========================= */
+#mode-toggle {
+  position: fixed; right: 16px; bottom: 16px;
+  font-size: 30px; cursor: pointer;
+  transition: transform .3s ease, filter .3s ease;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+}
+#mode-toggle:hover { transform: rotate(20deg) scale(1.06); }
+
 #settings-icon {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  font-size: 24px;
-  cursor: pointer;
-  transition: transform 0.3s ease, filter 0.3s ease;
+  position: absolute; top: 12px; right: 14px; font-size: 24px; cursor: pointer;
+  transition: transform .3s ease, filter .3s ease;
 }
-
 #settings-icon:hover {
   transform: rotate(45deg);
-  filter: drop-shadow(0 0 6px rgba(0, 123, 255, 0.6));
+  filter: drop-shadow(0 0 8px rgba(0, 123, 255, .55));
 }
 
-/* ===== Inputs ===== */
-#newCategoryInput {
-  width: 100%;
-  padding: 8px 10px;
-  margin-top: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #111;
+/* =========================
+   OVERLAY (shared)
+========================= */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, .45);
+  display: none; z-index: 9998;
   backdrop-filter: blur(10px);
 }
 
-body.dark-mode #newCategoryInput {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(15, 25, 60, 0.4);
+/* =========================
+   MODALS — DEFAULT (GLASS)
+   (Subtract & Category Totals use this)
+========================= */
+.modal {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(420px, 92vw); max-height: 80vh; overflow: auto;
+  background: var(--glass-bg-light);
+  color: #111; border-radius: 16px; padding: 18px;
+  border: 1px solid var(--glass-border-light);
+  backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 20px 60px rgba(0,0,0,.30);
+  display: none; z-index: 9999;
+}
+body.dark-mode .modal {
+  background: var(--glass-bg-dark);
   color: #fff;
+  border: 1px solid var(--glass-border-dark);
+  box-shadow: var(--shadow-dark);
+}
+.modal h3 { text-align: center; margin-bottom: 10px; }
+
+/* modal buttons */
+.modal .btn {
+  display: block; width: 100%; margin: 8px 0; padding: 10px;
+  border: none; border-radius: 12px;
+  background: rgba(0, 123, 255, .92); color: #fff; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0,123,255,.22);
+  transition: transform .18s ease, background .2s ease, box-shadow .25s ease;
+  backdrop-filter: blur(8px) saturate(140%);
+}
+.modal .btn:hover {
+  background: rgba(0,123,255,1);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0,123,255,.30);
 }
 
-/* ===== Scrollbars ===== */
-#history::-webkit-scrollbar {
-  width: 6px;
+/* close button (perfect circle) */
+.close-btn {
+  width: 32px; height: 32px; aspect-ratio: 1/1; border-radius: 50%;
+  border: none; background: #007bff; color: #fff; font-size: .9rem; font-weight: 800;
+  line-height: 1; display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: transform .18s ease, background .2s ease, box-shadow .25s ease;
 }
-#history::-webkit-scrollbar-thumb {
-  background-color: #007bff;
-  border-radius: 8px;
+.close-btn:hover {
+  background: #339dff;
+  transform: scale(1.08);
+  box-shadow: 0 0 8px rgba(51,157,255,.65);
 }
-#history::-webkit-scrollbar-track {
-  background: transparent;
+
+/* =========================
+   SETTINGS MODAL — REVERTED (SOLID CARD)
+   (No glass here, as requested)
+========================= */
+#settingsModal {
+  background: #ffffff !important;
+  color: #0b1220 !important;
+  border: 1px solid #e6eaf3 !important;
+  box-shadow: 0 18px 50px rgba(0,0,0,.18) !important;
+  backdrop-filter: none !important;
 }
+body.dark-mode #settingsModal {
+  background: #1f2937 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  box-shadow: 0 18px 50px rgba(0,0,0,.55) !important;
+}
+#settingsModal h3, #settingsModal h4 {
+  color: inherit !important; text-shadow: none !important;
+}
+#settingsModal .btn {
+  background: #007bff !important; color: #fff !important;
+  box-shadow: 0 10px 24px rgba(0,123,255,.20) !important;
+}
+#settingsModal .btn:hover {
+  background: #0068d4 !important;
+}
+
+/* toggle rows */
+#settingsModal label {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 8px; margin:6px 0;
+  border:1px solid #e6eaf3; border-radius:12px; background:#fafcff;
+}
+body.dark-mode #settingsModal label {
+  border-color: rgba(255,255,255,.12);
+  background: #111827;
+}
+#newCategoryInput {
+  width: 100%; padding: 10px 12px; margin-top: 6px;
+  border: 1px solid #e6eaf3; border-radius: 10px; background: #fff; color: #0b1220;
+}
+body.dark-mode #newCategoryInput {
+  border-color: rgba(255,255,255,.12);
+  background: #111827; color: #fff;
+}
+
+/* =========================
+   FULLSCREEN HISTORY PANEL (uses glass wrapper)
+========================= */
+.sleek-modal {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  z-index: 10000;
+  width: 94vw; max-width: 800px; max-height: 90vh; overflow: auto;
+  border-radius: 16px; padding: 16px;
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border-light);
+  color: #0b1220;
+  box-shadow: var(--shadow-light);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+body.dark-mode .sleek-modal {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+  color: #fff;
+  box-shadow: var(--shadow-dark);
+}
+
+/* =========================
+   RTL SUPPORT
+========================= */
+body[dir="rtl"] { direction: rtl; text-align: right; }
+body[dir="rtl"] .calculator-box h1 { text-align: center; }
