@@ -1,184 +1,328 @@
-/* ========= THEME TOKENS ========= */
-:root{
-  --primary:#007bff;
-  --primary-hover:#005ed6;
-  --bg:#ffffff;
-  --text:#0f172a;
-  --card:#f7f7f7;
-  --muted-border:#d0d7e2;
-  --muted:#e5f0ff;
-  --muted-text:#0a3a8b;
-  --elev:0 8px 24px rgba(2,6,23,.08);
-}
-body.dark-mode{
-  --primary:#3b82f6;
-  --primary-hover:#2563eb;
-  --bg:#0b0f1a;
-  --text:#e5e7eb;
-  --card:#121826;
-  --muted-border:#374151;
-  --muted:#243146;
-  --muted-text:#d7e6ff;
-  --elev:0 14px 36px rgba(0,0,0,.45);
+/* ===== General Reset ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* ========= RESET / BASE ========= */
-*{box-sizing:border-box;margin:0;padding:0;transition:background-color .2s,color .2s,border-color .2s}
-body{
-  font-family: Segoe UI, system-ui, Arial, sans-serif;
-  padding:20px;
-  background:var(--bg);
-  color:var(--text);
+body {
+  font-family: "Segoe UI", system-ui, Arial, sans-serif;
+  padding: 20px;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ========= CONTAINER ========= */
-.calculator-box{
-  width:360px; margin:0 auto;
-  background:var(--card);
-  border-radius:20px; padding:20px;
-  box-shadow:var(--elev); position:relative;
-}
-h1{ text-align:center; margin-bottom:12px; color:var(--primary); }
-#clock,#budget{ text-align:center; margin:6px 0; }
-#budget{ font-size:3rem; font-weight:700; }
-
-/* ========= KEYPAD & BUTTONS ========= */
-.numpad,.buttons{
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:12px 0;
-}
-button{
-  flex:1 1 45%; padding:12px; border:none; border-radius:12px;
-  font-weight:600; background:var(--primary); color:#fff; cursor:pointer;
-  box-shadow: 0 4px 10px rgba(2,132,199,.15);
-}
-button:hover{ background:var(--primary-hover); }
-
-.numpad button{
-  flex:1 1 30%;
-  /* smaller keypad per your request */
-  padding:12px;
-  background:#3b3b3b;
-  font-size:1.25rem;
-  box-shadow:none;
-}
-body.dark-mode .numpad button{ background:#2a2f3a; }
-
-/* amount display */
-#input-display{
-  width:100%; text-align:right; font-size:24px; padding:10px;
-  border:none; background:transparent; color:inherit;
+/* ===== Light & Dark Modes ===== */
+body.light-mode {
+  background: #ffffff;
+  color: #000000;
 }
 
-/* ========= HISTORY ========= */
-.history-header{
-  display:flex; align-items:center; justify-content:space-between;
-  margin:6px 0 8px; font-weight:700;
-}
-.history-toggle{
-  padding:6px 10px; border-radius:10px; font-size:12px;
-  background:var(--muted); color:var(--muted-text); border:none;
-}
-#history{
-  max-height:220px; overflow:auto; background:#fff; border:1px solid var(--muted-border);
-  border-radius:12px; padding:10px;
-}
-body.dark-mode #history{ background:#1b2332; }
-
-/* ========= THEME & SETTINGS ICONS ========= */
-#mode-toggle{
-  position:fixed; right:16px; bottom:16px; font-size:26px; cursor:pointer; z-index:1000;
-}
-#settings-icon{
-  position:absolute; top:10px; right:15px; font-size:22px; cursor:pointer;
-  transition:transform .4s ease, filter .2s;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.2));
-}
-#settings-icon:hover{ transform:rotate(90deg) scale(1.08); }
-
-/* ========= OVERLAY ========= */
-#overlay{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.45);
-  display:none; z-index:9998;
-  backdrop-filter:saturate(140%) blur(2px);
+body.dark-mode {
+  background: #121212;
+  color: #e0e0e0;
 }
 
-/* ========= MODALS (Shared) ========= */
-.modal{
-  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
-  width:min(460px, 94vw); max-height:85vh; overflow:auto;
-  /* glassmorphism: */
-  background: linear-gradient(160deg, rgba(255,255,255,.80), rgba(255,255,255,.65));
-  border:1px solid rgba(255,255,255,.45);
-  border-radius:16px; padding:18px 18px 16px 18px;
-  box-shadow: var(--elev);
-  display:none; z-index:9999;
-  animation: modalIn .25s ease;
-  backdrop-filter: blur(14px) saturate(140%);
-  color:#0f172a;
-}
-body.dark-mode .modal{
-  background: linear-gradient(160deg, rgba(17,24,39,.85), rgba(17,24,39,.7));
-  border:1px solid rgba(148,163,184,.25);
-  color:#e5e7eb;
-}
-@keyframes modalIn{ from{opacity:0; transform:translate(-50%,-46%);} to{opacity:1; transform:translate(-50%,-50%);} }
-
-/* Settings modal header */
-#settingsModal h3{
-  text-align:center; margin-bottom:8px;
-  color:var(--primary); letter-spacing:.3px;
-}
-#settingsModal hr{
-  border:none; height:1px; background:var(--muted-border);
-  margin:6px 0 10px;
-}
-#settingsModal h4{
-  margin:10px 0 8px; color:var(--primary); font-size:.95rem; letter-spacing:.2px;
+/* ===== Calculator Box ===== */
+.calculator-box {
+  width: 360px;
+  margin: 0 auto;
+  background: #f8f9fc;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
 }
 
-/* Buttons inside settings */
-#settingsModal .btn{
-  width:100%; margin:8px 0 0 0; padding:12px;
-  border:none; border-radius:12px; background:var(--primary); color:#fff;
-  font-weight:700; transition:transform .08s ease, background .2s ease;
-  box-shadow: 0 6px 18px rgba(2,132,199,.25);
-}
-#settingsModal .btn:hover{ transform:translateY(-1px); background:var(--primary-hover); }
-
-/* Feature toggles — pill switches */
-#settingsModal label{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 6px; border:1px solid var(--muted-border);
-  border-radius:12px; margin:6px 0; background:rgba(0,0,0,.02);
-}
-#settingsModal label input[type="checkbox"]{
-  appearance:none; width:44px; height:26px; border-radius:999px;
-  background:#cbd5e1; position:relative; outline:none; cursor:pointer; transition:background .2s;
-}
-#settingsModal label input[type="checkbox"]::after{
-  content:''; position:absolute; top:3px; left:3px; width:20px; height:20px;
-  background:#fff; border-radius:50%; transition:left .2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,.15);
-}
-#settingsModal label input[type="checkbox"]:checked{
-  background:var(--primary);
-}
-#settingsModal label input[type="checkbox"]:checked::after{
-  left:21px;
+body.dark-mode .calculator-box {
+  background: #1e1e1e;
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.05);
 }
 
-/* Category list rows */
-#categoryList > div{
-  padding:8px 10px; margin:6px 0; border:1px dashed var(--muted-border);
-  border-radius:10px; background:rgba(0,0,0,.015);
-}
-#newCategoryInput{
-  width:100%; padding:10px 12px; margin-top:8px;
-  border:1px solid var(--muted-border); border-radius:10px;
-  background:transparent; color:inherit;
+h1 {
+  text-align: center;
+  margin-bottom: 14px;
+  color: #007bff;
+  font-weight: 700;
 }
 
-/* Arabic (RTL) */
-body[dir="rtl"]{ direction:rtl; text-align:right; }
-body[dir="rtl"] .calculator-box h1{ text-align:center; }
+/* ===== Clock & Budget ===== */
+#clock,
+#budget {
+  text-align: center;
+  margin: 6px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+#budget {
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+/* ===== Input Display ===== */
+#input-display {
+  width: 100%;
+  text-align: right;
+  font-size: 24px;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+/* ===== Number Pad ===== */
+.numpad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.numpad button {
+  flex: 1 1 28%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #007bff;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.numpad button:hover {
+  background: #005ed6;
+  transform: scale(1.05);
+}
+
+/* ===== Buttons Row ===== */
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 14px 0;
+}
+
+.buttons button {
+  flex: 1 1 45%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.buttons button:hover {
+  background: #005ed6;
+  transform: scale(1.05);
+}
+
+/* ===== History Section ===== */
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 10px;
+}
+
+.history-toggle {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: #e5f0ff;
+  color: #0a3a8b;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+body.dark-mode .history-toggle {
+  background: #243146;
+  color: #d7e6ff;
+}
+
+.history-toggle:hover {
+  background: #cfe3ff;
+}
+
+#history {
+  max-height: 220px;
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+body.dark-mode #history {
+  background: #2c2c2c;
+  border-color: #555;
+}
+
+/* ===== Mode Toggle ===== */
+#mode-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+#mode-toggle:hover {
+  transform: rotate(15deg);
+}
+
+/* ===== Overlay ===== */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  z-index: 9998;
+}
+
+/* ===== Modals ===== */
+.modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  background: #ffffff;
+  color: #111;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: none;
+  z-index: 9999;
+}
+
+body.dark-mode .modal {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.modal h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* ===== Modal Buttons ===== */
+.modal .btn {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #007bff;
+  color: #fff;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.modal .btn:hover {
+  background: #005ed6;
+  transform: scale(1.05);
+}
+
+/* ===== Perfect Round Close Button ===== */
+.close-btn {
+  width: 32px;
+  height: 32px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: none;
+  background: #007bff;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #339dff;
+  transform: scale(1.1);
+  box-shadow: 0 0 6px rgba(51, 157, 255, 0.6);
+}
+
+/* ===== Settings Icon ===== */
+#settings-icon {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+#settings-icon:hover {
+  transform: rotate(45deg);
+}
+
+/* ===== Scrollbar Styling ===== */
+#history::-webkit-scrollbar {
+  width: 6px;
+}
+
+#history::-webkit-scrollbar-thumb {
+  background-color: #007bff;
+  border-radius: 8px;
+}
+
+#history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===== Fullscreen History Overlay ===== */
+.sleek-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  background: #fff;
+  color: #111;
+  border-radius: 16px;
+  padding: 16px;
+  max-width: 800px;
+  width: 94vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .sleek-modal {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+/* ===== Inputs ===== */
+#newCategoryInput {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+body.dark-mode #newCategoryInput {
+  border-color: #555;
+  background: #2a2a2a;
+  color: #fff;
+}
