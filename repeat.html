@@ -10,20 +10,21 @@
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
   <style>
-    :root{
-      --bg:#0b1426; --card:#0f1f3a; --border:#1e335a;
-      --text:#eaf0ff; --muted:#a8b3cf; --accent:#0a6bff;
-      --chip:#142646; --chip-on:#0a6bff;
-    }
+    :root{ --bg:#0b1426; --card:#0f1f3a; --border:#1e335a; --text:#eaf0ff; --muted:#a8b3cf; --accent:#0a6bff; --chip:#142646; }
     *{box-sizing:border-box} html{-webkit-text-size-adjust:100%}
     body{margin:0;padding-top:env(safe-area-inset-top);background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
-    .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
-      padding:14px 16px;background:rgba(8,16,32,.6);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+    .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(8,16,32,.6);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
     .title{font-weight:700}
+    .navlink{color:#cfd6e6;text-decoration:none}
     .iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#10254a;color:#fff;border:1px solid var(--border);cursor:pointer}
-    .container{padding:18px;max-width:680px;margin:0 auto}
+    .container{padding:18px;max-width:760px;margin:0 auto}
     .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
     .empty{color:var(--muted);font-size:14px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;align-items:center;justify-content:space-between;background:#0e1c36;border:1px solid var(--border);border-radius:12px;padding:12px}
+    .badges{display:flex;gap:8px;flex-wrap:wrap}
+    .badge{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px;color:#cfd6e6}
+    .amt{font-weight:800}
     /* inline menu */
     #mbMenu{position:absolute;display:none;z-index:99999;min-width:180px}
     #mbMenu .sheet{background:#0e1c36;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.35);overflow:hidden}
@@ -34,16 +35,19 @@
 </head>
 <body>
   <div class="topbar">
+    <a class="navlink" href="index.html">Back</a>
     <div class="title">Repeats</div>
-    <!-- IMPORTANT: this id is what the script hooks to -->
     <button class="iconbtn" id="plusBtn" aria-label="Add">+</button>
   </div>
 
   <div class="container">
-    <div class="card"><div class="empty">No repeat entries yet.</div></div>
+    <div class="card">
+      <div id="list" class="list"></div>
+      <div id="empty" class="empty" style="display:none">No repeat entries yet.</div>
+    </div>
   </div>
 
-  <!-- small dropdown menu under the + -->
+  <!-- dropdown under the + -->
   <div id="mbMenu">
     <div class="sheet">
       <button class="item" data-go="repeat">Repeat</button>
@@ -53,47 +57,56 @@
   </div>
 
   <script>
-    // Prevent zoom on mobile
-    (function(){
-      document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
-      let lastTouch=0;
-      document.addEventListener('touchend', e => { const now=Date.now(); if(now-lastTouch<=300){e.preventDefault();} lastTouch=now; }, {passive:false});
-      document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, {passive:false});
-    })();
+    // Helpers
+    const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+    const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-    // Menu logic (intercepts the + click so it doesn't auto-navigate)
+    // Render existing repeats
+    function render() {
+      const data = get('mb:repeatEntries', []);
+      const list = document.getElementById('list');
+      const empty = document.getElementById('empty');
+      list.innerHTML = '';
+      if (!data.length) { empty.style.display='block'; return; }
+      empty.style.display='none';
+      data.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div>
+            <div class="amt">${item.type === 'subtract' ? '−' : '+'}$${(item.amount||0).toFixed(2)}</div>
+            <div style="font-size:12px;color:#a8b3cf">at ${item.time || '—'}</div>
+          </div>
+          <div class="badges">
+            ${ (item.days||[]).map(d=>`<span class="badge">${d}</span>`).join('') }
+          </div>`;
+        list.appendChild(row);
+      });
+    }
+
+    // Menu logic
     (function(){
       const plus = document.getElementById('plusBtn');
       const menu = document.getElementById('mbMenu');
 
-      function positionMenu(){
+      function pos() {
         const r = plus.getBoundingClientRect();
-        const top = Math.max(0, r.bottom + 6 + window.scrollY);
-        const left = Math.max(8, (r.right - 180) + window.scrollX);
-        menu.style.top = top + 'px';
-        menu.style.left = left + 'px';
+        menu.style.top = (r.bottom + 6 + window.scrollY) + 'px';
+        menu.style.left = (r.right - 180 + window.scrollX) + 'px';
       }
-
       plus.addEventListener('click', (e)=>{
-        e.preventDefault();
-        e.stopPropagation();        // <-- this prevents any default link behavior
-        positionMenu();
-        menu.style.display = 'block';
-        const close = (ev)=>{
-          if (!menu.contains(ev.target) && ev.target !== plus) {
-            menu.style.display = 'none';
-            document.removeEventListener('click', close, true);
-          }
-        };
-        setTimeout(()=>document.addEventListener('click', close, true), 0);
+        e.preventDefault(); e.stopPropagation();
+        pos(); menu.style.display='block';
+        const close = (ev)=>{ if(!menu.contains(ev.target) && ev.target !== plus){ menu.style.display='none'; document.removeEventListener('click', close, true); } };
+        setTimeout(()=>document.addEventListener('click', close, true),0);
       });
-
       menu.addEventListener('click', (e)=>{
         const btn = e.target.closest('.item'); if(!btn) return;
-        if (btn.dataset.go === 'repeat')  window.location.href = 'repeat_add.html';
-        else                               window.location.href = 'one_time_add.html';
+        window.location.href = btn.dataset.go === 'repeat' ? 'repeat_add.html' : 'one_time_add.html';
       });
     })();
+
+    render();
   </script>
 </body>
 </html>
