@@ -69,19 +69,22 @@
   </div>
 
 <script>
-  /* Theme sync */
-  if (localStorage.getItem('theme')==='dark') {
+  /* ===== Theme Sync ===== */
+  if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-mode');
   } else {
     document.body.classList.add('light-mode');
   }
 
+  /* ===== Navigation Helpers (robust back) ===== */
   function goTo(path){ window.location.href = path; }
   function goBackOr(fallback){
-    if (window.history.length > 1) { window.history.back(); }
-    else { window.location.href = fallback; }
+    const ref = document.referrer;
+    if (ref && !ref.includes(location.href)) { history.back(); }
+    else { location.href = fallback; }
   }
 
+  /* ===== List rendering ===== */
   function fmtEntry(e){
     const cur = localStorage.getItem('currency') || '$';
     const sign = (e.type||'add')==='add' ? '+' : '-';
