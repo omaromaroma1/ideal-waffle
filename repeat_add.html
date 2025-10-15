@@ -41,7 +41,7 @@
         </div>
         <div>
           <label>Type</label>
-          <div class="chips" id="typeChips" role="group" aria-label="Add/Subtract">
+          <div class="chips" id="typeChips" role="group">
             <div class="chip active" data-type="add">Add</div>
             <div class="chip" data-type="subtract">Subtract</div>
           </div>
@@ -70,8 +70,21 @@
   <script>
     const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
     const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+    const qs = new URLSearchParams(location.search);
+    const editId = qs.get('edit');
 
-    // chips
+    // Prefill if editing
+    if (editId){
+      const arr = get('mb:repeatEntries', []);
+      const it = arr.find(x => x.id === editId);
+      if (it){
+        document.getElementById('amount').value = it.amount ?? '';
+        document.getElementById('time').value = it.time ?? '';
+        document.querySelectorAll('#typeChips .chip').forEach(c => c.classList.toggle('active', c.dataset.type === it.type));
+        (it.days||[]).forEach(d => { const chip = document.querySelector(`#dow .chip[data-dow="${d}"]`); if (chip) chip.classList.add('active'); });
+      }
+    }
+
     document.getElementById('typeChips').addEventListener('click', (e)=>{
       const chip = e.target.closest('.chip'); if(!chip) return;
       document.querySelectorAll('#typeChips .chip').forEach(x=>x.classList.remove('active'));
@@ -81,21 +94,24 @@
       const c = e.target.closest('.chip'); if(!c) return; c.classList.toggle('active');
     });
 
-    // SAVE → persist to mb:repeatEntries then go back
     document.getElementById('saveBtn').addEventListener('click', ()=>{
       const type = document.querySelector('#typeChips .chip.active')?.dataset.type || 'add';
       const amount = parseFloat((document.getElementById('amount').value||'').replace(',','.')) || 0;
       const days = Array.from(document.querySelectorAll('#dow .chip.active')).map(x=>x.dataset.dow);
       const time = document.getElementById('time').value || null;
 
-      const entries = get('mb:repeatEntries', []);
-      entries.push({ id: crypto.randomUUID?.() || String(Date.now()), type, amount, days, time, createdAt: new Date().toISOString() });
-      set('mb:repeatEntries', entries);
-
+      const key = 'mb:repeatEntries';
+      const arr = get(key, []);
+      if (editId){
+        const idx = arr.findIndex(x => x.id === editId);
+        if (idx !== -1) arr[idx] = { ...arr[idx], type, amount, days, time, updatedAt: new Date().toISOString() };
+      } else {
+        arr.push({ id: crypto.randomUUID?.() || String(Date.now()), type, amount, days, time, createdAt: new Date().toISOString() });
+      }
+      set(key, arr);
       window.location.href = 'repeat.html';
     });
 
-    // iOS anti-zoom
     document.querySelectorAll('input').forEach(el=>{ el.style.fontSize='16px'; });
   </script>
 </body>
