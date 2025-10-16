@@ -364,119 +364,186 @@
     document.addEventListener('wheel', e=>{ if(e.ctrlKey) e.preventDefault(); }, {passive:false});
   })();
   </script>
-
-  <!-- ======= FIREBASE AUTH (Email, Google, Phone, Reset) ======= -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import {
-      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
-      signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
-      RecaptchaVerifier, signInWithPhoneNumber
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
+    signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+    getRedirectResult, RecaptchaVerifier, signInWithPhoneNumber
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDd2lvw5Bkts_ZYq6B_TdPVEE1PthTDcZk",
-      authDomain: "money-budgeter.firebaseapp.com",
-      projectId: "money-budgeter",
-      storageBucket: "money-budgeter.appspot.com",
-      messagingSenderId: "75231300827",
-      appId: "1:75231300827:web:0ed7ad72f0c9647cdf10fe",
-      measurementId: "G-J4ESLJBFVE"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDd2lvw5Bkts_ZYq6B_TdPVEE1PthTDcZk",
+    authDomain: "money-budgeter.firebaseapp.com",
+    projectId: "money-budgeter",
+    storageBucket: "money-budgeter.appspot.com",
+    messagingSenderId: "75231300827",
+    appId: "1:75231300827:web:0ed7ad72f0c9647cdf10fe",
+    measurementId: "G-J4ESLJBFVE"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const google = new GoogleAuthProvider();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+  const google = new GoogleAuthProvider();
 
-    const openAuth   = document.getElementById('openAuth');
-    const signOutBtn = document.getElementById('signOutBtn');
-    const sheet      = document.getElementById('authSheet');
-    const backdrop   = document.getElementById('authBackdrop');
-    const closeBtn   = document.getElementById('authClose');
-    const tabIn      = document.getElementById('tabSignIn');
-    const tabUp      = document.getElementById('tabSignUp');
-    const emailInput = document.getElementById('emailInput');
-    const passInput  = document.getElementById('passInput');
-    const errEl      = document.getElementById('authErr');
-    const actionBtn  = document.getElementById('authAction');
-    const resetBtn   = document.getElementById('resetBtnAuth');
+  // ====== UI refs (match the HTML I gave you) ======
+  const openAuth   = document.getElementById('openAuth');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const sheet      = document.getElementById('authSheet');
+  const backdrop   = document.getElementById('authBackdrop');
+  const closeBtn   = document.getElementById('authClose');
+  const tabIn      = document.getElementById('tabSignIn');
+  const tabUp      = document.getElementById('tabSignUp');
+  const emailInput = document.getElementById('emailInput');
+  const passInput  = document.getElementById('passInput');
+  const errEl      = document.getElementById('authErr');
+  const actionBtn  = document.getElementById('authAction');
+  const resetBtn   = document.getElementById('resetBtnAuth');
 
-    const phoneInput = document.getElementById('phoneInput');
-    const recaptchaDiv = document.getElementById('recaptcha-container');
-    const phoneBtn  = document.getElementById('phoneBtn');
-    const smsCode   = document.getElementById('smsCode');
-    const confirmBtn= document.getElementById('confirmCodeBtn');
+  // phone auth
+  const phoneInput = document.getElementById('phoneInput');
+  const recaptchaDiv = document.getElementById('recaptcha-container');
+  const phoneBtn  = document.getElementById('phoneBtn');
+  const smsCode   = document.getElementById('smsCode');
+  const confirmBtn= document.getElementById('confirmCodeBtn');
 
-    let mode='signin', confirmationResult=null, recaptchaVerifier=null;
+  let mode='signin', confirmationResult=null, recaptchaVerifier=null;
 
-    const show = el => el.classList.remove('hidden');
-    const hide = el => el.classList.add('hidden');
+  // ====== Helpers ======
+  const show = el => el?.classList.remove('hidden');
+  const hide = el => el?.classList.add('hidden');
+  function openSheet(){ show(sheet); show(backdrop); errEl.textContent=''; }
+  function closeSheet(){ hide(sheet); hide(backdrop); errEl.textContent=''; }
+  openAuth.onclick = openSheet; closeBtn.onclick = closeSheet; backdrop.onclick = closeSheet;
 
-    function openSheet(){ show(sheet); show(backdrop); errEl.textContent=''; }
-    function closeSheet(){ hide(sheet); hide(backdrop); errEl.textContent=''; }
+  tabIn.onclick = ()=>{ mode='signin';  tabIn.classList.add('active'); tabUp.classList.remove('active'); actionBtn.textContent='Sign In';  errEl.textContent=''; };
+  tabUp.onclick = ()=>{ mode='signup'; tabUp.classList.add('active'); tabIn.classList.remove('active'); actionBtn.textContent='Create Account'; errEl.textContent=''; };
 
-    openAuth.addEventListener('click', openSheet);
-    closeBtn.addEventListener('click', closeSheet);
-    backdrop.addEventListener('click', closeSheet);
+  // ====== Email password ======
+  actionBtn.onclick = async ()=>{
+    errEl.textContent='';
+    const email=(emailInput.value||'').trim(), pass=(passInput.value||'').trim();
+    if(!email || !pass){ errEl.textContent='Enter email and password.'; return; }
+    try{
+      if(mode==='signup') await createUserWithEmailAndPassword(auth, email, pass);
+      else                await signInWithEmailAndPassword(auth, email, pass);
+      closeSheet();
+    }catch(e){ errEl.textContent = (e.code||'auth/error')+': '+e.message; }
+  };
 
-    tabIn.addEventListener('click', ()=>{ mode='signin'; tabIn.classList.add('active'); tabUp.classList.remove('active'); actionBtn.textContent='Sign In'; errEl.textContent=''; });
-    tabUp.addEventListener('click', ()=>{ mode='signup'; tabUp.classList.add('active'); tabIn.classList.remove('active'); actionBtn.textContent='Create Account'; errEl.textContent=''; });
+  resetBtn.onclick = async ()=>{
+    const email=(emailInput.value||'').trim();
+    if(!email){ errEl.textContent='Enter your email first.'; return; }
+    try{ await sendPasswordResetEmail(auth, email); errEl.textContent='Reset link sent ✅'; }
+    catch(e){ errEl.textContent = e.message; }
+  };
 
-    actionBtn.addEventListener('click', async ()=>{
-      errEl.textContent='';
-      const email=(emailInput.value||'').trim(), pass=(passInput.value||'').trim();
-      if(!email || !pass){ errEl.textContent='Enter email and password.'; return; }
-      try{
-        if(mode==='signup'){ await createUserWithEmailAndPassword(auth, email, pass); }
-        else { await signInWithEmailAndPassword(auth, email, pass); }
-        closeSheet();
-      }catch(e){ errEl.textContent = (e.code||'auth/error')+': '+e.message; }
-    });
-
-    resetBtn.addEventListener('click', async ()=>{
-      const email=(emailInput.value||'').trim();
-      if(!email){ errEl.textContent='Enter your email first.'; return; }
-      try{ await sendPasswordResetEmail(auth, email); errEl.textContent='Reset link sent ✅'; }
-      catch(e){ errEl.textContent=e.message; }
-    });
-
-    document.getElementById('googleBtn').addEventListener('click', async ()=>{
-      errEl.textContent='';
-      try{ await signInWithPopup(auth, google); closeSheet(); }
-      catch(e){ errEl.textContent=e.message; }
-    });
-
-    function ensureRecaptcha(){
-      if(recaptchaVerifier) return;
-      show(recaptchaDiv);
-      recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size:'normal' });
+  // ====== Google sign in (popup with redirect fallback) ======
+  async function googleSignIn(){
+    errEl.textContent='';
+    try{
+      await signInWithPopup(auth, google);
+      closeSheet();
+    }catch(e){
+      // Common causes: popup blocked / iOS / 3rd-party cookies → redirect fallback
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/unauthorized-domain') {
+        await signInWithRedirect(auth, google);
+      } else {
+        errEl.textContent = e.message;
+      }
     }
+  }
+  document.getElementById('googleBtn').onclick = googleSignIn;
+  // Handle redirect result (iOS/Safari)
+  getRedirectResult(auth).catch(e => { if (e) console.warn(e); });
 
-    phoneBtn.addEventListener('click', async ()=>{
-      errEl.textContent='';
-      const phone=(phoneInput.value||'').trim();
-      if(!phone){ errEl.textContent='Enter phone number.'; return; }
-      try{
-        ensureRecaptcha();
-        confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-        smsCode.style.display='block'; confirmBtn.style.display='inline-block';
-        errEl.textContent='Code sent. Check SMS.';
-      }catch(e){ errEl.textContent=e.message; }
-    });
+  // ====== Phone sign in ======
+  function ensureRecaptcha(){
+    if (recaptchaVerifier) return;
+    show(recaptchaDiv);
+    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size:'normal' });
+  }
+  phoneBtn.onclick = async ()=>{
+    errEl.textContent='';
+    const phone=(phoneInput.value||'').trim();
+    if(!phone){ errEl.textContent='Enter phone number.'; return; }
+    try{
+      ensureRecaptcha();
+      confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+      smsCode.style.display='block'; confirmBtn.style.display='inline-block';
+      errEl.textContent='Code sent. Check SMS.';
+    }catch(e){ errEl.textContent = e.message; }
+  };
+  confirmBtn.onclick = async ()=>{
+    const code=(smsCode.value||'').trim();
+    if(!code || !confirmationResult){ errEl.textContent='Enter the SMS code.'; return; }
+    try{ await confirmationResult.confirm(code); closeSheet(); }
+    catch(e){ errEl.textContent = e.message; }
+  };
 
-    confirmBtn.addEventListener('click', async ()=>{
-      const code=(smsCode.value||'').trim();
-      if(!code || !confirmationResult){ errEl.textContent='Enter the SMS code.'; return; }
-      try{ await confirmationResult.confirm(code); closeSheet(); }
-      catch(e){ errEl.textContent=e.message; }
-    });
+  // ====== Sign out ======
+  signOutBtn.onclick = ()=>signOut(auth);
 
-    signOutBtn.addEventListener('click', ()=>signOut(auth));
+  // ====== Firestore sync (per-user) ======
+  async function loadUserData(uid){
+    try{
+      const ref = doc(db,'users',uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()){
+        // Load cloud -> local app state
+        const d = snap.data();
+        window.budget = Number(d.budget ?? 0);
+        window.history = Array.isArray(d.history) ? d.history : [];
+        // save locally and refresh UI
+        localStorage.setItem('budget', window.budget);
+        localStorage.setItem('history', JSON.stringify(window.history));
+        if (typeof updateBudget === 'function') updateBudget();
+        if (typeof renderHistory === 'function') renderHistory();
+      } else {
+        // First time for this user -> seed with current local values
+        await setDoc(ref, {
+          budget: window.budget ?? 0,
+          history: Array.isArray(window.history) ? window.history : [],
+          updatedAt: serverTimestamp()
+        });
+      }
+    }catch(e){ console.warn('loadUserData error:', e); }
+  }
 
-    onAuthStateChanged(auth, (user)=>{
-      if(user){ openAuth.textContent='Account'; show(signOutBtn); }
-      else { openAuth.textContent='👤 Sign In'; hide(signOutBtn); }
-    });
-  </script>
+  // Patch your existing save function to also write to Firestore
+  const _saveBudget = window.saveBudget; // keep original
+  window.saveBudget = async function(){
+    try{
+      // call your original local save
+      _saveBudget && _saveBudget();
+      // then sync to Firestore if signed in
+      const u = auth.currentUser;
+      if (u){
+        await setDoc(doc(db,'users',u.uid), {
+          budget: window.budget ?? 0,
+          history: Array.isArray(window.history) ? window.history : [],
+          updatedAt: serverTimestamp()
+        }, { merge:true });
+      }
+    }catch(e){ console.warn('saveBudget sync error:', e); }
+  };
+
+  // React to auth changes
+  onAuthStateChanged(auth, (user)=>{
+    if (user){
+      openAuth.textContent='Account';
+      document.querySelector('#signOutBtn')?.classList.remove('hidden');
+      loadUserData(user.uid);
+    } else {
+      openAuth.textContent='👤 Sign In';
+      document.querySelector('#signOutBtn')?.classList.add('hidden');
+      // keep showing local data for signed-out mode
+    }
+  });
+</script>
 </body>
 </html>
