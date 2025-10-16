@@ -12,8 +12,90 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Money Budgeter</title>
 <link rel="stylesheet" href="style.css" />
+<style>
+  /* === AUTH POPUP (sleek & modern) === */
+  .auth-fab {
+    position: fixed; top: 12px; right: 12px; z-index: 10000;
+    display: flex; gap: 8px;
+  }
+  .auth-btn {
+    padding: 8px 14px; border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; background: #0a6bff; color: #fff; font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(10,107,255,.35);
+  }
+  .auth-btn.secondary { background: #142646; }
+  .auth-btn.hidden { display: none; }
+
+  /* Backdrop */
+  .auth-backdrop {
+    position: fixed; inset: 0; background: rgba(3,10,22,.55);
+    backdrop-filter: blur(10px) saturate(130%); z-index: 9998; display: none;
+  }
+  /* Sheet */
+  .auth-sheet {
+    position: fixed; right: 12px; top: 56px; z-index: 9999; display: none;
+    width: min(380px, 92vw); border-radius: 16px; overflow: hidden;
+    border: 1px solid rgba(210,225,255,.16);
+    background: linear-gradient(180deg, rgba(16,28,58,.9), rgba(10,18,36,.9));
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .auth-head {
+    display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+    border-bottom:1px solid rgba(255,255,255,.08); color: #eaf0ff; font-weight: 800;
+  }
+  .auth-close { background: transparent; border:0; color:#cfd6e6; font-size:18px; cursor:pointer; }
+  .auth-tabs { display:flex; gap:8px; padding:10px 12px; }
+  .auth-tab {
+    flex:1; text-align:center; padding:10px 12px; cursor:pointer; border-radius:10px;
+    color:#cfd6e6; border:1px solid rgba(255,255,255,.12); background:#0c1a33;
+  }
+  .auth-tab.active { background:#0a6bff; color:#fff; border-color:#0a6bff; }
+  .auth-body { padding:12px 14px; display:grid; gap:10px; }
+  .auth-input {
+    width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,.14);
+    background:#0c1a33; color:#fff; font-size:16px;
+  }
+  .auth-action {
+    width:100%; padding:12px; border-radius:10px; border:0; cursor:pointer; font-weight:800;
+    background:#0a6bff; color:#fff; box-shadow: 0 10px 20px rgba(10,107,255,.3);
+  }
+  .auth-note { font-size:12px; color:#a8b3cf; text-align:center; }
+  .auth-error { color:#ff9aa2; font-size:13px; min-height:18px; text-align:center; }
+  .user-chip {
+    padding:8px 12px; border-radius:999px; background:#10254a; color:#eaf0ff; border:1px solid rgba(255,255,255,.12);
+    max-width: 42vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+</style>
 </head>
 <body>
+  <!-- Auth buttons (top-right) -->
+  <div class="auth-fab">
+    <span id="userChip" class="user-chip hidden"></span>
+    <button id="openAuth" class="auth-btn">Sign In</button>
+    <button id="signOutBtn" class="auth-btn secondary hidden">Sign Out</button>
+  </div>
+
+  <!-- Stylish popup -->
+  <div id="authBackdrop" class="auth-backdrop"></div>
+  <div id="authSheet" class="auth-sheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-head">
+      <div id="authTitle">Account</div>
+      <button class="auth-close" id="authClose">✕</button>
+    </div>
+    <div class="auth-tabs">
+      <button id="tabSignIn" class="auth-tab active">Sign In</button>
+      <button id="tabSignUp" class="auth-tab">Sign Up</button>
+    </div>
+    <div class="auth-body">
+      <input id="emailInput" class="auth-input" type="email" placeholder="Email" autocomplete="email" />
+      <input id="passInput" class="auth-input" type="password" placeholder="Password" autocomplete="current-password" />
+      <div id="authErr" class="auth-error"></div>
+      <button id="authAction" class="auth-action">Continue</button>
+      <div class="auth-note">Email/Password login powered by Firebase</div>
+    </div>
+  </div>
+
+  <!-- === YOUR APP (unchanged) === -->
   <div class="calculator-box">
     <div id="settings-icon" onclick="openSettings()">⚙️</div>
     <h1 id="title">Money Budgeter</h1>
@@ -380,6 +462,96 @@ init();
     if (e.ctrlKey) e.preventDefault();
   }, { passive: false });
 })();
+</script>
+
+<!-- === Firebase Auth hookup (fixes the “Firebase error” on sign-up) === -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+  // Use YOUR config (from Firebase)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDd2lvw5Bkts_ZYq6B_TdPVEE1PthTDcZk",
+    authDomain: "money-budgeter.firebaseapp.com",
+    projectId: "money-budgeter",
+    storageBucket: "money-budgeter.firebasestorage.app",
+    messagingSenderId: "75231300827",
+    appId: "1:75231300827:web:0ed7ad72f0c9647cdf10fe",
+    measurementId: "G-J4ESLJBFVE"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // UI elements
+  const openAuth   = document.getElementById('openAuth');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const userChip   = document.getElementById('userChip');
+  const sheet      = document.getElementById('authSheet');
+  const backdrop   = document.getElementById('authBackdrop');
+  const closeBtn   = document.getElementById('authClose');
+  const tabIn      = document.getElementById('tabSignIn');
+  const tabUp      = document.getElementById('tabSignUp');
+  const emailInput = document.getElementById('emailInput');
+  const passInput  = document.getElementById('passInput');
+  const errEl      = document.getElementById('authErr');
+  const actionBtn  = document.getElementById('authAction');
+
+  let mode = 'signin'; // or 'signup'
+
+  function openSheet(){ sheet.style.display='block'; backdrop.style.display='block'; errEl.textContent=''; }
+  function closeSheet(){ sheet.style.display='none'; backdrop.style.display='none'; }
+
+  openAuth.addEventListener('click', openSheet);
+  closeBtn.addEventListener('click', closeSheet);
+  backdrop.addEventListener('click', closeSheet);
+
+  tabIn.addEventListener('click', ()=>{
+    mode='signin';
+    tabIn.classList.add('active'); tabUp.classList.remove('active');
+    actionBtn.textContent = 'Sign In';
+    errEl.textContent='';
+  });
+  tabUp.addEventListener('click', ()=>{
+    mode='signup';
+    tabUp.classList.add('active'); tabIn.classList.remove('active');
+    actionBtn.textContent = 'Create Account';
+    errEl.textContent='';
+  });
+
+  actionBtn.addEventListener('click', async ()=>{
+    errEl.textContent='';
+    const email = (emailInput.value||'').trim();
+    const pass  = (passInput.value||'').trim();
+    if (!email || !pass) { errEl.textContent = 'Enter email and password.'; return; }
+    try{
+      if (mode==='signup'){
+        await createUserWithEmailAndPassword(auth, email, pass);
+      } else {
+        await signInWithEmailAndPassword(auth, email, pass);
+      }
+      closeSheet();
+    }catch(e){
+      errEl.textContent = e.message || 'Authentication error';
+    }
+  });
+
+  signOutBtn.addEventListener('click', ()=>signOut(auth));
+
+  // Keep UI in sync
+  onAuthStateChanged(auth, (user)=>{
+    if (user){
+      openAuth.textContent = 'Account';
+      signOutBtn.classList.remove('hidden');
+      userChip.classList.remove('hidden');
+      userChip.textContent = user.email || 'Signed in';
+    } else {
+      openAuth.textContent = 'Sign In';
+      signOutBtn.classList.add('hidden');
+      userChip.classList.add('hidden');
+      userChip.textContent = '';
+    }
+  });
 </script>
 </body>
 </html>
