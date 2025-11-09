@@ -180,19 +180,23 @@ body.dark-mode #categoryList > div{background:rgba(16,28,58,.65);border-color:rg
 }
 body.dark-mode #newCategoryInput{border-color:rgba(210,225,255,.18);background:rgba(16,28,58,.55);color:#fff}
 
-/* ========= Fullscreen history glass wrapper (FIXED CENTER) ========= */
+/* ========= Fullscreen history glass wrapper (FIXED CENTER ON ALL DEVICES) ========= */
 .sleek-modal{
   position:fixed;
-  inset:0;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
   margin:0;
   display:flex;
   justify-content:center;
   align-items:center;
   z-index:10000;
   background:transparent;
+  pointer-events:auto;
 }
 
-/* The actual panel inside the fullscreen modal (used by the JS full history view) */
+/* The actual panel inside the fullscreen modal */
 .sleek-modal > div{
   width:94vw;
   max-width:800px;
