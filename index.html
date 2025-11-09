@@ -1,122 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="theme-color" content="#000000" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <link rel="manifest" href="/manifest.json" />
-  <meta charset="UTF-8" />
-  <meta name="theme-color" content="#0a6bff" />
-  <title>Money Budgeter</title>
-
-  <!-- Your existing CSS (kept) -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Minimal extra CSS for auth UI + safeguards so it never blocks clicks when hidden -->
-  <style>
-    .hidden { display: none !important; }
-
-    /* Floating auth buttons */
-    .auth-fab {
-      position: fixed; top: 12px; right: 12px; z-index: 1000; display: flex; gap: 8px;
-    }
-    .auth-btn {
-      padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12);
-      background: #0a6bff; color: #fff; font-weight: 700; cursor: pointer;
-      box-shadow: 0 6px 16px rgba(10,107,255,.35);
-    }
-    .auth-btn.secondary { background: #142646; }
-
-    /* Backdrop + sheet (only visible when NOT .hidden) */
-    .auth-backdrop {
-      position: fixed; inset: 0; background: rgba(3,10,22,.55); backdrop-filter: blur(10px);
-      z-index: 998;
-    }
-    .auth-sheet {
-      position: fixed; right: 12px; top: 60px; width: min(420px, 92vw);
-      background: linear-gradient(180deg, rgba(16,28,58,.95), rgba(10,18,36,.92));
-      border: 1px solid rgba(210,225,255,.16); border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.45); z-index: 999;
-      color: #eaf0ff;
-    }
-    .auth-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
-      border-bottom:1px solid rgba(255,255,255,.08); font-weight:800; }
-    .auth-close { background: transparent; border:0; color:#cfd6e6; font-size:18px; cursor:pointer; }
-    .auth-tabs { display:flex; gap:8px; padding:10px 12px; }
-    .auth-tab { flex:1; text-align:center; padding:10px 12px; cursor:pointer; border-radius:10px;
-      color:#cfd6e6; border:1px solid rgba(255,255,255,.12); background:#0c1a33; }
-    .auth-tab.active { background:#0a6bff; color:#fff; border-color:#0a6bff; }
-    .auth-body { padding:12px 14px; display:grid; gap:10px; }
-    .auth-input { width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,.14);
-      background:#0c1a33; color:#fff; font-size:16px; }
-    .auth-action { width:100%; padding:12px; border-radius:10px; border:0; cursor:pointer; font-weight:800;
-      background:#0a6bff; color:#fff; box-shadow:0 10px 20px rgba(10,107,255,.3); }
-    .auth-action.secondary { background:#142646; }
-    .auth-link { background:transparent; border:0; color:#a8b3cf; text-decoration:underline; cursor:pointer; }
-    .auth-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .auth-sep { display:flex; align-items:center; gap:10px; color:#a8b3cf; justify-content:center; }
-    .auth-sep::before, .auth-sep::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.12); }
-    .auth-oauth { width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
-      background:#10254a; color:#fff; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:10px; justify-content:center; }
-    .auth-phone summary { cursor:pointer; color:#cfd6e6; }
-    .recaptcha { padding:6px 0; }
-    .auth-error { color:#ff9aa2; font-size:13px; min-height:18px; text-align:center; }
-  </style>
+<meta name="theme-color" content="#000000" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a6bff" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Money Budgeter</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Floating auth buttons -->
-  <div class="auth-fab">
-    <button id="openAuth" class="auth-btn">👤 Sign In</button>
-    <button id="signOutBtn" class="auth-btn secondary hidden">Sign Out</button>
-  </div>
-
-  <!-- Backdrop + popup (hidden by default so it can’t block clicks) -->
-  <div id="authBackdrop" class="auth-backdrop hidden"></div>
-  <div id="authSheet" class="auth-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="auth-head">
-      <div id="authTitle">Account</div>
-      <button class="auth-close" id="authClose">✕</button>
-    </div>
-
-    <div class="auth-tabs">
-      <button id="tabSignIn" class="auth-tab active">Sign In</button>
-      <button id="tabSignUp" class="auth-tab">Sign Up</button>
-    </div>
-
-    <div class="auth-body">
-      <!-- Email / Password -->
-      <input id="emailInput" class="auth-input" type="email" placeholder="Email" autocomplete="email" />
-      <input id="passInput"  class="auth-input" type="password" placeholder="Password" autocomplete="current-password" />
-
-      <div class="auth-row">
-        <button id="authAction" class="auth-action" type="button">Continue</button>
-        <button id="resetBtnAuth" class="auth-link" type="button">Forgot password?</button>
-      </div>
-
-      <div class="auth-sep"><span>or</span></div>
-
-      <button id="googleBtn" class="auth-oauth" type="button">
-        <span>🔵</span> Sign in with Google
-      </button>
-
-      <details class="auth-phone">
-        <summary>Use phone number</summary>
-        <input id="phoneInput" class="auth-input" type="tel" placeholder="+974..." />
-        <div id="recaptcha-container" class="recaptcha hidden"></div>
-        <div class="auth-row">
-          <button id="phoneBtn" class="auth-action" type="button">Send code</button>
-          <input id="smsCode" class="auth-input" type="text" placeholder="Enter code" style="display:none" />
-          <button id="confirmCodeBtn" class="auth-action secondary" type="button" style="display:none">Confirm</button>
-        </div>
-      </details>
-
-      <div id="authErr" class="auth-error"></div>
-    </div>
-  </div>
-
-  <!-- === YOUR APP (kept as-is) === -->
   <div class="calculator-box">
     <div id="settings-icon" onclick="openSettings()">⚙️</div>
     <h1 id="title">Money Budgeter</h1>
@@ -156,16 +53,16 @@
     <div id="history"></div>
   </div>
 
-  <!-- Theme toggle -->
   <div id="mode-toggle" onclick="toggleMode()">🌙</div>
 
-  <!-- Overlay + Settings modal -->
   <div id="overlay"></div>
   <div id="settingsModal" class="modal" aria-modal="true" role="dialog">
     <h3 id="settingsTitle">Settings</h3>
     <hr />
     <h4 id="languageLabel">Language:</h4>
-    <button class="btn" onclick="toggleLanguage()"><span id="langBtn">Switch to Arabic 🇸🇦</span></button>
+    <button class="btn" onclick="toggleLanguage()">
+      <span id="langBtn">Switch to Arabic 🇸🇦</span>
+    </button>
 
     <h4 id="featuresLabel">Features:</h4>
     <label><span id="toggleRepeatLbl">Show Repeat</span><input type="checkbox" id="toggleRepeat" /></label>
@@ -179,371 +76,252 @@
     <button class="btn" onclick="closeSettings()">Close</button>
   </div>
 
-  <!-- ======= APP LOGIC (your original, trimmed only for clarity) ======= -->
-  <script>
-  const modeBtn = document.getElementById('mode-toggle');
-  const overlay = document.getElementById('overlay');
-  const settingsModal = document.getElementById('settingsModal');
-  const historyEl = document.getElementById('history');
-  const repeatBtn = document.getElementById('repeatBtn');
-  const clearBtn  = document.getElementById('clearBtn');
-  const resetBtn  = document.getElementById('resetBtn');
+<script>
+const modeBtn = document.getElementById('mode-toggle');
+const overlay = document.getElementById('overlay');
+const settingsModal = document.getElementById('settingsModal');
+const historyEl = document.getElementById('history');
+const repeatBtn = document.getElementById('repeatBtn');
+const clearBtn  = document.getElementById('clearBtn');
+const resetBtn  = document.getElementById('resetBtn');
 
-  let categories = JSON.parse(localStorage.getItem('categories')) ||
-    ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
-  let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) ||
-    { repeat:true, clear:true, reset:true };
-  let lang = localStorage.getItem('lang') || 'en';
-  let budget = parseFloat(localStorage.getItem('budget')) || 0;
-  let history = JSON.parse(localStorage.getItem('history')) || [];
+let categories = JSON.parse(localStorage.getItem('categories')) ||
+  ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) ||
+  { repeat:true, clear:true, reset:true };
+let lang = localStorage.getItem('lang') || 'en';
+let budget = parseFloat(localStorage.getItem('budget')) || 0;
+let history = JSON.parse(localStorage.getItem('history')) || [];
 
-  function tickClock(){ const n = new Date();
-    document.getElementById('clock').textContent='🕒 '+n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
-  setInterval(tickClock,1000); tickClock();
+/* Clock */
+function tickClock(){
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    '🕒 ' + n.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tickClock,1000); tickClock();
 
-  const inputEl = document.getElementById('input-display');
-  function appendNumber(n){ inputEl.value += n; }
-  function backspace(){ inputEl.value = inputEl.value.slice(0,-1); }
-  function clearInput(){ inputEl.value = ''; }
+/* Calculator */
+const inputEl = document.getElementById('input-display');
+function appendNumber(n){ inputEl.value += n; }
+function backspace(){ inputEl.value = inputEl.value.slice(0,-1); }
+function clearInput(){ inputEl.value = ''; }
 
-  function submitAmount(type){
-    const v = parseFloat(inputEl.value); if (isNaN(v)) return;
-    const ts = new Date().toLocaleString();
-    if (type==='add'){ budget += v; history.push({type:'Add', value:v, timestamp:ts}); }
-    saveBudget(); renderHistory(); clearInput();
+function submitAmount(type){
+  const v = parseFloat(inputEl.value);
+  if (isNaN(v)) return;
+  const ts = new Date().toLocaleString();
+  if (type==='add'){
+    budget += v;
+    history.push({type:'Add', value:v, timestamp:ts});
   }
+  saveBudget(); renderHistory(); clearInput();
+}
 
-  function openOverlay(){ overlay.style.display='block'; }
-  function closeOverlay(){ overlay.style.display='none'; }
-  overlay.addEventListener('click', ()=>{ closeSettings(); closeTempModals(); });
-  function showModal(el){ el.style.display='block'; openOverlay(); }
-  function closeTempModals(){ document.querySelectorAll('.sleek-modal').forEach(el=>el.remove()); closeOverlay(); }
+/* Overlay + Modals */
+function openOverlay(){ overlay.style.display='block'; }
+function closeOverlay(){ overlay.style.display='none'; }
+overlay.addEventListener('click', ()=>{ closeSettings(); closeTempModals(); });
+function showModal(el){ el.style.display='block'; openOverlay(); }
+function closeTempModals(){ document.querySelectorAll('.sleek-modal').forEach(el=>el.remove()); closeOverlay(); }
 
-  function openSubtract(){
-    const m = document.createElement('div'); m.className='modal sleek-modal';
-    m.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-        <h3>${lang==='ar'?'اختر الفئة':'Select Category'}</h3>
-        <button class="close-btn" onclick="(${closeTempModals.toString()})();">✖</button>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
-        ${categories.map(c => `<button class="btn" style="width:90%;margin:6px 0;" onclick="(${doSubtract.toString()})('${c}')">${c}</button>`).join('')}
-      </div>`;
-    document.body.appendChild(m); showModal(m);
-  }
-  function doSubtract(cat){
-    const v = parseFloat(inputEl.value); if (isNaN(v)) { closeTempModals(); return; }
-    const ts = new Date().toLocaleString(); budget -= v;
-    history.push({type:`Subtract (${cat})`, value:v, timestamp:ts});
-    saveBudget(); renderHistory(); clearInput(); closeTempModals();
-  }
+/* Subtract */
+function openSubtract(){
+  const m = document.createElement('div');
+  m.className = 'modal sleek-modal';
+  m.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+      <h3>${lang==='ar'?'اختر الفئة':'Select Category'}</h3>
+      <button class="close-btn" onclick="closeTempModals()">✖</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
+      ${categories.map(c => `<button class="btn" style="width:90%;margin:6px 0;" onclick="doSubtract('${c}')">${c}</button>`).join('')}
+    </div>`;
+  document.body.appendChild(m); showModal(m);
+}
+function doSubtract(cat){
+  const v = parseFloat(inputEl.value);
+  if (isNaN(v)) { closeTempModals(); return; }
+  const ts = new Date().toLocaleString();
+  budget -= v;
+  history.push({type:`Subtract (${cat})`, value:v, timestamp:ts});
+  saveBudget(); renderHistory(); clearInput(); closeTempModals();
+}
 
-  function renderHistory(){ historyEl.innerHTML='';
-    history.slice().reverse().forEach(it=>{
-      const d=document.createElement('div');
-      d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`; historyEl.appendChild(d);
-    });
-  }
-  function clearHistory(){ history=[]; localStorage.setItem('history','[]'); renderHistory(); }
-  function resetBudget(){ budget=0; saveBudget(); }
-  function saveBudget(){ localStorage.setItem('budget', budget); localStorage.setItem('history', JSON.stringify(history)); updateBudget(); }
-  function updateBudget(){ document.getElementById('budget').textContent = `Budget: $${budget.toFixed(2)}`; }
-
-  function toggleMode(){
-    const dark = document.body.classList.contains('dark-mode');
-    document.body.classList.toggle('dark-mode', !dark);
-    document.body.classList.toggle('light-mode', dark);
-    localStorage.setItem('theme', dark ? 'light' : 'dark');
-    modeBtn.textContent = dark ? '🌙' : '☀️';
-  }
-  (function initTheme(){
-    if (localStorage.getItem('theme')==='dark'){
-      document.body.classList.add('dark-mode'); modeBtn.textContent='☀️';
-    } else { document.body.classList.add('light-mode'); }
-  })();
-
-  function openSettings(){ renderSettings(); showModal(settingsModal); }
-  function closeSettings(){ settingsModal.style.display='none'; closeOverlay(); }
-
-  function renderSettings(){
-    const tRepeat = document.getElementById('toggleRepeat');
-    const tClear  = document.getElementById('toggleClear');
-    const tReset  = document.getElementById('toggleReset');
-    tRepeat.checked=!!featureSettings.repeat; tClear.checked=!!featureSettings.clear; tReset.checked=!!featureSettings.reset;
-    applyFeatureVisibility();
-    tRepeat.onchange=()=>{ featureSettings.repeat=tRepeat.checked; persistFeatures(); applyFeatureVisibility(); };
-    tClear.onchange =()=>{ featureSettings.clear=tClear.checked;   persistFeatures(); applyFeatureVisibility(); };
-    tReset.onchange =()=>{ featureSettings.reset=tReset.checked;   persistFeatures(); applyFeatureVisibility(); };
-
-    const list=document.getElementById('categoryList'); list.innerHTML='';
-    categories.forEach((c,i)=>{
-      const row=document.createElement('div');
-      row.innerHTML = `${c}
-        <button style="float:right;background:#ef4444;color:#fff;border:none;border-radius:8px;padding:2px 8px;font-weight:800"
-          onclick="(${removeCategory.toString()})(${i})">X</button>`;
-      list.appendChild(row);
-    });
-  }
-  function applyFeatureVisibility(){ repeatBtn.style.display=featureSettings.repeat?'':'none';
-    clearBtn.style.display=featureSettings.clear?'':'none'; resetBtn.style.display=featureSettings.reset?'':'none'; }
-  function persistFeatures(){ localStorage.setItem('featureSettings', JSON.stringify(featureSettings)); }
-  function addCategory(){ const inp=document.getElementById('newCategoryInput');
-    const val=(inp.value||'').trim(); if(!val || categories.includes(val)) return;
-    categories.push(val); localStorage.setItem('categories', JSON.stringify(categories)); inp.value=''; renderSettings(); }
-  function removeCategory(i){ categories.splice(i,1); localStorage.setItem('categories', JSON.stringify(categories)); renderSettings(); }
-
-  function toggleLanguage(){
-    lang=(lang==='en')?'ar':'en'; localStorage.setItem('lang',lang); applyLanguage();
-  }
-  function applyLanguage(){
-    const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',
-      categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
-      toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
-    const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',
-      categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
-      toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
-    const t=(lang==='ar')?ar:en;
-    document.getElementById('title').textContent=t.title;
-    document.getElementById('settingsTitle').textContent=t.settingsTitle;
-    document.getElementById('languageLabel').textContent=t.languageLabel;
-    document.getElementById('featuresLabel').textContent=t.featuresLabel;
-    document.getElementById('categoryLabel').textContent=t.categoryLabel;
-    document.getElementById('toggleRepeatLbl').textContent=t.toggleRepeatLbl;
-    document.getElementById('toggleClearLbl').textContent=t.toggleClearLbl;
-    document.getElementById('toggleResetLbl').textContent=t.toggleResetLbl;
-    document.getElementById('langBtn').textContent=t.langBtn;
-    document.getElementById('historyLabel').textContent=t.historyLabel;
-    document.body.setAttribute('dir',(lang==='ar')?'rtl':'ltr');
-  }
-  applyLanguage();
-
-  function viewCategoryTotals(){
-    const totals = Object.fromEntries(categories.map(c=>[c,0]));
-    history.forEach(h=>{ const m=h.type.match(/^Subtract \((.+)\)$/); if(m && totals[m[1]]!==undefined) totals[m[1]]+=h.value; });
-    const cur='$', title=(lang==='ar'?'إجمالي الفئات':'Category Totals');
-    const m=document.createElement('div'); m.className='modal sleek-modal';
-    m.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-        <h3>${title}</h3>
-        <button class="close-btn" onclick="(${closeTempModals.toString()})();">✖</button>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
-        ${categories.map(c=>`<button class="btn" style="width:90%;margin:6px 0;" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('')}
-      </div>`;
-    document.body.appendChild(m); showModal(m);
-  }
-
-  function openFullHistory(){
-    const holder=document.createElement('div'); holder.className='sleek-modal';
-    holder.style.position='fixed'; holder.style.inset='0'; holder.style.display='flex';
-    holder.style.justifyContent='center'; holder.style.alignItems='center'; holder.style.zIndex='10000';
-    const panel=document.createElement('div'); panel.style.width='min(800px, 94vw)'; panel.style.maxHeight='90vh';
-    panel.style.overflow='auto'; panel.style.borderRadius='16px'; panel.style.padding='16px';
-    panel.style.background='rgba(16,28,58,.65)'; panel.style.color='#fff';
-    panel.style.boxShadow='0 24px 64px rgba(0,0,0,.45)'; panel.style.border='1px solid rgba(210,225,255,.16)';
-    panel.style.backdropFilter='blur(18px) saturate(150%)';
-    panel.innerHTML=`<h3 style="text-align:center;margin-bottom:10px;">${lang==='ar'?'السجل الكامل':'Full History'}</h3>`+
-      history.slice().reverse().map(it=>`<div style="padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08);">
-      ${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}</div>`).join('')+
-      `<button class="btn" style="margin-top:10px;width:100%;" onclick="(${closeTempModals.toString()})();">${lang==='ar'?'إغلاق':'Close'}</button>`;
-    holder.appendChild(panel); document.body.appendChild(holder); openOverlay();
-  }
-  document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
-
-  function init(){ updateBudget(); renderHistory(); applyFeatureVisibility();
-    modeBtn.textContent=document.body.classList.contains('dark-mode')?'☀️':'🌙'; }
-  init();
-  </script>
-
-  <script src="/pwa-bridge.js"></script>
-  <script>
-  // Disable zoom gestures
-  (function(){
-    document.addEventListener('gesturestart', e=>e.preventDefault(), {passive:false});
-    let last=0; document.addEventListener('touchend', e=>{ const now=Date.now(); if(now-last<=300){e.preventDefault();} last=now; }, {passive:false});
-    document.addEventListener('wheel', e=>{ if(e.ctrlKey) e.preventDefault(); }, {passive:false});
-  })();
-  </script>
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
-    signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-    getRedirectResult, RecaptchaVerifier, signInWithPhoneNumber
-  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-  import {
-    getFirestore, doc, getDoc, setDoc, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDd2lvw5Bkts_ZYq6B_TdPVEE1PthTDcZk",
-    authDomain: "money-budgeter.firebaseapp.com",
-    projectId: "money-budgeter",
-    storageBucket: "money-budgeter.appspot.com",
-    messagingSenderId: "75231300827",
-    appId: "1:75231300827:web:0ed7ad72f0c9647cdf10fe",
-    measurementId: "G-J4ESLJBFVE"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
-  const google = new GoogleAuthProvider();
-
-  // ====== UI refs (match the HTML I gave you) ======
-  const openAuth   = document.getElementById('openAuth');
-  const signOutBtn = document.getElementById('signOutBtn');
-  const sheet      = document.getElementById('authSheet');
-  const backdrop   = document.getElementById('authBackdrop');
-  const closeBtn   = document.getElementById('authClose');
-  const tabIn      = document.getElementById('tabSignIn');
-  const tabUp      = document.getElementById('tabSignUp');
-  const emailInput = document.getElementById('emailInput');
-  const passInput  = document.getElementById('passInput');
-  const errEl      = document.getElementById('authErr');
-  const actionBtn  = document.getElementById('authAction');
-  const resetBtn   = document.getElementById('resetBtnAuth');
-
-  // phone auth
-  const phoneInput = document.getElementById('phoneInput');
-  const recaptchaDiv = document.getElementById('recaptcha-container');
-  const phoneBtn  = document.getElementById('phoneBtn');
-  const smsCode   = document.getElementById('smsCode');
-  const confirmBtn= document.getElementById('confirmCodeBtn');
-
-  let mode='signin', confirmationResult=null, recaptchaVerifier=null;
-
-  // ====== Helpers ======
-  const show = el => el?.classList.remove('hidden');
-  const hide = el => el?.classList.add('hidden');
-  function openSheet(){ show(sheet); show(backdrop); errEl.textContent=''; }
-  function closeSheet(){ hide(sheet); hide(backdrop); errEl.textContent=''; }
-  openAuth.onclick = openSheet; closeBtn.onclick = closeSheet; backdrop.onclick = closeSheet;
-
-  tabIn.onclick = ()=>{ mode='signin';  tabIn.classList.add('active'); tabUp.classList.remove('active'); actionBtn.textContent='Sign In';  errEl.textContent=''; };
-  tabUp.onclick = ()=>{ mode='signup'; tabUp.classList.add('active'); tabIn.classList.remove('active'); actionBtn.textContent='Create Account'; errEl.textContent=''; };
-
-  // ====== Email password ======
-  actionBtn.onclick = async ()=>{
-    errEl.textContent='';
-    const email=(emailInput.value||'').trim(), pass=(passInput.value||'').trim();
-    if(!email || !pass){ errEl.textContent='Enter email and password.'; return; }
-    try{
-      if(mode==='signup') await createUserWithEmailAndPassword(auth, email, pass);
-      else                await signInWithEmailAndPassword(auth, email, pass);
-      closeSheet();
-    }catch(e){ errEl.textContent = (e.code||'auth/error')+': '+e.message; }
-  };
-
-  resetBtn.onclick = async ()=>{
-    const email=(emailInput.value||'').trim();
-    if(!email){ errEl.textContent='Enter your email first.'; return; }
-    try{ await sendPasswordResetEmail(auth, email); errEl.textContent='Reset link sent ✅'; }
-    catch(e){ errEl.textContent = e.message; }
-  };
-
-  // ====== Google sign in (popup with redirect fallback) ======
-  async function googleSignIn(){
-    errEl.textContent='';
-    try{
-      await signInWithPopup(auth, google);
-      closeSheet();
-    }catch(e){
-      // Common causes: popup blocked / iOS / 3rd-party cookies → redirect fallback
-      if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/unauthorized-domain') {
-        await signInWithRedirect(auth, google);
-      } else {
-        errEl.textContent = e.message;
-      }
-    }
-  }
-  document.getElementById('googleBtn').onclick = googleSignIn;
-  // Handle redirect result (iOS/Safari)
-  getRedirectResult(auth).catch(e => { if (e) console.warn(e); });
-
-  // ====== Phone sign in ======
-  function ensureRecaptcha(){
-    if (recaptchaVerifier) return;
-    show(recaptchaDiv);
-    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size:'normal' });
-  }
-  phoneBtn.onclick = async ()=>{
-    errEl.textContent='';
-    const phone=(phoneInput.value||'').trim();
-    if(!phone){ errEl.textContent='Enter phone number.'; return; }
-    try{
-      ensureRecaptcha();
-      confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-      smsCode.style.display='block'; confirmBtn.style.display='inline-block';
-      errEl.textContent='Code sent. Check SMS.';
-    }catch(e){ errEl.textContent = e.message; }
-  };
-  confirmBtn.onclick = async ()=>{
-    const code=(smsCode.value||'').trim();
-    if(!code || !confirmationResult){ errEl.textContent='Enter the SMS code.'; return; }
-    try{ await confirmationResult.confirm(code); closeSheet(); }
-    catch(e){ errEl.textContent = e.message; }
-  };
-
-  // ====== Sign out ======
-  signOutBtn.onclick = ()=>signOut(auth);
-
-  // ====== Firestore sync (per-user) ======
-  async function loadUserData(uid){
-    try{
-      const ref = doc(db,'users',uid);
-      const snap = await getDoc(ref);
-      if (snap.exists()){
-        // Load cloud -> local app state
-        const d = snap.data();
-        window.budget = Number(d.budget ?? 0);
-        window.history = Array.isArray(d.history) ? d.history : [];
-        // save locally and refresh UI
-        localStorage.setItem('budget', window.budget);
-        localStorage.setItem('history', JSON.stringify(window.history));
-        if (typeof updateBudget === 'function') updateBudget();
-        if (typeof renderHistory === 'function') renderHistory();
-      } else {
-        // First time for this user -> seed with current local values
-        await setDoc(ref, {
-          budget: window.budget ?? 0,
-          history: Array.isArray(window.history) ? window.history : [],
-          updatedAt: serverTimestamp()
-        });
-      }
-    }catch(e){ console.warn('loadUserData error:', e); }
-  }
-
-  // Patch your existing save function to also write to Firestore
-  const _saveBudget = window.saveBudget; // keep original
-  window.saveBudget = async function(){
-    try{
-      // call your original local save
-      _saveBudget && _saveBudget();
-      // then sync to Firestore if signed in
-      const u = auth.currentUser;
-      if (u){
-        await setDoc(doc(db,'users',u.uid), {
-          budget: window.budget ?? 0,
-          history: Array.isArray(window.history) ? window.history : [],
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-      }
-    }catch(e){ console.warn('saveBudget sync error:', e); }
-  };
-
-  // React to auth changes
-  onAuthStateChanged(auth, (user)=>{
-    if (user){
-      openAuth.textContent='Account';
-      document.querySelector('#signOutBtn')?.classList.remove('hidden');
-      loadUserData(user.uid);
-    } else {
-      openAuth.textContent='👤 Sign In';
-      document.querySelector('#signOutBtn')?.classList.add('hidden');
-      // keep showing local data for signed-out mode
-    }
+/* History */
+function renderHistory(){
+  historyEl.innerHTML = '';
+  history.slice().reverse().forEach(it=>{
+    const d=document.createElement('div');
+    d.textContent = `${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}`;
+    historyEl.appendChild(d);
   });
+}
+function clearHistory(){ history = []; localStorage.setItem('history','[]'); renderHistory(); }
+function resetBudget(){ budget = 0; saveBudget(); }
+function saveBudget(){
+  localStorage.setItem('budget', budget);
+  localStorage.setItem('history', JSON.stringify(history));
+  updateBudget();
+}
+function updateBudget(){
+  document.getElementById('budget').textContent = `Budget: $${budget.toFixed(2)}`;
+}
+
+/* Theme */
+function toggleMode(){
+  const dark = document.body.classList.contains('dark-mode');
+  document.body.classList.toggle('dark-mode', !dark);
+  document.body.classList.toggle('light-mode', dark);
+  localStorage.setItem('theme', dark ? 'light' : 'dark');
+  modeBtn.textContent = dark ? '🌙' : '☀️';
+}
+(function initTheme(){
+  if (localStorage.getItem('theme')==='dark'){
+    document.body.classList.add('dark-mode'); modeBtn.textContent='☀️';
+  } else { document.body.classList.add('light-mode'); }
+})();
+
+/* Settings */
+function openSettings(){ renderSettings(); showModal(settingsModal); }
+function closeSettings(){ settingsModal.style.display='none'; closeOverlay(); }
+function renderSettings(){
+  const tRepeat=document.getElementById('toggleRepeat');
+  const tClear=document.getElementById('toggleClear');
+  const tReset=document.getElementById('toggleReset');
+  tRepeat.checked=!!featureSettings.repeat;
+  tClear.checked=!!featureSettings.clear;
+  tReset.checked=!!featureSettings.reset;
+  applyFeatureVisibility();
+  tRepeat.onchange=()=>{ featureSettings.repeat=tRepeat.checked; persistFeatures(); applyFeatureVisibility(); };
+  tClear.onchange =()=>{ featureSettings.clear=tClear.checked;   persistFeatures(); applyFeatureVisibility(); };
+  tReset.onchange =()=>{ featureSettings.reset=tReset.checked;   persistFeatures(); applyFeatureVisibility(); };
+  const list=document.getElementById('categoryList');
+  list.innerHTML='';
+  categories.forEach((c,i)=>{
+    const row=document.createElement('div');
+    row.innerHTML = `${c}
+      <button style="float:right;background:#ef4444;color:#fff;border:none;border-radius:8px;padding:2px 8px;font-weight:800"
+        onclick="removeCategory(${i})">X</button>`;
+    list.appendChild(row);
+  });
+}
+function applyFeatureVisibility(){
+  repeatBtn.style.display = featureSettings.repeat ? '' : 'none';
+  clearBtn.style.display  = featureSettings.clear  ? '' : 'none';
+  resetBtn.style.display  = featureSettings.reset  ? '' : 'none';
+}
+function persistFeatures(){ localStorage.setItem('featureSettings', JSON.stringify(featureSettings)); }
+function addCategory(){
+  const inp=document.getElementById('newCategoryInput');
+  const val=(inp.value||'').trim();
+  if(!val || categories.includes(val)) return;
+  categories.push(val);
+  localStorage.setItem('categories', JSON.stringify(categories));
+  inp.value=''; renderSettings();
+}
+function removeCategory(i){
+  categories.splice(i,1);
+  localStorage.setItem('categories', JSON.stringify(categories));
+  renderSettings();
+}
+
+/* Language */
+function toggleLanguage(){
+  lang = (lang==='en') ? 'ar' : 'en';
+  localStorage.setItem('lang', lang);
+  applyLanguage();
+}
+function applyLanguage(){
+  const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',
+    categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
+    toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History'};
+  const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',
+    categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
+    toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل'};
+  const t=(lang==='ar')?ar:en;
+  document.getElementById('title').textContent=t.title;
+  document.getElementById('settingsTitle').textContent=t.settingsTitle;
+  document.getElementById('languageLabel').textContent=t.languageLabel;
+  document.getElementById('featuresLabel').textContent=t.featuresLabel;
+  document.getElementById('categoryLabel').textContent=t.categoryLabel;
+  document.getElementById('toggleRepeatLbl').textContent=t.toggleRepeatLbl;
+  document.getElementById('toggleClearLbl').textContent=t.toggleClearLbl;
+  document.getElementById('toggleResetLbl').textContent=t.toggleResetLbl;
+  document.getElementById('langBtn').textContent=t.langBtn;
+  document.getElementById('historyLabel').textContent=t.historyLabel;
+  document.body.setAttribute('dir', (lang==='ar')?'rtl':'ltr');
+}
+applyLanguage();
+
+/* Category totals */
+function viewCategoryTotals(){
+  const totals = Object.fromEntries(categories.map(c=>[c,0]));
+  history.forEach(h=>{
+    const m = h.type.match(/^Subtract \((.+)\)$/);
+    if (m && totals[m[1]]!==undefined) totals[m[1]] += h.value;
+  });
+  const cur='$';
+  const title = (lang==='ar'?'إجمالي الفئات':'Category Totals');
+  const m = document.createElement('div');
+  m.className = 'modal sleek-modal';
+  m.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+      <h3>${title}</h3>
+      <button class="close-btn" onclick="closeTempModals()">✖</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;margin-top:8px;">
+      ${categories.map(c => `<button class="btn" style="width:90%;margin:6px 0;" disabled>${c}: ${cur}${totals[c].toFixed(2)}</button>`).join('')}
+    </div>`;
+  document.body.appendChild(m); showModal(m);
+}
+
+/* Full History */
+function openFullHistory(){
+  const holder=document.createElement('div');
+  holder.className='sleek-modal';
+  holder.style.position='fixed'; holder.style.inset='0';
+  holder.style.display='flex'; holder.style.justifyContent='center'; holder.style.alignItems='center';
+  holder.style.zIndex='10000';
+  const panel=document.createElement('div');
+  panel.style.width='min(800px, 94vw)'; panel.style.maxHeight='90vh';
+  panel.style.overflow='auto'; panel.style.borderRadius='16px';
+  panel.style.padding='16px'; panel.style.background='rgba(16,28,58,.65)';
+  panel.style.color='#fff'; panel.style.boxShadow='0 24px 64px rgba(0,0,0,.45)';
+  panel.style.border='1px solid rgba(210,225,255,.16)';
+  panel.style.backdropFilter='blur(18px) saturate(150%)';
+  panel.innerHTML=`<h3 style="text-align:center;margin-bottom:10px;">${lang==='ar'?'السجل الكامل':'Full History'}</h3>`+
+    history.slice().reverse().map(it =>
+      `<div style="padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${it.timestamp} — ${it.type}: $${it.value.toFixed(2)}
+      </div>`
+    ).join('')+
+    `<button class="btn" style="margin-top:10px;width:100%;" onclick="closeTempModals()">${lang==='ar'?'إغلاق':'Close'}</button>`;
+  holder.appendChild(panel); document.body.appendChild(holder); openOverlay();
+}
+document.getElementById('toggleHistoryBtn').addEventListener('click', openFullHistory);
+
+function init(){
+  updateBudget(); renderHistory(); applyFeatureVisibility();
+  modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+}
+init();
+</script>
+
+<script src="/pwa-bridge.js"></script>
+<script>
+(function(){
+  document.addEventListener('gesturestart', e=>e.preventDefault(), {passive:false});
+  let last=0;
+  document.addEventListener('touchend', e=>{
+    const now=Date.now();
+    if(now-last<=300)e.preventDefault();
+    last=now;
+  }, {passive:false});
+  document.addEventListener('wheel', e=>{
+    if(e.ctrlKey)e.preventDefault();
+  }, {passive:false});
+})();
 </script>
 </body>
 </html>
