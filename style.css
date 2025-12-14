@@ -9,13 +9,14 @@ body{
 
 /* ========= THEME ========= */
 :root{
-  --primary:#0a1430;
   --brand:#0a6bff;
 
-  --glass-light:rgba(255,255,255,.22);
-  --glass-dark:rgba(14,24,48,.34);
-  --glass-border-light:rgba(255,255,255,.45);
-  --glass-border-dark:rgba(210,225,255,.12);
+  /* MORE FROSTED (less clear) */
+  --glass-light:rgba(255,255,255,.38);
+  --glass-dark:rgba(10,20,50,.60);
+
+  --glass-border-light:rgba(255,255,255,.55);
+  --glass-border-dark:rgba(210,225,255,.14);
 
   --txt:#0b1220;
   --txt-inv:#ffffff;
@@ -47,21 +48,21 @@ body.dark-mode{
   position:relative;
   background:var(--glass-light);
   border:1px solid var(--glass-border-light);
-  backdrop-filter:blur(18px) saturate(140%);
-  box-shadow:0 12px 32px rgba(0,0,0,.12);
+  backdrop-filter:blur(28px) saturate(165%);
+  box-shadow:0 12px 32px rgba(0,0,0,.14);
 }
 body.dark-mode .calculator-box{
   background:var(--glass-dark);
   border:1px solid var(--glass-border-dark);
-  box-shadow:0 18px 42px rgba(0,0,0,.55);
+  box-shadow:0 18px 48px rgba(0,0,0,.60);
 }
 
-/* ========= HEADER ========= */
 h1{
   text-align:center;
   margin-bottom:14px;
   color:#7fb4ff;
   font-weight:800;
+  letter-spacing:.2px;
 }
 body.light-mode h1{color:#0a6bff}
 
@@ -102,15 +103,18 @@ body.light-mode h1{color:#0a6bff}
   background:rgba(13,27,56,.92);
   color:#fff;
   font-size:1.1rem;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
   box-shadow:0 8px 22px rgba(10,20,40,.35);
+  transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
 }
 .numpad button:hover{
+  transform:translateY(-1px);
   background:rgba(18,36,78,1);
+  box-shadow:0 12px 26px rgba(10,20,40,.50);
 }
 .numpad button:disabled{
-  opacity:.4;
+  opacity:.35;
   cursor:not-allowed;
 }
 
@@ -127,14 +131,17 @@ body.light-mode h1{color:#0a6bff}
   padding:12px;
   border:none;
   border-radius:14px;
-  font-weight:800;
+  font-weight:900;
   background:rgba(13,27,56,.96);
   color:#fff;
   cursor:pointer;
   box-shadow:0 10px 26px rgba(10,20,40,.40);
+  transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
 }
 .buttons button:hover{
+  transform:translateY(-1px);
   background:rgba(18,36,78,1);
+  box-shadow:0 14px 32px rgba(10,20,40,.55);
 }
 
 /* ========= HISTORY ========= */
@@ -142,30 +149,40 @@ body.light-mode h1{color:#0a6bff}
   display:flex;
   justify-content:space-between;
   margin:8px 0 10px;
-  font-weight:800;
+  font-weight:900;
 }
 .history-toggle{
   padding:6px 10px;
   border-radius:10px;
   font-size:12px;
-  border:none;
-  background:rgba(90,160,255,.25);
+  border:1px solid var(--glass-border-light);
+  background:rgba(90,160,255,.20);
+  color:#0a3a8b;
   cursor:pointer;
+  backdrop-filter:blur(18px);
 }
 body.dark-mode .history-toggle{
-  background:rgba(22,36,76,.6);
+  background:rgba(22,36,76,.55);
   color:#d7e6ff;
+  border-color:var(--glass-border-dark);
 }
+
 #history{
   max-height:220px;
   overflow:auto;
   border-radius:14px;
   padding:10px;
   background:var(--glass-light);
+  border:1px solid var(--glass-border-light);
+  backdrop-filter:blur(22px) saturate(160%);
 }
 body.dark-mode #history{
   background:var(--glass-dark);
+  border-color:var(--glass-border-dark);
 }
+
+#history::-webkit-scrollbar{width:6px}
+#history::-webkit-scrollbar-thumb{background:#5aa3ff;border-radius:8px}
 
 /* ========= ICONS ========= */
 #settings-icon{
@@ -174,6 +191,11 @@ body.dark-mode #history{
   right:14px;
   font-size:24px;
   cursor:pointer;
+  transition:transform .2s ease, filter .2s ease;
+}
+#settings-icon:hover{
+  transform:rotate(20deg);
+  filter:drop-shadow(0 0 10px rgba(90,160,255,.55));
 }
 #mode-toggle{
   position:fixed;
@@ -181,7 +203,9 @@ body.dark-mode #history{
   bottom:16px;
   font-size:30px;
   cursor:pointer;
+  transition:transform .2s ease;
 }
+#mode-toggle:hover{transform:rotate(18deg) scale(1.05)}
 
 /* ========= OVERLAY ========= */
 #overlay{
@@ -190,6 +214,7 @@ body.dark-mode #history{
   background:rgba(0,0,0,.45);
   display:none;
   z-index:9998;
+  backdrop-filter:blur(10px);
 }
 
 /* ========= MODALS ========= */
@@ -205,15 +230,89 @@ body.dark-mode #history{
   padding:18px;
   background:var(--glass-light);
   border:1px solid var(--glass-border-light);
+  backdrop-filter:blur(28px) saturate(170%);
+  box-shadow:0 22px 60px rgba(0,0,0,.35);
+  display:none;
   z-index:9999;
 }
 body.dark-mode .modal{
   background:var(--glass-dark);
   border:1px solid var(--glass-border-dark);
   color:#fff;
+  box-shadow:0 26px 70px rgba(0,0,0,.62);
 }
 
-/* ========= FULLSCREEN HISTORY (ALL DEVICES FIX) ========= */
+.modal h3{
+  text-align:center;
+  margin-bottom:10px;
+  font-weight:900;
+}
+
+/* THEMED BUTTONS inside modals/settings */
+.modal .btn,
+#settingsModal .btn{
+  display:block;
+  width:100%;
+  margin:10px 0;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:rgba(13,27,56,.96);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 10px 26px rgba(10,20,40,.40);
+  transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
+}
+.modal .btn:hover,
+#settingsModal .btn:hover{
+  transform:translateY(-1px);
+  background:rgba(18,36,78,1);
+  box-shadow:0 14px 32px rgba(10,20,40,.55);
+}
+
+/* round close button */
+.close-btn{
+  width:34px;height:34px;
+  border-radius:50%;
+  border:none;
+  background:var(--brand);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform .12s ease, box-shadow .2s ease;
+}
+.close-btn:hover{
+  transform:scale(1.07);
+  box-shadow:0 0 12px rgba(42,139,255,.55);
+}
+
+/* ========= IMPORTANT FIX =========
+   Subtract & Category Totals popups use: class="modal sleek-modal"
+   We want those CENTERED like normal modals, not fullscreen.
+*/
+.modal.sleek-modal{
+  width:min(440px,94vw);
+  height:auto;
+  display:none; /* JS toggles display */
+  inset:auto;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  justify-content:unset;
+  align-items:unset;
+  background:var(--glass-light);
+  border:1px solid var(--glass-border-light);
+}
+body.dark-mode .modal.sleek-modal{
+  background:var(--glass-dark);
+  border:1px solid var(--glass-border-dark);
+}
+
+/* ========= FULLSCREEN HISTORY (only for the history overlay wrapper) ========= */
 .sleek-modal{
   position:fixed;
   top:0;
@@ -224,8 +323,8 @@ body.dark-mode .modal{
   justify-content:center;
   align-items:center;
   z-index:10000;
+  background:transparent;
 }
-
 .sleek-modal > div{
   width:94vw;
   max-width:800px;
@@ -235,36 +334,127 @@ body.dark-mode .modal{
   padding:16px;
   background:var(--glass-light);
   border:1px solid var(--glass-border-light);
+  backdrop-filter:blur(28px) saturate(165%);
+  box-shadow:0 24px 64px rgba(0,0,0,.40);
 }
 body.dark-mode .sleek-modal > div{
   background:var(--glass-dark);
   border:1px solid var(--glass-border-dark);
+  box-shadow:0 30px 78px rgba(0,0,0,.70);
 }
 
 /* ========= SETTINGS ========= */
-#settingsModal h3{font-weight:900}
+#settingsModal hr{
+  border:none;
+  height:1px;
+  background:rgba(255,255,255,.35);
+  margin:10px 0 12px;
+}
+body.dark-mode #settingsModal hr{background:rgba(255,255,255,.12)}
+
+/* feature toggles */
 #settingsModal label{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin:8px 0;
+  margin:10px 0;
   padding:12px;
   border-radius:14px;
-  background:rgba(240,245,255,.35);
+  background:rgba(240,245,255,.32);
+  border:1px solid rgba(255,255,255,.45);
+  backdrop-filter:blur(18px);
+  font-weight:800;
 }
 body.dark-mode #settingsModal label{
-  background:rgba(18,30,64,.55);
+  background:rgba(18,30,64,.52);
+  border:1px solid rgba(210,225,255,.14);
 }
 
-/* ========= CURRENCY SELECT ========= */
-.mb-select{
+/* toggle switches */
+#settingsModal label input[type="checkbox"]{
+  appearance:none;
+  width:48px;height:28px;
+  border-radius:999px;
+  cursor:pointer;
+  background:rgba(140,160,195,.55);
+  position:relative;
+  transition:background .2s;
+}
+#settingsModal label input[type="checkbox"]::after{
+  content:'';
+  position:absolute;
+  top:3px; left:3px;
+  width:22px;height:22px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+  transition:left .2s;
+}
+#settingsModal label input[type="checkbox"]:checked{
+  background:linear-gradient(180deg,#0a6bff,#094bd4);
+}
+#settingsModal label input[type="checkbox"]:checked::after{left:23px}
+
+/* ========= CATEGORIES LIST (MORE SPACED OUT) ========= */
+#categoryList{
+  margin-top:10px;
+}
+#categoryList > div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  margin:14px 0;             /* MORE SPACE */
+  border-radius:14px;
+  background:rgba(245,248,255,.50);
+  border:1px dashed rgba(160,180,220,.55);
+  backdrop-filter:blur(16px);
+}
+body.dark-mode #categoryList > div{
+  background:rgba(16,28,58,.58);
+  border-color:rgba(210,225,255,.16);
+}
+#categoryList > div button{
+  min-width:32px;
+  min-height:32px;
+  border-radius:10px;
+  border:none;
+  background:#ef4444!important;
+  color:#fff;
+  font-weight:900;
+  box-shadow:0 4px 10px rgba(239,68,68,.35);
+  cursor:pointer;
+}
+
+/* add-category input */
+#newCategoryInput{
   width:100%;
-  padding:10px 12px;
-  margin:8px 0 14px;
+  padding:12px 12px;
+  margin-top:10px;
   border-radius:12px;
   border:1px solid rgba(200,210,230,.8);
   background:rgba(255,255,255,.65);
-  font-weight:800;
+  color:inherit;
+  backdrop-filter:blur(16px);
+}
+body.dark-mode #newCategoryInput{
+  border-color:rgba(210,225,255,.18);
+  background:rgba(16,28,58,.55);
+  color:#fff;
+}
+
+/* ========= Currency select ========= */
+.mb-select{
+  width:100%;
+  padding:12px 12px;
+  margin:10px 0 14px;
+  border-radius:12px;
+  border:1px solid rgba(200,210,230,.8);
+  background:rgba(255,255,255,.65);
+  font-weight:900;
+  color:inherit;
+  backdrop-filter:blur(16px);
 }
 body.dark-mode .mb-select{
   background:rgba(16,28,58,.55);
@@ -277,3 +467,7 @@ input,select,textarea{font-size:16px}
 
 /* ========= RTL ========= */
 body[dir="rtl"]{direction:rtl;text-align:right}
+body[dir="rtl"] .calculator-box h1{text-align:center}
+
+/* iOS safe-area */
+body{ padding-top: env(safe-area-inset-top); }
