@@ -9,7 +9,6 @@
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0a6bff" />
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Money Budgeter</title>
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -19,9 +18,9 @@
     <div id="settings-icon" onclick="openSettings()">⚙️</div>
     <h1 id="title">Money Budgeter</h1>
     <div id="clock">🕒 --:--</div>
-    <div id="budget">Budget: $0</div>
+    <div id="budget">Budget: $0.00</div>
 
-    <input id="input-display" placeholder="Enter amount" readonly />
+    <input id="input-display" placeholder="0.00" readonly />
 
     <div class="numpad">
       <button onclick="appendNumber('1')">1</button>
@@ -35,8 +34,8 @@
       <button onclick="appendNumber('9')">9</button>
       <button onclick="appendNumber('0')">0</button>
 
-      <!-- decimal button removed (cents input mode) -->
-      <button disabled style="opacity:.45;cursor:not-allowed;">.</button>
+      <!-- Decimal button becomes visible ONLY when Smart cents input is OFF -->
+      <button id="decimalBtn" onclick="appendDecimal()">.</button>
 
       <button onclick="backspace()">⌫</button>
     </div>
@@ -62,6 +61,7 @@
 
   <!-- Overlay + Settings modal -->
   <div id="overlay"></div>
+
   <div id="settingsModal" class="modal" aria-modal="true" role="dialog">
     <h3 id="settingsTitle">Settings</h3>
     <hr />
@@ -71,7 +71,6 @@
       <span id="langBtn">Switch to Arabic 🇸🇦</span>
     </button>
 
-    <!-- Currency -->
     <h4 id="currencyLabel">Currency:</h4>
     <select id="currencySelect" class="mb-select">
       <option value="USD">USD ($)</option>
@@ -85,6 +84,13 @@
     </select>
 
     <h4 id="featuresLabel">Features:</h4>
+
+    <!-- NEW: Input mode toggle -->
+    <label>
+      <span id="toggleCentsLbl">Smart cents input</span>
+      <input type="checkbox" id="toggleCentsMode" />
+    </label>
+
     <label><span id="toggleRepeatLbl">Show Repeat</span><input type="checkbox" id="toggleRepeat" /></label>
     <label><span id="toggleClearLbl">Show Clear History</span><input type="checkbox" id="toggleClear" /></label>
     <label><span id="toggleResetLbl">Show Reset</span><input type="checkbox" id="toggleReset" /></label>
@@ -105,14 +111,23 @@ const historyEl = document.getElementById('history');
 const repeatBtn = document.getElementById('repeatBtn');
 const clearBtn  = document.getElementById('clearBtn');
 const resetBtn  = document.getElementById('resetBtn');
+const decimalBtn = document.getElementById('decimalBtn');
 
 let categories = JSON.parse(localStorage.getItem('categories')) ||
   ['Leisure','Transportation','Food','Groceries','Others','Games','Friends'];
+
 let featureSettings = JSON.parse(localStorage.getItem('featureSettings')) ||
   { repeat:true, clear:true, reset:true };
+
 let lang = localStorage.getItem('lang') || 'en';
 let budget = parseFloat(localStorage.getItem('budget')) || 0;
 let history = JSON.parse(localStorage.getItem('history')) || [];
+
+/* ======= Input mode =======
+   centsMode = true  => type digits only, auto-decimal
+   centsMode = false => classic decimal mode (uses "." button)
+*/
+let centsMode = (localStorage.getItem('centsMode') ?? 'true') === 'true';
 
 /* ======= Currency helpers ======= */
 function getCurrency(){
@@ -135,9 +150,13 @@ function tickClock(){
 }
 setInterval(tickClock,1000); tickClock();
 
-/* ======= Cents keypad input (no decimal needed) ======= */
+/* ======= Input state ======= */
 const inputEl = document.getElementById('input-display');
-let amountDigits = ''; // "14567" => 145.67
+
+// cents mode uses digits only: "14567" => 145.67
+let amountDigits = '';
+// decimal mode uses a raw string like "12.34"
+let amountRaw = '';
 
 function moneyFromDigits(d){
   if (!d) return 0;
@@ -145,36 +164,83 @@ function moneyFromDigits(d){
   if (isNaN(cents)) return 0;
   return cents / 100;
 }
+function moneyFromRaw(s){
+  if (!s) return 0;
+  const v = parseFloat(s);
+  if (isNaN(v)) return 0;
+  return v;
+}
+
 function renderAmountInput(){
-  const val = moneyFromDigits(amountDigits);
-  inputEl.value = formatMoney(val);
+  const v = centsMode ? moneyFromDigits(amountDigits) : moneyFromRaw(amountRaw);
+  inputEl.value = formatMoney(v);
 }
-function appendNumber(n){
-  if (!/^\d$/.test(n)) return;
-  if (amountDigits.length >= 12) return;
-  if (amountDigits === '0') amountDigits = '';
-  amountDigits += n;
-  renderAmountInput();
+
+function syncDecimalButton(){
+  // hide decimal button in cents mode
+  decimalBtn.style.display = centsMode ? 'none' : '';
 }
-function backspace(){
-  amountDigits = amountDigits.slice(0, -1);
-  renderAmountInput();
-}
+
 function clearInput(){
   amountDigits = '';
-  inputEl.value = '';
+  amountRaw = '';
+  renderAmountInput();
 }
-renderAmountInput();
+
+function appendNumber(n){
+  if (!/^\d$/.test(n)) return;
+
+  if (centsMode){
+    if (amountDigits.length >= 12) return;
+    if (amountDigits === '0') amountDigits = '';
+    amountDigits += n;
+  } else {
+    // decimal mode: enforce max 2 decimal places
+    if (amountRaw.length >= 14) return;
+    if (amountRaw.includes('.')){
+      const parts = amountRaw.split('.');
+      const dec = parts[1] ?? '';
+      if (dec.length >= 2) return;
+    }
+    amountRaw += n;
+  }
+
+  renderAmountInput();
+}
+
+function appendDecimal(){
+  if (centsMode) return;
+  if (!amountRaw) amountRaw = '0';
+  if (amountRaw.includes('.')) return;
+  amountRaw += '.';
+  renderAmountInput();
+}
+
+function backspace(){
+  if (centsMode){
+    amountDigits = amountDigits.slice(0, -1);
+  } else {
+    amountRaw = amountRaw.slice(0, -1);
+  }
+  renderAmountInput();
+}
 
 /* ======= Add/Subtract ======= */
+function getCurrentAmount(){
+  return centsMode ? moneyFromDigits(amountDigits) : moneyFromRaw(amountRaw);
+}
+
 function submitAmount(type){
-  const v = moneyFromDigits(amountDigits);
+  const v = getCurrentAmount();
   if (!v) return;
+
   const ts = new Date().toLocaleString();
+
   if (type==='add'){
     budget += v;
     history.push({type:'Add', value:v, timestamp:ts});
   }
+
   saveBudget(); renderHistory(); clearInput();
 }
 
@@ -193,7 +259,7 @@ function closeTempModals(){
 /* ======= Subtract ======= */
 function openSubtract(){
   const m = document.createElement('div');
-  m.className = 'modal sleek-modal';
+  m.className = 'modal sleek-modal'; // your CSS centers these now
   m.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
       <h3>${lang==='ar'?'اختر الفئة':'Select Category'}</h3>
@@ -208,7 +274,7 @@ function openSubtract(){
   showModal(m);
 }
 function doSubtract(cat){
-  const v = moneyFromDigits(amountDigits);
+  const v = getCurrentAmount();
   if (!v) { closeTempModals(); return; }
   const ts = new Date().toLocaleString();
   budget -= v;
@@ -290,6 +356,20 @@ function renderSettings(){
     };
   }
 
+  // cents mode toggle
+  const centsToggle = document.getElementById('toggleCentsMode');
+  if (centsToggle){
+    centsToggle.checked = centsMode;
+    centsToggle.onchange = ()=>{
+      centsMode = centsToggle.checked;
+      localStorage.setItem('centsMode', centsMode ? 'true' : 'false');
+
+      // switch mode cleanly
+      clearInput();
+      syncDecimalButton();
+    };
+  }
+
   const list=document.getElementById('categoryList');
   list.innerHTML='';
   categories.forEach((c,i)=>{
@@ -333,11 +413,14 @@ function toggleLanguage(){
 function applyLanguage(){
   const en={title:'Money Budgeter',settingsTitle:'Settings',languageLabel:'Language:',featuresLabel:'Features:',
     categoryLabel:'Custom Categories:',toggleRepeatLbl:'Show Repeat',toggleClearLbl:'Show Clear History',
-    toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History',currencyLabel:'Currency:'};
+    toggleResetLbl:'Show Reset',langBtn:'Switch to Arabic 🇸🇦',historyLabel:'History',currencyLabel:'Currency:',
+    toggleCentsLbl:'Smart cents input'};
   const ar={title:'مدير الميزانية',settingsTitle:'الإعدادات',languageLabel:'اللغة:',featuresLabel:'الخصائص:',
     categoryLabel:'الفئات المخصصة:',toggleRepeatLbl:'عرض التكرار',toggleClearLbl:'عرض مسح السجل',
-    toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل',currencyLabel:'العملة:'};
+    toggleResetLbl:'عرض إعادة الضبط',langBtn:'التبديل إلى الإنجليزية 🇬🇧',historyLabel:'السجل',currencyLabel:'العملة:',
+    toggleCentsLbl:'إدخال ذكي (سنتات)'};
   const t=(lang==='ar')?ar:en;
+
   document.getElementById('title').textContent=t.title;
   document.getElementById('settingsTitle').textContent=t.settingsTitle;
   document.getElementById('languageLabel').textContent=t.languageLabel;
@@ -349,6 +432,8 @@ function applyLanguage(){
   document.getElementById('langBtn').textContent=t.langBtn;
   document.getElementById('historyLabel').textContent=t.historyLabel;
   document.getElementById('currencyLabel').textContent=t.currencyLabel;
+  document.getElementById('toggleCentsLbl').textContent=t.toggleCentsLbl;
+
   document.body.setAttribute('dir', (lang==='ar')?'rtl':'ltr');
 }
 applyLanguage();
@@ -363,7 +448,7 @@ function viewCategoryTotals(){
   const title = (lang==='ar'?'إجمالي الفئات':'Category Totals');
 
   const m = document.createElement('div');
-  m.className = 'modal sleek-modal';
+  m.className = 'modal sleek-modal'; // centered by CSS
   m.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
       <h3>${title}</h3>
@@ -383,30 +468,7 @@ function openFullHistory(){
   const holder = document.createElement('div');
   holder.className = 'sleek-modal';
 
-  // Center on all devices (your CSS handles this)
-  holder.style.position = 'fixed';
-  holder.style.top = '0';
-  holder.style.left = '0';
-  holder.style.width = '100vw';
-  holder.style.height = '100vh';
-  holder.style.display = 'flex';
-  holder.style.justifyContent = 'center';
-  holder.style.alignItems = 'center';
-  holder.style.zIndex = '10000';
-  holder.style.background = 'transparent';
-
   const panel = document.createElement('div');
-  panel.style.width = 'min(800px, 94vw)';
-  panel.style.maxHeight = '90vh';
-  panel.style.overflow = 'auto';
-  panel.style.borderRadius = '16px';
-  panel.style.padding = '16px';
-  panel.style.background = document.body.classList.contains('dark-mode') ? 'rgba(16,28,58,.65)' : 'rgba(255,255,255,.25)';
-  panel.style.color = document.body.classList.contains('dark-mode') ? '#fff' : '#0b1220';
-  panel.style.boxShadow = '0 24px 64px rgba(0,0,0,.45)';
-  panel.style.border = document.body.classList.contains('dark-mode') ? '1px solid rgba(210,225,255,.16)' : '1px solid rgba(255,255,255,.45)';
-  panel.style.backdropFilter = 'blur(18px) saturate(150%)';
-
   panel.innerHTML =
     `<h3 style="text-align:center;margin-bottom:10px;">${lang==='ar'?'السجل الكامل':'Full History'}</h3>` +
     history.slice().reverse().map(it =>
@@ -427,6 +489,8 @@ function init(){
   updateBudget();
   renderHistory();
   applyFeatureVisibility();
+  syncDecimalButton();
+  renderAmountInput();
   modeBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
 }
 init();
